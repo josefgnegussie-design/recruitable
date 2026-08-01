@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 
 const BRANCH_FOCUS = {
-  industri: ["Produktion", "Verkstad"],
-  logistik: ["Lager", "Logistik"],
+  industri: ["Industriell tillverkning"],
+  logistik: ["Transport, distribution, lager"],
 };
 
 export default function BranchPicker() {

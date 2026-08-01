@@ -8,6 +8,9 @@ const PREVIEW_IDS = [4, 1, 9];
 
 export default function LandingPage() {
   const preview = PREVIEW_IDS.map((id) => COMPANIES.find((c) => c.id === id));
+  const focusAreaCount = new Set(COMPANIES.flatMap((c) => c.focus)).size;
+  const kaCount = COMPANIES.filter((c) => c.ka).length;
+  const oldestYear = Math.min(...COMPANIES.map((c) => c.founded));
 
   return (
     <div id="view-landing">
@@ -27,7 +30,7 @@ export default function LandingPage() {
             Genom Recruitable går det att sätta villkoren och förmedla behoven innan ett första möte.
           </p>
           <div className="l-cta-row">
-            <Link className="btn-lg primary" href="/bolag">Se alla 20 bolag</Link>
+            <Link className="btn-lg primary" href="/bolag">Se alla {COMPANIES.length} bolag</Link>
             <a className="btn-lg text" href="#l-how">Så funkar det ↓</a>
           </div>
         </div>
@@ -102,10 +105,10 @@ export default function LandingPage() {
 
       <div className="l-stat-band">
         <div className="l-stat-inner">
-          <div className="l-stat"><span className="num">20</span><span className="label">Bolag i registret</span></div>
-          <div className="l-stat"><span className="num">4</span><span className="label">Fokusområden</span></div>
-          <div className="l-stat"><span className="num">12/20</span><span className="label">Med kollektivavtal</span></div>
-          <div className="l-stat"><span className="num">1973</span><span className="label">Äldsta etableringsåret</span></div>
+          <div className="l-stat"><span className="num">{COMPANIES.length}</span><span className="label">Bolag i registret</span></div>
+          <div className="l-stat"><span className="num">{focusAreaCount}</span><span className="label">Fokusområden</span></div>
+          <div className="l-stat"><span className="num">{kaCount}/{COMPANIES.length}</span><span className="label">Med kollektivavtal</span></div>
+          <div className="l-stat"><span className="num">{oldestYear}</span><span className="label">Äldsta etableringsåret</span></div>
         </div>
       </div>
 
@@ -131,7 +134,7 @@ export default function LandingPage() {
             </Link>
           ))}
         </div>
-        <Link className="btn-lg primary" href="/bolag">Se alla 20 bolag →</Link>
+        <Link className="btn-lg primary" href="/bolag">Se alla {COMPANIES.length} bolag →</Link>
       </section>
 
       <section className="l-section tight">

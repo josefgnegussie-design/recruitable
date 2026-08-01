@@ -53,7 +53,7 @@ export default function PartnersPage() {
             rangordnade efter relevans för just era behov.
           </p>
           <div className="hero-stats">
-            <div className="stat"><span className="num">20</span><span className="label">Bolag i registret</span></div>
+            <div className="stat"><span className="num">{COMPANIES.length}</span><span className="label">Bolag i registret</span></div>
           </div>
         </div>
         <div className="hero-panel">
