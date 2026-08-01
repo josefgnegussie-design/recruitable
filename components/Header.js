@@ -7,6 +7,7 @@ export default function Header() {
   const pathname = usePathname();
   const isLanding = pathname === "/";
   const isPartners = pathname.startsWith("/partners");
+  const isBolag = pathname.startsWith("/bolag");
 
   return (
     <header className="site">
@@ -16,9 +17,9 @@ export default function Header() {
         </Link>
         <nav className="site-nav">
           <Link href="/" className={isLanding ? "active" : ""}>Hem</Link>
-          <Link href="/partners" className={isPartners ? "active" : ""}>Partners</Link>
+          <Link href="/partners" className={isPartners ? "active" : ""}>Rekrytera</Link>
+          <Link href="/bolag" className={isBolag ? "active" : ""}>Bolag</Link>
           <span onClick={() => alert("Prototyp: sidan Om oss byggs i nasta steg.")}>Om oss</span>
-          <span onClick={() => alert("Prototyp: inloggning byggs i nasta steg.")}>Logga in</span>
         </nav>
       </div>
     </header>
