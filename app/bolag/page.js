@@ -7,55 +7,47 @@ import { FILTER_DEFS } from "@/lib/taxonomy";
 import { empNum } from "@/lib/helpers";
 import CompanyCard from "@/components/CompanyCard";
 
-const QUICK_CHIPS = ["Produktion", "Lager", "Logistik", "Verkstad"];
-const AUKTORISATION_OPTIONS = ["Bemanning", "Rekrytering"];
 const CITY_OPTIONS = [...new Set(COMPANIES.map((c) => c.city))].sort((a, b) => a.localeCompare(b, "sv"));
+
+function auktorisationCategory(c) {
+  const hasBemanning = c.auktorisation.includes("Bemanning");
+  const hasRekrytering = c.auktorisation.includes("Rekrytering");
+  if (hasBemanning && hasRekrytering) return "Både och";
+  if (hasBemanning) return "Bemanning";
+  if (hasRekrytering) return "Rekrytering";
+  return "Inget av ovanstående";
+}
 
 function BolagContent() {
   const searchParams = useSearchParams();
   const initialFocus = searchParams.get("fokus");
 
-  const [focus, setFocus] = useState(() => new Set(initialFocus ? initialFocus.split(",") : []));
-  const [service, setService] = useState(() => new Set());
-  const [sizeBand, setSizeBand] = useState(() => new Set());
-  const [city, setCity] = useState(() => new Set());
-  const [auktorisation, setAuktorisation] = useState(() => new Set());
-  const [kaOnly, setKaOnly] = useState(false);
+  const [city, setCity] = useState("");
+  const [focus, setFocus] = useState(() => (initialFocus ? initialFocus.split(",")[0] : ""));
+  const [service, setService] = useState("");
+  const [sizeBand, setSizeBand] = useState("");
+  const [ka, setKa] = useState("");
+  const [auktorisation, setAuktorisation] = useState("");
   const [sort, setSort] = useState("name");
 
-  function toggleSetValue(setter) {
-    return (val) => {
-      setter((prev) => {
-        const next = new Set(prev);
-        if (next.has(val)) next.delete(val);
-        else next.add(val);
-        return next;
-      });
-    };
-  }
-  const toggleFocus = toggleSetValue(setFocus);
-  const toggleService = toggleSetValue(setService);
-  const toggleSizeBand = toggleSetValue(setSizeBand);
-  const toggleCity = toggleSetValue(setCity);
-  const toggleAuktorisation = toggleSetValue(setAuktorisation);
-
   function resetFilters() {
-    setFocus(new Set());
-    setService(new Set());
-    setSizeBand(new Set());
-    setCity(new Set());
-    setAuktorisation(new Set());
-    setKaOnly(false);
+    setCity("");
+    setFocus("");
+    setService("");
+    setSizeBand("");
+    setKa("");
+    setAuktorisation("");
   }
 
   const list = useMemo(() => {
     const filtered = COMPANIES.filter((c) => {
-      if (focus.size && !c.focus.some((f) => focus.has(f))) return false;
-      if (service.size && !c.services.some((s) => service.has(s))) return false;
-      if (sizeBand.size && !sizeBand.has(c.sizeBand)) return false;
-      if (city.size && !city.has(c.city)) return false;
-      if (auktorisation.size && !c.auktorisation.some((a) => auktorisation.has(a))) return false;
-      if (kaOnly && !c.ka) return false;
+      if (city && c.city !== city) return false;
+      if (focus && !c.focus.includes(focus)) return false;
+      if (service && !c.services.includes(service)) return false;
+      if (sizeBand && c.sizeBand !== sizeBand) return false;
+      if (ka === "ja" && !c.ka) return false;
+      if (ka === "nej" && c.ka) return false;
+      if (auktorisation && auktorisationCategory(c) !== auktorisation) return false;
       return true;
     });
     const sorted = [...filtered];
@@ -63,7 +55,7 @@ function BolagContent() {
     else if (sort === "founded") sorted.sort((a, b) => a.founded - b.founded);
     else sorted.sort((a, b) => a.name.localeCompare(b.name, "sv"));
     return sorted;
-  }, [focus, service, sizeBand, city, auktorisation, kaOnly, sort]);
+  }, [city, focus, service, sizeBand, ka, auktorisation, sort]);
 
   return (
     <div id="view-home">
@@ -91,84 +83,88 @@ function BolagContent() {
           </div>
         </div>
         <div className="hero-panel">
-          <p>Testa filtret direkt — resultatet nedan uppdateras live.</p>
-          <div className="chip-row">
-            {QUICK_CHIPS.map((q) => (
-              <button key={q} className={`chip ${focus.has(q) ? "on" : ""}`} onClick={() => toggleFocus(q)}>{q}</button>
-            ))}
+          <div className="filter-title">Filtrering &amp; Segmentering</div>
+          <div className="field-row">
+            <div className="field">
+              <label htmlFor="f-city">Stad</label>
+              <select id="f-city" value={city} onChange={(e) => setCity(e.target.value)}>
+                <option value="">Alla städer</option>
+                {CITY_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="f-focus">{FILTER_DEFS.focus.label}</label>
+              <select id="f-focus" value={focus} onChange={(e) => setFocus(e.target.value)}>
+                <option value="">Alla branscher</option>
+                {FILTER_DEFS.focus.options.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
           </div>
+          <div className="field-row">
+            <div className="field">
+              <label htmlFor="f-service">{FILTER_DEFS.service.label}</label>
+              <select id="f-service" value={service} onChange={(e) => setService(e.target.value)}>
+                <option value="">Alla tjänster</option>
+                {FILTER_DEFS.service.options.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="f-size">{FILTER_DEFS.sizeBand.label}</label>
+              <select id="f-size" value={sizeBand} onChange={(e) => setSizeBand(e.target.value)}>
+                <option value="">Alla storlekar</option>
+                {FILTER_DEFS.sizeBand.options.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field">
+              <label htmlFor="f-ka">Kollektivavtal</label>
+              <select id="f-ka" value={ka} onChange={(e) => setKa(e.target.value)}>
+                <option value="">Alla</option>
+                <option value="ja">Har kollektivavtal</option>
+                <option value="nej">Har inte kollektivavtal</option>
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="f-auk">Auktorisation</label>
+              <select id="f-auk" value={auktorisation} onChange={(e) => setAuktorisation(e.target.value)}>
+                <option value="">Alla</option>
+                <option value="Bemanning">Bemanning</option>
+                <option value="Rekrytering">Rekrytering</option>
+                <option value="Både och">Både och</option>
+                <option value="Inget av ovanstående">Inget av ovanstående</option>
+              </select>
+            </div>
+          </div>
+          <button className="reset-btn" onClick={resetFilters}>Rensa alla filter</button>
         </div>
       </section>
 
-      <main>
-        <aside className="filters">
-          <h3>Filtrera</h3>
-          <div className="filter-group">
-            <h4>Stad</h4>
-            {CITY_OPTIONS.map((opt) => (
-              <div className="fcheck" key={opt} onClick={() => toggleCity(opt)}>
-                <div className={`box ${city.has(opt) ? "checked" : ""}`}></div>{opt}
-              </div>
-            ))}
-          </div>
-          <div className="filter-group">
-            <h4>{FILTER_DEFS.focus.label}</h4>
-            {FILTER_DEFS.focus.options.map((opt) => (
-              <div className="fcheck" key={opt} onClick={() => toggleFocus(opt)}>
-                <div className={`box ${focus.has(opt) ? "checked" : ""}`}></div>{opt}
-              </div>
-            ))}
-          </div>
-          <div className="filter-group">
-            <h4>{FILTER_DEFS.service.label}</h4>
-            {FILTER_DEFS.service.options.map((opt) => (
-              <div className="fcheck" key={opt} onClick={() => toggleService(opt)}>
-                <div className={`box ${service.has(opt) ? "checked" : ""}`}></div>{opt}
-              </div>
-            ))}
-          </div>
-          <div className="filter-group">
-            <h4>{FILTER_DEFS.sizeBand.label}</h4>
-            {FILTER_DEFS.sizeBand.options.map((opt) => (
-              <div className="fcheck" key={opt} onClick={() => toggleSizeBand(opt)}>
-                <div className={`box ${sizeBand.has(opt) ? "checked" : ""}`}></div>{opt}
-              </div>
-            ))}
-          </div>
-          <div className="filter-group">
-            <h4>Villkor</h4>
-            <div className="fcheck" onClick={() => setKaOnly((v) => !v)}>
-              <div className={`box ${kaOnly ? "checked" : ""}`}></div>Har kollektivavtal
-            </div>
-          </div>
-          <div className="filter-group">
-            <h4>Auktorisation</h4>
-            {AUKTORISATION_OPTIONS.map((opt) => (
-              <div className="fcheck" key={opt} onClick={() => toggleAuktorisation(opt)}>
-                <div className={`box ${auktorisation.has(opt) ? "checked" : ""}`}></div>Auktoriserat {opt.toLowerCase()}sföretag
-              </div>
-            ))}
-          </div>
-          <button className="reset-btn" onClick={resetFilters}>Rensa alla filter</button>
-        </aside>
-        <section>
-          <div className="results-bar">
-            <div className="results-count"><b>{list.length}</b> bolag matchar dina filter</div>
-            <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
-              <option value="name">Sortera: Namn A–Ö</option>
-              <option value="employees">Sortera: Flest medarbetare</option>
-              <option value="founded">Sortera: Äldst etablerat</option>
-            </select>
-          </div>
-          <div className="grid">
-            {list.length === 0 ? (
-              <div className="empty-note" style={{ gridColumn: "1/-1" }}>Inga bolag matchar just nu — testa att rensa något filter.</div>
-            ) : (
-              list.map((c) => <CompanyCard company={c} key={c.id} />)
-            )}
-          </div>
-        </section>
-      </main>
+      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "10px 24px 40px" }}>
+        <div className="results-bar">
+          <div className="results-count"><b>{list.length}</b> bolag matchar dina filter</div>
+          <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
+            <option value="name">Sortera: Namn A–Ö</option>
+            <option value="employees">Sortera: Flest medarbetare</option>
+            <option value="founded">Sortera: Äldst etablerat</option>
+          </select>
+        </div>
+        <div className="grid">
+          {list.length === 0 ? (
+            <div className="empty-note" style={{ gridColumn: "1/-1" }}>Inga bolag matchar just nu — testa att rensa något filter.</div>
+          ) : (
+            list.map((c) => <CompanyCard company={c} key={c.id} />)
+          )}
+        </div>
+      </div>
 
       <div className="disclaimer">
         <b>Om datan:</b> Omsättning, antal medarbetare, adress och etableringsår är hämtade från offentliga källor
