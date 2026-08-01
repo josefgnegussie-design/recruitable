@@ -2,7 +2,7 @@ import Link from "next/link";
 import { COMPANIES } from "@/lib/companies";
 import QuickStartPanel from "@/components/QuickStartPanel";
 import BranchPicker from "@/components/BranchPicker";
-import NearbyMap from "@/components/NearbyMap";
+import NearbyCompanies from "@/components/NearbyCompanies";
 
 const PREVIEW_IDS = [4, 1, 9];
 
@@ -147,8 +147,8 @@ export default function LandingPage() {
       <section className="l-section tight">
         <div className="l-kicker">Nära dig</div>
         <h2>Hitta bolag i din närhet</h2>
-        <p className="l-section-sub">Skriv in er adress så visar vi vilka bemannings- och rekryteringsbolag som finns inom 25 km.</p>
-        <NearbyMap />
+        <p className="l-section-sub">Skriv in er adress så listar vi bemannings- och rekryteringsbolagen i registret, från närmast till längst bort.</p>
+        <NearbyCompanies />
       </section>
 
       <footer className="site-footer">
