@@ -3,11 +3,17 @@
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { COMPANIES } from "@/lib/companies";
-import { FILTER_DEFS } from "@/lib/taxonomy";
-import { empNum } from "@/lib/helpers";
+import { FILTER_DEFS, AREA_TO_BRANSCH } from "@/lib/taxonomy";
+import { empNum, allRegionCities } from "@/lib/helpers";
 import CompanyCard from "@/components/CompanyCard";
 
-const CITY_OPTIONS = [...new Set(COMPANIES.map((c) => c.city))].sort((a, b) => a.localeCompare(b, "sv"));
+const CITY_OPTIONS = allRegionCities();
+
+function matchesFocus(c, area) {
+  const branschTags = AREA_TO_BRANSCH[area] || [];
+  if (!branschTags.length) return false;
+  return c.focus.some((f) => branschTags.includes(f));
+}
 
 function auktorisationCategory(c) {
   const hasBemanning = c.auktorisation.includes("Bemanning");
@@ -42,7 +48,7 @@ function BolagContent() {
   const list = useMemo(() => {
     const filtered = COMPANIES.filter((c) => {
       if (city && c.city !== city) return false;
-      if (focus && !c.focus.includes(focus)) return false;
+      if (focus && !matchesFocus(c, focus)) return false;
       if (service && !c.services.includes(service)) return false;
       if (sizeBand && c.sizeBand !== sizeBand) return false;
       if (ka === "ja" && !c.ka) return false;
@@ -78,7 +84,7 @@ function BolagContent() {
           </p>
           <div className="hero-stats">
             <div className="stat"><span className="num">20</span><span className="label">Bolag i registret</span></div>
-            <div className="stat"><span className="num">4</span><span className="label">Fokusområden</span></div>
+            <div className="stat"><span className="num">{FILTER_DEFS.focus.options.length}</span><span className="label">Fokusområden</span></div>
             <div className="stat"><span className="num">1</span><span className="label">Region: Sverige</span></div>
           </div>
         </div>
