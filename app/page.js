@@ -2,6 +2,7 @@ import Link from "next/link";
 import { COMPANIES } from "@/lib/companies";
 import QuickStartPanel from "@/components/QuickStartPanel";
 import BranchPicker from "@/components/BranchPicker";
+import NearbyMap from "@/components/NearbyMap";
 
 const PREVIEW_IDS = [4, 1, 9];
 
@@ -12,7 +13,7 @@ export default function LandingPage() {
     <div id="view-landing">
       <section className="l-hero">
         <div>
-          <div className="l-kicker">Bemanning &amp; rekrytering · Västra Götaland</div>
+          <div className="l-kicker">Bemanning &amp; rekrytering · Sverige</div>
           <h1>
             Välj partner helt <em>objektivt</em>
             <br />
@@ -136,16 +137,23 @@ export default function LandingPage() {
       <section className="l-section tight">
         <div className="l-cta-band">
           <div>
-            <h3>Redo att sålla bland Västra Götalands bemanningsbolag?</h3>
+            <h3>Redo att sålla bland Sveriges bemanningsbolag?</h3>
             <p>Filtrera på bransch och gå vidare till rätt bolags egen webbplats — direkt.</p>
           </div>
           <Link className="btn-lg primary" href="/bolag">Kom igång</Link>
         </div>
       </section>
 
+      <section className="l-section tight">
+        <div className="l-kicker">Nära dig</div>
+        <h2>Hitta bolag i din närhet</h2>
+        <p className="l-section-sub">Skriv in er adress så visar vi vilka bemannings- och rekryteringsbolag som finns inom 25 km.</p>
+        <NearbyMap />
+      </section>
+
       <footer className="site-footer">
         <div className="footer-inner">
-          <div>RECRUITABLE — BEMANNING &amp; REKRYTERING I VÄSTRA GÖTALAND</div>
+          <div>RECRUITABLE — BEMANNING &amp; REKRYTERING</div>
           <div>Data kontrollerad juli 2026 · Prototyp</div>
         </div>
       </footer>

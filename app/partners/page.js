@@ -46,10 +46,10 @@ export default function PartnersPage() {
     <div id="view-partners">
       <section className="hero" style={{ minHeight: "calc(100vh - 160px)", alignContent: "center" }}>
         <div>
-          <div className="eyebrow">Hitta partners · Västra Götaland</div>
+          <div className="eyebrow">Hitta partners · Sverige</div>
           <h1 className="hero-title">Partners</h1>
           <p className="hero-sub">
-            Ange yrkesområde/yrke och län/ort så visar vi bemannings- och rekryteringsbolagen i Västra Götaland
+            Ange yrkesområde/yrke och län/ort så visar vi bemannings- och rekryteringsbolagen i Sverige
             rangordnade efter relevans för just era behov.
           </p>
           <div className="hero-stats">

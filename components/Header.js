@@ -12,12 +12,13 @@ export default function Header() {
     <header className="site">
       <div className="header-inner">
         <Link className="logo" href="/" style={{ cursor: "pointer" }}>
-          <span className="mark"></span>Recruitable<span className="doc-tag">&nbsp;/ VÄSTRA GÖTALAND</span>
+          <span className="mark"></span>Recruitable
         </Link>
         <nav className="site-nav">
           <Link href="/" className={isLanding ? "active" : ""}>Hem</Link>
           <Link href="/partners" className={isPartners ? "active" : ""}>Partners</Link>
-          <span onClick={() => alert("Prototyp: sidan Om Recruitable byggs i nasta steg.")}>Om tjänsten</span>
+          <span onClick={() => alert("Prototyp: sidan Om oss byggs i nasta steg.")}>Om oss</span>
+          <span onClick={() => alert("Prototyp: inloggning byggs i nasta steg.")}>Logga in</span>
         </nav>
       </div>
     </header>

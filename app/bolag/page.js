@@ -63,11 +63,11 @@ function BolagContent() {
           <h1 className="hero-title">
             Bemannings- och
             <br />
-            rekryteringsbolag <em>i Västra Götaland</em>.
+            rekryteringsbolag <em>i Sverige</em>.
           </h1>
           <p className="hero-sub">
             Här ser du samtliga bemannings- och rekryteringsföretag som är verksamma inom produktion, lager, logistik
-            och verkstad i Västra Götaland. Filtrera fram de som matchar era villkor och behov — och gå vidare direkt
+            och verkstad i Sverige. Filtrera fram de som matchar era villkor och behov — och gå vidare direkt
             med rätt partner.
           </p>
           <p className="hero-note">
@@ -77,7 +77,7 @@ function BolagContent() {
           <div className="hero-stats">
             <div className="stat"><span className="num">20</span><span className="label">Bolag i registret</span></div>
             <div className="stat"><span className="num">4</span><span className="label">Fokusområden</span></div>
-            <div className="stat"><span className="num">1</span><span className="label">Region: Västra Götaland</span></div>
+            <div className="stat"><span className="num">1</span><span className="label">Region: Sverige</span></div>
           </div>
         </div>
         <div className="hero-panel">
@@ -149,7 +149,7 @@ function BolagContent() {
         (Bolagsverket via Allabolag/Ratsit/Bolagsfakta/hitta.se) samt respektive bolags egna webbplatser, kontrollerade
         i juli 2026. Där bolagens årsredovisning för 2025 ännu inte var tillgänglig visas senaste rapporterade år
         (2024) istället — detta anges vid varje bolag. Vissa siffror avser koncernnivå snarare än den enskilda
-        juridiska person som är verksam i Västra Götaland. Uppgifterna bör verifieras direkt mot bolagen innan de
+        juridiska person som är verksam i Sverige. Uppgifterna bör verifieras direkt mot bolagen innan de
         används i skarpt beslutsunderlag.
       </div>
     </div>

@@ -1,6 +1,6 @@
 # Recruitable
 
-Jämför bemannings- och rekryteringsföretag i Västra Götaland — bygg på Next.js (App Router), portad från en tidigare fristående HTML-artefakt.
+Jämför bemannings- och rekryteringsföretag i Sverige — byggd på Next.js (App Router), portad från en tidigare fristående HTML-artefakt.
 
 ## Utveckla lokalt
 
@@ -10,6 +10,20 @@ npm run dev
 ```
 
 Öppna [http://localhost:3000](http://localhost:3000).
+
+## Google Maps-nyckel (för "Hitta bolag i din närhet")
+
+Landningssidans karta (sök på adress → visa bolag inom 25 km) kräver en Google Maps API-nyckel. Utan nyckel visas en platshållartext i stället — resten av sidan fungerar som vanligt.
+
+1. Skapa ett projekt i [Google Cloud Console](https://console.cloud.google.com/) och koppla ett betalkonto (Google har en generös gratiskvot, men kräver fakturering aktiverad).
+2. Aktivera **Maps JavaScript API** och **Geocoding API** för projektet.
+3. Skapa en API-nyckel under **APIs & Services → Credentials**.
+4. Begränsa nyckeln (rekommenderas): under "Application restrictions", välj **HTTP referrers** och lägg till din domän (t.ex. `recruitable.se/*` och `localhost:3000/*` för lokal utveckling).
+5. Kopiera `.env.local.example` till `.env.local` och klistra in nyckeln:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+6. Starta om `npm run dev`. Vid publicering till Hostinger: kör `npm run build` med `.env.local` på plats (nyckeln bakas in i de statiska filerna vid byggtillfället, eftersom den är avsedd att vara publik och begränsad via referrer-regler ovan).
 
 ## Bygga för publicering
 
@@ -35,5 +49,5 @@ Sidan fungerar sedan helt utan serverkörning — precis som vilken statisk webb
 
 - `app/` — sidor (App Router): `/`, `/bolag`, `/bolag/[id]`, `/matcha`, `/partners`, `/partners/resultat`
 - `components/` — delade UI-komponenter, inklusive `wizard/` för matchningsflödets sex steg
-- `lib/` — bolagsdata, yrkesområden/län-taxonomi och GFL-beräkningen (bemanningsavtalet § 5)
+- `lib/` — bolagsdata (inkl. geokodade lat/lng-koordinater), yrkesområden/län-taxonomi och GFL-beräkningen (bemanningsavtalet § 5)
 - `public/logos/` — inbäddade bolagslogotyper
