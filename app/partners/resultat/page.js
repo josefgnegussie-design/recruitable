@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { COMPANIES } from "@/lib/companies";
 import { partnersRelevance } from "@/lib/helpers";
-import LogoTile from "@/components/LogoTile";
+import CompanyCard from "@/components/CompanyCard";
 
 function PartnersResultContent() {
   const searchParams = useSearchParams();
@@ -38,9 +38,9 @@ function PartnersResultContent() {
         <div className="results-bar">
           <div className="results-count"><b>{list.length}</b> partners, mest relevanta först</div>
         </div>
-        <div className="logo-grid">
+        <div className="grid">
           {list.map((c) => (
-            <LogoTile company={c} key={c.id} />
+            <CompanyCard company={c} key={c.id} />
           ))}
         </div>
       </div>

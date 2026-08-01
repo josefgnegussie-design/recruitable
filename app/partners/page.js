@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { COMPANIES } from "@/lib/companies";
 import { YRKESOMRADEN, REGION_MAP } from "@/lib/taxonomy";
 import { rolesForArea, citiesForRegion } from "@/lib/helpers";
-import LogoTile from "@/components/LogoTile";
+import CompanyCard from "@/components/CompanyCard";
 
 export default function PartnersPage() {
   const router = useRouter();
@@ -106,9 +106,9 @@ export default function PartnersPage() {
         <div className="l-kicker">Bäst rankade · Google-betyg</div>
         <h2>Topprankade partners</h2>
         <p className="l-section-sub">Sex av registrets högst rankade bolag enligt Google-recensioner.</p>
-        <div className="logo-grid">
+        <div className="grid">
           {topRated.map((c) => (
-            <LogoTile company={c} key={c.id} />
+            <CompanyCard company={c} key={c.id} />
           ))}
         </div>
       </section>
