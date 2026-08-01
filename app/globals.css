@@ -502,6 +502,10 @@ a:hover{color:var(--color-accent)}
   .l-cta-band .btn-lg.primary:hover{background:var(--warm-50);}
 
   .nearby-widget{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:28px;}
+  .nearby-autocomplete{position:relative;}
+  .nearby-suggest-list{position:absolute;top:100%;left:0;right:0;z-index:20;margin:4px 0 0;padding:6px;list-style:none;background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-md);box-shadow:var(--shadow-elevated);max-height:260px;overflow-y:auto;}
+  .nearby-suggest-list li{padding:9px 10px;font-size:13.5px;color:var(--color-body);border-radius:var(--radius-sm);cursor:pointer;}
+  .nearby-suggest-list li:hover{background:var(--color-surface-soft);color:var(--color-ink);}
   .nearby-results{margin-top:4px;}
   .nearby-results .flow-suggest-card{align-items:center;}
 
