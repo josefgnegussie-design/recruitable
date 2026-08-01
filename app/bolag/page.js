@@ -8,6 +8,8 @@ import { empNum } from "@/lib/helpers";
 import CompanyCard from "@/components/CompanyCard";
 
 const QUICK_CHIPS = ["Produktion", "Lager", "Logistik", "Verkstad"];
+const AUKTORISATION_OPTIONS = ["Bemanning", "Rekrytering"];
+const CITY_OPTIONS = [...new Set(COMPANIES.map((c) => c.city))].sort((a, b) => a.localeCompare(b, "sv"));
 
 function BolagContent() {
   const searchParams = useSearchParams();
@@ -16,6 +18,8 @@ function BolagContent() {
   const [focus, setFocus] = useState(() => new Set(initialFocus ? initialFocus.split(",") : []));
   const [service, setService] = useState(() => new Set());
   const [sizeBand, setSizeBand] = useState(() => new Set());
+  const [city, setCity] = useState(() => new Set());
+  const [auktorisation, setAuktorisation] = useState(() => new Set());
   const [kaOnly, setKaOnly] = useState(false);
   const [sort, setSort] = useState("name");
 
@@ -32,11 +36,15 @@ function BolagContent() {
   const toggleFocus = toggleSetValue(setFocus);
   const toggleService = toggleSetValue(setService);
   const toggleSizeBand = toggleSetValue(setSizeBand);
+  const toggleCity = toggleSetValue(setCity);
+  const toggleAuktorisation = toggleSetValue(setAuktorisation);
 
   function resetFilters() {
     setFocus(new Set());
     setService(new Set());
     setSizeBand(new Set());
+    setCity(new Set());
+    setAuktorisation(new Set());
     setKaOnly(false);
   }
 
@@ -45,6 +53,8 @@ function BolagContent() {
       if (focus.size && !c.focus.some((f) => focus.has(f))) return false;
       if (service.size && !c.services.some((s) => service.has(s))) return false;
       if (sizeBand.size && !sizeBand.has(c.sizeBand)) return false;
+      if (city.size && !city.has(c.city)) return false;
+      if (auktorisation.size && !c.auktorisation.some((a) => auktorisation.has(a))) return false;
       if (kaOnly && !c.ka) return false;
       return true;
     });
@@ -53,7 +63,7 @@ function BolagContent() {
     else if (sort === "founded") sorted.sort((a, b) => a.founded - b.founded);
     else sorted.sort((a, b) => a.name.localeCompare(b.name, "sv"));
     return sorted;
-  }, [focus, service, sizeBand, kaOnly, sort]);
+  }, [focus, service, sizeBand, city, auktorisation, kaOnly, sort]);
 
   return (
     <div id="view-home">
@@ -94,6 +104,14 @@ function BolagContent() {
         <aside className="filters">
           <h3>Filtrera</h3>
           <div className="filter-group">
+            <h4>Stad</h4>
+            {CITY_OPTIONS.map((opt) => (
+              <div className="fcheck" key={opt} onClick={() => toggleCity(opt)}>
+                <div className={`box ${city.has(opt) ? "checked" : ""}`}></div>{opt}
+              </div>
+            ))}
+          </div>
+          <div className="filter-group">
             <h4>{FILTER_DEFS.focus.label}</h4>
             {FILTER_DEFS.focus.options.map((opt) => (
               <div className="fcheck" key={opt} onClick={() => toggleFocus(opt)}>
@@ -122,6 +140,14 @@ function BolagContent() {
             <div className="fcheck" onClick={() => setKaOnly((v) => !v)}>
               <div className={`box ${kaOnly ? "checked" : ""}`}></div>Har kollektivavtal
             </div>
+          </div>
+          <div className="filter-group">
+            <h4>Auktorisation</h4>
+            {AUKTORISATION_OPTIONS.map((opt) => (
+              <div className="fcheck" key={opt} onClick={() => toggleAuktorisation(opt)}>
+                <div className={`box ${auktorisation.has(opt) ? "checked" : ""}`}></div>Auktoriserat {opt.toLowerCase()}sföretag
+              </div>
+            ))}
           </div>
           <button className="reset-btn" onClick={resetFilters}>Rensa alla filter</button>
         </aside>

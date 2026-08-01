@@ -572,4 +572,5 @@ a:hover{color:var(--color-accent)}
     .spec-grid{grid-template-columns:repeat(2,1fr);}
     .profile-head{grid-template-columns:1fr;}
     .profile-body{grid-template-columns:1fr;}
+    .filters{position:static;}
   }
