@@ -47,8 +47,8 @@ export default function OmOssPage() {
       <div className="vision-block">
         <div className="l-kicker">Vår vision</div>
         <p>
-          Att erbjuda lika villkor i en bransch som saknar ett sådant verktyg — och att därigenom ständigt
-          motivera marknaden att leverera högsta möjliga värde till sina kunder.
+          Med Recruitable jämnas oddsen i rekryteringsbranschen ut genom att ett saknat verktyg implementeras,
+          med syftet att motivera marknaden att leverera högsta möjliga värde till kunderna.
         </p>
       </div>
 
