@@ -68,8 +68,8 @@ function BolagContent() {
             rekryteringsbolag <em>i Sverige</em>.
           </h1>
           <p className="hero-sub">
-            Här ser du samtliga bemannings- och rekryteringsföretag som är verksamma inom produktion, lager, logistik
-            och verkstad i Sverige. Filtrera fram de som matchar era villkor och behov — och gå vidare direkt
+            Här ser du bemannings- och rekryteringsföretag verksamma i Sverige, från industri och logistik till
+            IT, vård och ekonomi. Filtrera fram de som matchar era villkor och behov — och gå vidare direkt
             med rätt partner.
           </p>
           <p className="hero-note">
@@ -169,7 +169,7 @@ function BolagContent() {
       <div className="disclaimer">
         <b>Om datan:</b> Omsättning, antal medarbetare, adress och etableringsår är hämtade från offentliga källor
         (Bolagsverket via Allabolag/Ratsit/Bolagsfakta/hitta.se) samt respektive bolags egna webbplatser, kontrollerade
-        i juli 2026. Där bolagens årsredovisning för 2025 ännu inte var tillgänglig visas senaste rapporterade år
+        i augusti 2026. Där bolagens årsredovisning för 2025 ännu inte var tillgänglig visas senaste rapporterade år
         (2024) istället — detta anges vid varje bolag. Vissa siffror avser koncernnivå snarare än den enskilda
         juridiska person som är verksam i Sverige. Uppgifterna bör verifieras direkt mot bolagen innan de
         används i skarpt beslutsunderlag.

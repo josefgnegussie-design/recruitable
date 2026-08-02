@@ -72,7 +72,7 @@ export default function LandingPage() {
           <div className="step-card">
             <div className="step-num"><span className="box-num">1</span>Yrke</div>
             <h4>Välj yrke</h4>
-            <p>Välj yrkesområde och sedan yrke — precis som på Arbetsförmedlingens &ldquo;Hitta yrken&rdquo; (industriell tillverkning, bygg och anläggning, transport, installation/drift/underhåll).</p>
+            <p>Välj yrkesområde och sedan yrke — precis som på Arbetsförmedlingens &ldquo;Hitta yrken&rdquo; (industri, IT, vård, ekonomi och 17 andra yrkesområden).</p>
           </div>
           <div className="step-card">
             <div className="step-num"><span className="box-num">2</span>Ort</div>
@@ -157,7 +157,7 @@ export default function LandingPage() {
       <footer className="site-footer">
         <div className="footer-inner">
           <div>RECRUITABLE — BEMANNING &amp; REKRYTERING</div>
-          <div>Data kontrollerad juli 2026 · Prototyp</div>
+          <div>Data kontrollerad augusti 2026 · Prototyp</div>
         </div>
       </footer>
     </div>

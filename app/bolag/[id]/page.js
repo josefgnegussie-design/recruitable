@@ -80,7 +80,7 @@ export default async function ProfilePage({ params }) {
               {c.contact && (
                 <div className="side-fact"><span className="k">Kontakt</span><span className="v">{c.contact}</span></div>
               )}
-              <div className="note">Källa: offentlig bolagsdata (Allabolag/Ratsit/Bolagsfakta) + bolagets webbplats, kontrollerad juli 2026.</div>
+              <div className="note">Källa: offentlig bolagsdata (Allabolag/Ratsit/Bolagsfakta) + bolagets webbplats, kontrollerad augusti 2026.</div>
             </div>
           </div>
         </div>

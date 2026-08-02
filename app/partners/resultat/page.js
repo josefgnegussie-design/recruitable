@@ -48,7 +48,7 @@ function PartnersResultContent() {
       <div className="disclaimer">
         <b>Om datan:</b> Omsättning, antal medarbetare, adress och etableringsår är hämtade från offentliga källor
         (Bolagsverket via Allabolag/Ratsit/Bolagsfakta/hitta.se) samt respektive bolags egna webbplatser, kontrollerade
-        i juli 2026. Där bolagens årsredovisning för 2025 ännu inte var tillgänglig visas senaste rapporterade år
+        i augusti 2026. Där bolagens årsredovisning för 2025 ännu inte var tillgänglig visas senaste rapporterade år
         (2024) istället — detta anges vid varje bolag. Vissa siffror avser koncernnivå snarare än den enskilda
         juridiska person som är verksam i Sverige. Uppgifterna bör verifieras direkt mot bolagen innan de
         används i skarpt beslutsunderlag.
