@@ -507,6 +507,22 @@ a:hover{color:var(--color-accent)}
   .faq-a{font-size:14.5px;color:var(--color-body);margin:0;line-height:1.65;max-width:70ch;}
   .faq-a a{color:var(--color-accent);}
 
+  /* ===================== COOKIE-BANNER ===================== */
+  .cookie-banner{position:fixed;left:0;right:0;bottom:0;z-index:200;background:var(--color-surface-dark);color:var(--color-on-dark);padding:20px 24px;display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,0.25);}
+  .cookie-banner-text{font-size:13px;color:var(--color-on-dark-soft);margin:0;max-width:640px;line-height:1.6;}
+  .cookie-banner-text a{color:#fff;text-decoration:underline;text-underline-offset:3px;}
+  .cookie-banner-actions{display:flex;gap:10px;flex-shrink:0;}
+  .cookie-btn{font-family:var(--font-body);font-size:13px;font-weight:600;padding:11px 20px;border-radius:var(--radius-md);cursor:pointer;border:none;}
+  .cookie-btn.primary{background:var(--color-accent);color:#fff;}
+  .cookie-btn.primary:hover{background:var(--color-accent-hover);}
+  .cookie-btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.35);color:#fff;}
+  .cookie-btn.ghost:hover{background:rgba(255,255,255,0.08);}
+  @media (max-width:600px){
+    .cookie-banner{flex-direction:column;align-items:stretch;}
+    .cookie-banner-actions{justify-content:stretch;}
+    .cookie-btn{flex:1;}
+  }
+
   .nearby-widget{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:28px;}
   .nearby-autocomplete{position:relative;}
   .nearby-suggest-list{position:absolute;top:100%;left:0;right:0;z-index:20;margin:4px 0 0;padding:6px;list-style:none;background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-md);box-shadow:var(--shadow-elevated);max-height:260px;overflow-y:auto;}
@@ -517,6 +533,7 @@ a:hover{color:var(--color-accent)}
 
   .site-footer{background:var(--color-surface-dark);color:var(--color-on-dark-soft);}
   .footer-inner{max-width:1180px;margin:0 auto;padding:28px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-family:var(--font-mono);font-size:11.5px;}
+  .footer-inner a{color:inherit;text-decoration:underline;text-underline-offset:3px;}
 
   /* ===================== FLOW DEMO ===================== */
   .flow-wrap{max-width:760px;margin:0 auto;padding:20px 24px 100px;}

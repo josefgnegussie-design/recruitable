@@ -1,6 +1,7 @@
 import "./globals.css";
 import Header from "@/components/Header";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import CookieConsent from "@/components/CookieConsent";
 
 export const metadata = {
   title: "Recruitable — Bemanning & rekrytering i Sverige",
@@ -15,6 +16,7 @@ export default function RootLayout({ children }) {
         <GoogleAnalytics />
         <Header />
         {children}
+        <CookieConsent />
       </body>
     </html>
   );
