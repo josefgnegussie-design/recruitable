@@ -38,17 +38,13 @@ export default function OmOssPage() {
           Samtal, research via Recruitable och därför ett första möte — så hittar ni er nästa rekryteringspartner
           som täcker era behov, på era villkor.
         </p>
-        <p className="about-hero-sub">
-          Med Recruitable samlas all tillgänglig information om Sveriges bemannings- och rekryteringsföretag på
-          en och samma plats — så att ni kan välja partner utifrån fakta, inte utifrån hur ett första möte kändes.
-        </p>
       </section>
 
       <div className="vision-block">
         <div className="l-kicker">Vår vision</div>
         <p>
-          Med Recruitable jämnas oddsen i rekryteringsbranschen ut genom att ett saknat verktyg implementeras,
-          med syftet att motivera marknaden att leverera högsta möjliga värde till kunderna.
+          Med Recruitable jämnas oddsen i rekryteringsbranschen ut, med syftet att motivera marknaden att
+          leverera högsta möjliga värde till kunderna.
         </p>
       </div>
 
