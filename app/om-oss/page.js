@@ -35,8 +35,8 @@ export default function OmOssPage() {
         <div className="l-kicker">Om Recruitable</div>
         <h1>Rätt val av en ny rekryteringspartner sker inte av en slump.</h1>
         <p className="about-hero-lead">
-          Samtal, research via Recruitable och därför ett första möte — så hittar ni er nästa partner som
-          faktiskt levererar utefter era behov och villkor!
+          Samtal, research via Recruitable och därför ett första möte — så hittar ni er nästa rekryteringspartner
+          som täcker era behov, på era villkor.
         </p>
         <p className="about-hero-sub">
           Med Recruitable samlas all tillgänglig information om Sveriges bemannings- och rekryteringsföretag på
