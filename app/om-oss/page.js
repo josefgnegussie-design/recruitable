@@ -33,10 +33,14 @@ export default function OmOssPage() {
     <div id="view-om-oss">
       <section className="about-hero">
         <div className="l-kicker">Om Recruitable</div>
-        <h1>Vi gör valet av bemannings- och rekryteringspartner till ett datadrivet beslut.</h1>
+        <h1>En ny rekryteringspartner behöver inte längre väljas slumpartat.</h1>
+        <p className="about-hero-lead">
+          Samtal, research via Recruitable och därför ett första möte — så hittar ni er nästa partner som
+          faktiskt levererar utefter era behov och villkor!
+        </p>
         <p className="about-hero-sub">
-          Recruitable samlar all tillgänglig information om Sveriges bemannings- och rekryteringsföretag på en
-          och samma plats — så att ni kan välja partner utifrån fakta, inte utifrån hur ett första möte kändes.
+          Med Recruitable samlas all tillgänglig information om Sveriges bemannings- och rekryteringsföretag på
+          en och samma plats — så att ni kan välja partner utifrån fakta, inte utifrån hur ett första möte kändes.
         </p>
       </section>
 

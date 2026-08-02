@@ -485,6 +485,7 @@ a:hover{color:var(--color-accent)}
   /* ===================== OM OSS ===================== */
   .about-hero{max-width:760px;margin:0 auto;padding:64px 24px 8px;text-align:center;}
   .about-hero h1{font-family:var(--font-display);font-weight:var(--text-display-xl-weight);font-size:var(--text-display-xl-size);line-height:var(--text-display-xl-lh);letter-spacing:var(--text-display-xl-ls);margin:0 0 18px;color:var(--color-ink);}
+  .about-hero-lead{font-family:var(--font-display);font-size:19px;font-weight:600;color:var(--color-accent);margin:0 auto 18px;max-width:54ch;line-height:1.5;}
   .about-hero-sub{font-size:17px;color:var(--color-body);margin:0 auto;max-width:52ch;}
   .about-hero .l-kicker{justify-content:center;}
 
