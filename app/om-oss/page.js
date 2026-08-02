@@ -43,7 +43,7 @@ export default function OmOssPage() {
       <div className="vision-block">
         <div className="l-kicker">Vår vision</div>
         <p>
-          Med Recruitable jämnas oddsen i rekryteringsbranschen ut, med syftet att motivera marknaden att
+          Med Recruitable jämnas oddsen i rekryteringsbranschen ut med syfte att motivera marknaden att
           leverera högsta möjliga värde till kunderna.
         </p>
       </div>
