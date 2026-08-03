@@ -20,13 +20,53 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { companyId, extendedVision } = body;
+  const { companyId, extendedVision, coverImage, logo, teamMembers, surveys } = body;
+
+  function isValidImageUrl(v) {
+    if (v === "" || v === null || v === undefined) return true;
+    if (typeof v !== "string" || v.length > 2000) return false;
+    try {
+      const u = new URL(v);
+      return u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+
+  function isValidSurveyEntry(v) {
+    if (v === null || v === undefined) return true;
+    if (typeof v !== "object") return false;
+    const { score, source } = v;
+    return (
+      typeof score === "number" &&
+      score >= 1 &&
+      score <= 5 &&
+      typeof source === "string" &&
+      source.length <= 200
+    );
+  }
 
   if (
     typeof companyId !== "number" ||
     !Number.isInteger(companyId) ||
     typeof extendedVision !== "string" ||
-    extendedVision.length > 4000
+    extendedVision.length > 4000 ||
+    !isValidImageUrl(coverImage) ||
+    !isValidImageUrl(logo) ||
+    !Array.isArray(teamMembers) ||
+    teamMembers.length > 30 ||
+    teamMembers.some(
+      (m) =>
+        typeof m.name !== "string" ||
+        m.name.length > 100 ||
+        typeof m.role !== "string" ||
+        m.role.length > 100 ||
+        !isValidImageUrl(m.photo_url)
+    ) ||
+    typeof surveys !== "object" ||
+    surveys === null ||
+    !isValidSurveyEntry(surveys.customer_satisfaction) ||
+    !isValidSurveyEntry(surveys.employee_satisfaction)
   ) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
@@ -44,7 +84,14 @@ export async function POST(request) {
 
   const { error } = await supabase
     .from("companies")
-    .update({ extended_vision: extendedVision, updated_at: new Date().toISOString() })
+    .update({
+      extended_vision: extendedVision,
+      cover_image: coverImage || null,
+      logo: logo || null,
+      team_members: teamMembers,
+      surveys: surveys,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", companyId);
 
   if (error) {
