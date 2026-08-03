@@ -25,6 +25,7 @@ export async function POST(request) {
   function isValidImageUrl(v) {
     if (v === "" || v === null || v === undefined) return true;
     if (typeof v !== "string" || v.length > 2000) return false;
+    if (v.startsWith("/")) return true; // befintliga statiska tillgångar, t.ex. /logos/...
     try {
       const u = new URL(v);
       return u.protocol === "https:";
