@@ -8,7 +8,10 @@ function emptyMember() {
 }
 
 export default function ProfileEditor({ company }) {
-  const [extendedVision, setExtendedVision] = useState(company.extended_vision || "");
+  const [vision, setVision] = useState(company.extended_vision || "");
+  const [mission, setMission] = useState(company.mission || "");
+  const [history, setHistory] = useState(company.history || "");
+  const [expertise, setExpertise] = useState(company.expertise || "");
   const [coverImage, setCoverImage] = useState(company.cover_image || "");
   const [logo, setLogo] = useState(company.logo || "");
   const [members, setMembers] = useState(
@@ -40,7 +43,10 @@ export default function ProfileEditor({ company }) {
 
     const payload = {
       companyId: company.id,
-      extendedVision,
+      extendedVision: vision,
+      mission,
+      history,
+      expertise,
       coverImage,
       logo,
       teamMembers: members
@@ -76,14 +82,6 @@ export default function ProfileEditor({ company }) {
         <div className="auth-panel">
           <div className="filter-title">Bild och logotyp</div>
           <ImageUploadField
-            label="Omslagsbild"
-            companyId={company.id}
-            folder="cover"
-            value={coverImage}
-            onChange={setCoverImage}
-          />
-          <div style={{ height: 18 }} />
-          <ImageUploadField
             label="Logotyp"
             companyId={company.id}
             folder="logo"
@@ -91,17 +89,56 @@ export default function ProfileEditor({ company }) {
             onChange={setLogo}
             shape="circle"
           />
+          <div style={{ height: 18 }} />
+          <ImageUploadField
+            label="Omslagsbild"
+            companyId={company.id}
+            folder="cover"
+            value={coverImage}
+            onChange={setCoverImage}
+          />
         </div>
 
         <div className="auth-panel" style={{ marginTop: 20 }}>
-          <div className="filter-title">Utökad vision/beskrivning</div>
+          <div className="filter-title">Vision, mission & historia</div>
           <div className="field">
+            <label htmlFor="vision">Vision</label>
             <textarea
-              id="extended-vision"
-              rows={6}
-              value={extendedVision}
-              onChange={(e) => setExtendedVision(e.target.value)}
-              placeholder="Berätta mer om er verksamhet, kultur och vad som gör er unika."
+              id="vision"
+              rows={4}
+              value={vision}
+              onChange={(e) => setVision(e.target.value)}
+              placeholder="Vad strävar ni mot på lång sikt?"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="mission">Mission</label>
+            <textarea
+              id="mission"
+              rows={4}
+              value={mission}
+              onChange={(e) => setMission(e.target.value)}
+              placeholder="Vad gör ni, för vem, och varför?"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="history">Historia</label>
+            <textarea
+              id="history"
+              rows={4}
+              value={history}
+              onChange={(e) => setHistory(e.target.value)}
+              placeholder="Hur startade bolaget, och vad har hänt sedan dess?"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="expertise">Erfarenhet</label>
+            <textarea
+              id="expertise"
+              rows={4}
+              value={expertise}
+              onChange={(e) => setExpertise(e.target.value)}
+              placeholder="Vad är ni särskilt erfarna eller specialiserade inom?"
             />
           </div>
         </div>

@@ -20,7 +20,11 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { companyId, extendedVision, coverImage, logo, teamMembers, surveys } = body;
+  const { companyId, extendedVision, mission, history, expertise, coverImage, logo, teamMembers, surveys } = body;
+
+  function isValidLongText(v) {
+    return typeof v === "string" && v.length <= 4000;
+  }
 
   function isValidImageUrl(v) {
     if (v === "" || v === null || v === undefined) return true;
@@ -50,8 +54,10 @@ export async function POST(request) {
   if (
     typeof companyId !== "number" ||
     !Number.isInteger(companyId) ||
-    typeof extendedVision !== "string" ||
-    extendedVision.length > 4000 ||
+    !isValidLongText(extendedVision) ||
+    !isValidLongText(mission) ||
+    !isValidLongText(history) ||
+    !isValidLongText(expertise) ||
     !isValidImageUrl(coverImage) ||
     !isValidImageUrl(logo) ||
     !Array.isArray(teamMembers) ||
@@ -87,6 +93,9 @@ export async function POST(request) {
     .from("companies")
     .update({
       extended_vision: extendedVision,
+      mission: mission,
+      history: history,
+      expertise: expertise,
       cover_image: coverImage || null,
       logo: logo || null,
       team_members: teamMembers,

@@ -34,7 +34,7 @@ export default async function MinaSidorPage() {
 
   const { data: company } = await supabase
     .from("companies")
-    .select("id, name, is_premium, extended_vision, cover_image, logo, team_members, surveys")
+    .select("id, name, is_premium, extended_vision, mission, history, expertise, cover_image, logo, team_members, surveys")
     .eq("id", adminRow.company_id)
     .single();
 
