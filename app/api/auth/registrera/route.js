@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { COMPANIES } from "@/lib/companies";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function domainOf(url) {
   try {
