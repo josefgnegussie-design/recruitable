@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+export const runtime = "nodejs";
+
 export async function POST(request) {
   const supabase = await createClient();
   const {
@@ -30,6 +32,7 @@ export async function POST(request) {
     .eq("id", companyId);
 
   if (error) {
+    console.error("Kunde inte spara profil:", JSON.stringify(error));
     return NextResponse.json({ error: "Kunde inte spara." }, { status: 500 });
   }
 

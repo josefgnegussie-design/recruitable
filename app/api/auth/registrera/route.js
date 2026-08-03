@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { COMPANIES } from "@/lib/companies";
 
+export const runtime = "nodejs";
+
 function domainOf(url) {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
@@ -40,6 +42,7 @@ export async function POST(request) {
   });
 
   if (error) {
+    console.error("Kunde inte skapa company_admins-rad:", JSON.stringify(error));
     return NextResponse.json({ error: "Kunde inte spara begäran. Försök igen." }, { status: 500 });
   }
 
