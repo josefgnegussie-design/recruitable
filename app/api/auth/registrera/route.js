@@ -5,6 +5,9 @@ import { COMPANIES } from "@/lib/companies";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function domainOf(url) {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
@@ -14,10 +17,25 @@ function domainOf(url) {
 }
 
 export async function POST(request) {
-  const { userId, companyId, email } = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
+  }
 
-  if (!userId || !companyId || !email) {
-    return NextResponse.json({ error: "Ofullständig förfrågan." }, { status: 400 });
+  const { userId, companyId, email } = body;
+
+  if (
+    typeof userId !== "string" ||
+    !UUID_RE.test(userId) ||
+    typeof companyId !== "number" ||
+    !Number.isInteger(companyId) ||
+    typeof email !== "string" ||
+    !EMAIL_RE.test(email) ||
+    email.length > 254
+  ) {
+    return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
   }
 
   const company = COMPANIES.find((c) => c.id === companyId);

@@ -13,7 +13,23 @@ export async function POST(request) {
     return NextResponse.json({ error: "Inte inloggad." }, { status: 401 });
   }
 
-  const { companyId, extendedVision } = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
+  }
+
+  const { companyId, extendedVision } = body;
+
+  if (
+    typeof companyId !== "number" ||
+    !Number.isInteger(companyId) ||
+    typeof extendedVision !== "string" ||
+    extendedVision.length > 4000
+  ) {
+    return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
+  }
 
   const { data: adminRow } = await supabase
     .from("company_admins")
