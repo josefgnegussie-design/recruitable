@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { getConsent, setConsent } from "@/lib/consent";
 
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     setVisible(!getConsent());
@@ -16,7 +18,7 @@ export default function CookieConsent() {
     setVisible(false);
   }
 
-  if (!visible) return null;
+  if (!visible || pathname === "/coming-soon") return null;
 
   return (
     <div className="cookie-banner" role="dialog" aria-label="Cookie-inställningar">

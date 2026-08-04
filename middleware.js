@@ -1,7 +1,24 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
+const MAINTENANCE_ALLOW = ["/coming-soon", "/favicon.ico", "/robots.txt", "/sitemap.xml", "/logo"];
+
 export async function middleware(request) {
+  const { pathname } = request.nextUrl;
+
+  if (
+    process.env.MAINTENANCE_MODE === "1" &&
+    !MAINTENANCE_ALLOW.some((p) => pathname === p || pathname.startsWith(p + "/"))
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/coming-soon";
+    return NextResponse.rewrite(url);
+  }
+
+  if (!pathname.startsWith("/mina-sidor")) {
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -35,5 +52,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/mina-sidor/:path*"],
+  matcher: ["/((?!_next/static|_next/image).*)"],
 };

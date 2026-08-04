@@ -650,3 +650,15 @@ a:hover{color:var(--color-accent)}
     .profile-head{grid-template-columns:1fr;}
     .profile-body{grid-template-columns:1fr;}
   }
+
+/* ===== Coming soon ===== */
+.coming-soon-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--color-surface-dark);padding:24px;text-align:center;}
+.coming-soon-inner{max-width:440px;}
+.coming-soon-page .mark{width:16px;height:16px;background:var(--rust-500);border-radius:4px;transform:rotate(45deg);margin:0 auto 28px;}
+.coming-soon-page .kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--color-on-dark-soft);margin-bottom:18px;}
+.coming-soon-page h1{font-family:var(--font-display);font-weight:600;font-size:40px;line-height:1.15;margin:0 0 18px;letter-spacing:-0.01em;color:var(--color-on-dark);}
+.coming-soon-page h1 em{font-style:normal;font-weight:700;color:var(--color-on-dark);background:linear-gradient(180deg, transparent 62%, var(--rust-400) 62%);}
+.coming-soon-page p{font-size:16px;color:var(--color-on-dark-soft);line-height:1.6;margin:0 0 32px;}
+.coming-soon-page p a{color:var(--color-on-dark);}
+.coming-soon-page .footer{font-family:var(--font-mono);font-size:11px;letter-spacing:0.5px;color:var(--color-on-dark-soft);opacity:0.7;}
+@media (max-width:480px){ .coming-soon-page h1{font-size:32px;} }

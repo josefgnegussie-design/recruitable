@@ -11,6 +11,8 @@ export default function Header() {
   const isOmOss = pathname.startsWith("/om-oss");
   const isLoggaIn = pathname.startsWith("/logga-in");
 
+  if (pathname === "/coming-soon") return null;
+
   return (
     <header className="site">
       <div className="header-inner">
