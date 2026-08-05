@@ -32,6 +32,14 @@ export default async function MinaSidorPage() {
     );
   }
 
+  if (!adminRow.company_id) {
+    return (
+      <div style={{ maxWidth: 640, margin: "60px auto", padding: "0 24px" }}>
+        <p>Ert konto är godkänt men ännu inte kopplat till ett bolag. Kontakta info@recruitable.se.</p>
+      </div>
+    );
+  }
+
   const { data: company } = await supabase
     .from("companies")
     .select("id, name, is_premium, extended_vision, mission, history, expertise, cover_image, logo, team_members, surveys")
