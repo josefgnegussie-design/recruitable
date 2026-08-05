@@ -115,6 +115,19 @@ export default function LandingPage() {
         <NearbyCompanies />
       </section>
 
+      <section className="l-section tight">
+        <div className="l-cta-band">
+          <div>
+            <h3>Kan vårt bolag bli listat i registret?</h3>
+            <p>
+              Om ni är ett bemannings- eller rekryteringsföretag som vill bli en del av registret, tryck på{" "}
+              <Link href="/for-bolag/registrera">Skapa konto</Link>.
+            </p>
+          </div>
+          <Link className="btn-lg primary" href="/for-bolag/registrera">Skapa konto</Link>
+        </div>
+      </section>
+
       <footer className="site-footer">
         <div className="footer-inner">
           <div>RECRUITABLE — BEMANNING &amp; REKRYTERING</div>
