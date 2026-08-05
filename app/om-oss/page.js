@@ -87,25 +87,30 @@ export default function OmOssPage() {
 
       <section className="l-section tight">
         <div className="l-kicker">Så fungerar det</div>
-        <h2>Tre steg till rätt partner</h2>
-        <div className="steps-row cols-3">
+        <h2>Fyra steg till rätt partner</h2>
+        <div className="steps-row">
           <div className="step-card">
-            <div className="step-num"><span className="box-num">1</span>Filtrera</div>
-            <h4>Sätt era villkor</h4>
-            <p>Välj stad, bransch, storlek, kollektivavtal och auktorisation — och se bara de bolag som faktiskt matchar.</p>
+            <div className="step-num"><span className="box-num">1</span>Beskriv</div>
+            <h4>Beskriv rollen</h4>
+            <p>Ange yrkesområde, tjänst och ort i Kvickfiltret — helt utan att skapa konto.</p>
           </div>
           <div className="step-card">
-            <div className="step-num"><span className="box-num">2</span>Jämför</div>
-            <h4>Se allt sida vid sida</h4>
-            <p>Omsättning, antal medarbetare, Google-betyg och villkor — samlat på ett och samma ställe.</p>
+            <div className="step-num"><span className="box-num">2</span>Hitta</div>
+            <h4>Hitta rätt bolag</h4>
+            <p>Se en rangordnad lista över de bolag som faktiskt matchar era villkor — omsättning, kollektivavtal och auktorisation direkt synligt.</p>
           </div>
           <div className="step-card">
-            <div className="step-num"><span className="box-num">3</span>Gå vidare</div>
-            <h4>Ta första kontakten själva</h4>
-            <p>Kontakta rätt bolag direkt via deras egen webbplats — utan mellanhänder.</p>
+            <div className="step-num"><span className="box-num">3</span>Skicka</div>
+            <h4>Skicka förfrågan</h4>
+            <p>Välj vilka bolag som är intressanta och beskriv behovet mer i detalj — förfrågan går direkt till dem.</p>
+          </div>
+          <div className="step-card">
+            <div className="step-num"><span className="box-num">4</span>Kontakt</div>
+            <h4>Bolagen hör av sig</h4>
+            <p>De bolag ni valt tar kontakt direkt med er. Ni väljer sedan själva vem ni vill gå vidare med.</p>
           </div>
         </div>
-        <Link className="btn-lg primary" style={{ marginTop: 32 }} href="/matcha">Utforska hela flödet →</Link>
+        <Link className="btn-lg primary" style={{ marginTop: 32 }} href="/rekrytera">Kom igång →</Link>
       </section>
 
       <section className="l-section">

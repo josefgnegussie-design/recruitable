@@ -17,13 +17,11 @@ export default function LandingPage() {
         <div>
           <div className="l-kicker">Bemanning &amp; rekrytering · Sverige</div>
           <h1>
-            Välj partner helt <em>objektivt</em>
-            <br />
-            utefter dina behov och villkor.
+            Beskriv rollen. Vi hittar <em>rätt partner</em>.
           </h1>
           <p className="l-hero-sub">
-            Filtrera fram bemannings- och rekryteringsföretag efter yrkesområde, tjänst och ort — och skicka en
-            förfrågan direkt till de som faktiskt är relevanta.
+            Fyra steg från behov till rätt bemannings- eller rekryteringspartner: beskriv rollen, se vilka bolag
+            som matchar, skicka en förfrågan till de som är intressanta — och låt dem höra av sig till er.
           </p>
           <div className="l-cta-row">
             <Link className="btn-lg primary" href="/rekrytera">Till Rekrytera →</Link>
@@ -48,6 +46,48 @@ export default function LandingPage() {
             <div className="pain-mark">// 03</div>
             <h4>Tiden går åt till möten</h4>
             <p>Att boka in och sitta av introduktionsmöten med bolag som ändå inte passar är den dyraste delen av att hitta rätt partner.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="l-section tight">
+        <div className="l-kicker">Så funkar det</div>
+        <h2>Fyra steg till rätt partner</h2>
+        <p className="l-section-sub">
+          Ni slipper gissa er fram genom listor och introduktionsmöten — Recruitable sköter urvalet, ni sköter
+          samtalet.
+        </p>
+        <div className="steps-row">
+          <div className="step-card">
+            <div className="step-num"><span className="box-num">1</span>Beskriv</div>
+            <h4>Beskriv rollen</h4>
+            <p>
+              Ange yrkesområde, tjänst och ort i Kvickfiltret — helt utan att skapa konto. Lägg gärna till vad ni
+              specifikt söker.
+            </p>
+          </div>
+          <div className="step-card">
+            <div className="step-num"><span className="box-num">2</span>Hitta</div>
+            <h4>Hitta rätt bolag</h4>
+            <p>
+              Se en rangordnad lista över de bemannings- och rekryteringsföretag som faktiskt matchar era
+              villkor — omsättning, kollektivavtal och auktorisation direkt synligt.
+            </p>
+          </div>
+          <div className="step-card">
+            <div className="step-num"><span className="box-num">3</span>Skicka</div>
+            <h4>Skicka förfrågan</h4>
+            <p>
+              Välj vilka bolag som är intressanta och beskriv behovet mer i detalj. Förfrågan går direkt till
+              dem, utan mellanhänder.
+            </p>
+          </div>
+          <div className="step-card">
+            <div className="step-num"><span className="box-num">4</span>Kontakt</div>
+            <h4>Bolagen hör av sig</h4>
+            <p>
+              De bolag ni valt tar kontakt direkt med er. Ni väljer sedan själva vem ni vill gå vidare med.
+            </p>
           </div>
         </div>
       </section>
