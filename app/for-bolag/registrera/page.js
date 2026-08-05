@@ -6,10 +6,10 @@ export default function RegistreraPage() {
       <section className="hero" style={{ gridTemplateColumns: "1fr", maxWidth: 640, margin: "0 auto" }}>
         <div>
           <div className="eyebrow">För bemannings- och rekryteringsföretag</div>
-          <h1 className="hero-title">Begär tillgång till er profil</h1>
+          <h1 className="hero-title">Registrera företag</h1>
           <p className="hero-sub">
-            Skapa ett konto för att utöka er profil med mer information om er verksamhet. Kräver en aktiv
-            premium-prenumeration, och att din e-postadress matchar bolagets registrerade webbplats.
+            Skapa ett konto för att utöka er profil med mer information om er verksamhet. Kräver att din
+            e-postadress matchar bolagets registrerade webbplats.
           </p>
         </div>
       </section>

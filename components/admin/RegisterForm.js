@@ -80,7 +80,7 @@ export default function RegisterForm() {
     return (
       <form className="auth-panel" onSubmit={handleStep1}>
         <p style={{ fontSize: 13, color: "var(--color-muted)", marginTop: 0, marginBottom: 18 }}>
-          Steg 1 av 2 — dina uppgifter
+          Steg 1 av 2 — Dina uppgifter
         </p>
         <div className="field">
           <label htmlFor="reg-name">Ditt namn</label>
@@ -112,7 +112,7 @@ export default function RegisterForm() {
   return (
     <form className="auth-panel" onSubmit={handleStep2}>
       <p style={{ fontSize: 13, color: "var(--color-muted)", marginTop: 0, marginBottom: 18 }}>
-        Steg 2 av 2 — ert bolag
+        Steg 2 av 2 — Ert bolag
       </p>
       <div className="field">
         <label htmlFor="reg-company-name">Företagsnamn</label>
