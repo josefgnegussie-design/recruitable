@@ -220,9 +220,32 @@ export default function RegisterForm() {
       </p>
 
       <div className="field">
+        <label htmlFor="reg-add-service">Tjänster</label>
+        <select id="reg-add-service" value="" onChange={(e) => handleServiceSelect(e.target.value)}>
+          <option value="" disabled hidden>Välj tjänster...</option>
+          {SERVICE_OPTIONS.filter((s) => !services.includes(s)).map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+          {services.length < SERVICE_OPTIONS.length && <option value="__ALL__">Alla ovanstående</option>}
+        </select>
+        {services.length > 0 && (
+          <div className="chip-list">
+            {services.map((service) => (
+              <span className="chip" key={service}>
+                {service}
+                <button type="button" onClick={() => removeService(service)} aria-label={`Ta bort ${service}`}>
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="field">
         <label htmlFor="reg-add-area">Yrkesområden ni rekryterar inom</label>
         <select id="reg-add-area" value="" onChange={(e) => handleAreaSelect(e.target.value)}>
-          <option value="" disabled hidden>Yrkesområde...</option>
+          <option value="" disabled hidden>Välj yrkesområden...</option>
           {Object.keys(YRKESOMRADEN)
             .filter((a) => !focusAreas.includes(a))
             .map((a) => (
@@ -238,29 +261,6 @@ export default function RegisterForm() {
               <span className="chip" key={area}>
                 {area}
                 <button type="button" onClick={() => removeFocusArea(area)} aria-label={`Ta bort ${area}`}>
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="field">
-        <label htmlFor="reg-add-service">Tjänster</label>
-        <select id="reg-add-service" value="" onChange={(e) => handleServiceSelect(e.target.value)}>
-          <option value="" disabled hidden>Tjänst...</option>
-          {SERVICE_OPTIONS.filter((s) => !services.includes(s)).map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-          {services.length < SERVICE_OPTIONS.length && <option value="__ALL__">Alla ovanstående</option>}
-        </select>
-        {services.length > 0 && (
-          <div className="chip-list">
-            {services.map((service) => (
-              <span className="chip" key={service}>
-                {service}
-                <button type="button" onClick={() => removeService(service)} aria-label={`Ta bort ${service}`}>
                   ×
                 </button>
               </span>
