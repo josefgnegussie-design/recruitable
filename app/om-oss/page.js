@@ -21,8 +21,8 @@ const FAQ = [
     q: "Kan vårt bolag bli listat i registret?",
     a: (
       <>
-        Om ni är ett bemannings- eller rekryteringsföretag som vill bli en del av registret, hör gärna av er på{" "}
-        <a href="mailto:info@recruitable.se">info@recruitable.se</a>.
+        Om ni är ett bemannings- och rekryteringsföretag som vill bli en del av registret går det bra att{" "}
+        <Link href="/for-bolag/registrera">skapa konto</Link>.
       </>
     ),
   },
