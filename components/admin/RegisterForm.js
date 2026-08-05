@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
 
-const SERVICE_OPTIONS = ["Bemanning", "Rekrytering", "Interim"];
+const SERVICE_OPTIONS = ["Bemanning", "Rekrytering", "Interim", "Search"];
 
 export default function RegisterForm() {
   const [step, setStep] = useState(1);

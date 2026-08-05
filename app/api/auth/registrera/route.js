@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
 
 const VALID_AREAS = new Set(Object.keys(YRKESOMRADEN));
-const VALID_SERVICES = new Set(["Bemanning", "Rekrytering", "Interim"]);
+const VALID_SERVICES = new Set(["Bemanning", "Rekrytering", "Interim", "Search"]);
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,7 +38,7 @@ export async function POST(request) {
     Array.isArray(focusAreas) && focusAreas.length > 0 && focusAreas.length <= 21 &&
     focusAreas.every((a) => VALID_AREAS.has(a));
   const servicesValid =
-    Array.isArray(services) && services.length > 0 && services.length <= 3 &&
+    Array.isArray(services) && services.length > 0 && services.length <= 4 &&
     services.every((s) => VALID_SERVICES.has(s));
 
   if (
