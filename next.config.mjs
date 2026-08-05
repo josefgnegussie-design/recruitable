@@ -31,6 +31,12 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      { source: "/partners", destination: "/rekrytera", permanent: true },
+      { source: "/partners/resultat", destination: "/rekrytera/resultat", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

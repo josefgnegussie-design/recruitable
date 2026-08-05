@@ -105,8 +105,8 @@ export default function InquiryWizard({ filters }) {
   }
 
   return (
-    <div id="view-partners-results">
-      {step === 1 && <Link className="back-link" href="/partners">&larr; Tillbaka till filtret</Link>}
+    <div id="view-rekrytera-results">
+      {step === 1 && <Link className="back-link" href="/rekrytera">&larr; Tillbaka till filtret</Link>}
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 24px 0" }}>
         <Stepper step={step} total={4} />
       </div>
@@ -128,7 +128,7 @@ export default function InquiryWizard({ filters }) {
               <div className="results-count"><b>{selected.size}</b> av {results.length} valda</div>
             </div>
             {results.length === 0 ? (
-              <p>Inga bolag matchar filtret. <Link href="/partners">Justera filtret</Link>.</p>
+              <p>Inga bolag matchar filtret. <Link href="/rekrytera">Justera filtret</Link>.</p>
             ) : (
               <div className="grid">
                 {results.map((c) => (

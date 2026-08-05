@@ -31,11 +31,11 @@ export default function PartnersPage() {
     if (service) params.set("tjanst", service);
     if (sokroll.trim()) params.set("sokroll", sokroll.trim());
     if (ort) params.set("ort", ort);
-    router.push(`/partners/resultat?${params.toString()}`);
+    router.push(`/rekrytera/resultat?${params.toString()}`);
   }
 
   return (
-    <div id="view-partners">
+    <div id="view-rekrytera">
       <section className="hero" style={{ minHeight: "calc(100vh - 160px)", alignContent: "center" }}>
         <div>
           <div className="eyebrow">Hitta partners · Sverige</div>

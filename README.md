@@ -33,7 +33,7 @@ Sidan fungerar sedan helt utan serverkörning — precis som vilken statisk webb
 
 ## Projektstruktur
 
-- `app/` — sidor (App Router): `/`, `/bolag`, `/bolag/[id]`, `/matcha`, `/partners`, `/partners/resultat`
+- `app/` — sidor (App Router): `/`, `/bolag`, `/bolag/[id]`, `/matcha`, `/rekrytera`, `/rekrytera/resultat`
 - `components/` — delade UI-komponenter, inklusive `wizard/` för matchningsflödets sex steg
 - `lib/` — bolagsdata (inkl. geokodade lat/lng-koordinater), yrkesområden/län-taxonomi och GFL-beräkningen (bemanningsavtalet § 5)
 - `public/logos/` — inbäddade bolagslogotyper
