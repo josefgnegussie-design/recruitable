@@ -434,6 +434,9 @@ a:hover{color:var(--color-accent)}
 
   /* ===================== LANDING PAGE ===================== */
   .l-hero{max-width:1180px;margin:0 auto;padding:64px 24px 40px;display:grid;grid-template-columns:1.05fr 0.95fr;gap:56px;align-items:center;}
+  .l-hero.l-hero-single{grid-template-columns:1fr;max-width:760px;text-align:center;}
+  .l-hero.l-hero-single .l-cta-row{justify-content:center;}
+  .l-hero.l-hero-single .l-hero-sub{margin-left:auto;margin-right:auto;}
   .l-hero h1{font-family:var(--font-display);font-weight:var(--text-display-xl-weight);font-size:var(--text-display-xl-size);line-height:var(--text-display-xl-lh);letter-spacing:var(--text-display-xl-ls);margin:0 0 20px;color:var(--color-ink);}
   .l-hero h1 em{font-style:normal;background:linear-gradient(180deg, transparent 62%, var(--rust-400) 62%);}
   .l-hero-sub{font-size:17px;color:var(--color-body);max-width:46ch;margin:0 0 28px;}
@@ -678,6 +681,13 @@ a:hover{color:var(--color-accent)}
 .card-select input{width:18px;height:18px;cursor:pointer;}
 .char-counter{font-size:12px;color:var(--color-muted);text-align:right;margin-top:6px;}
 .inquiry-summary{font-size:13px;color:var(--color-muted);margin-bottom:20px;}
+
+/* ===== Branschnyheter (startsidan) ===== */
+.news-list{display:flex;flex-direction:column;border-top:1px solid var(--color-hairline);margin-top:24px;}
+.news-item{display:block;padding:18px 4px;border-bottom:1px solid var(--color-hairline);text-decoration:none;transition:background .12s ease;}
+.news-item:hover{background:var(--color-surface-soft);}
+.news-meta{font-family:var(--font-mono);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--color-muted);margin-bottom:4px;}
+.news-title{font-family:var(--font-display);font-size:17px;font-weight:600;color:var(--color-ink);}
 
 /* ===== Mina sidor: tabbar ===== */
 .tab-row{display:flex;gap:4px;border-bottom:1px solid var(--color-hairline);margin-bottom:8px;}

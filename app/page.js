@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { COMPANIES } from "@/lib/companies";
-import QuickStartPanel from "@/components/QuickStartPanel";
-import BranchPicker from "@/components/BranchPicker";
+import { INDUSTRY_NEWS } from "@/lib/industryNews";
 import NearbyCompanies from "@/components/NearbyCompanies";
 
 const PREVIEW_IDS = [4, 1, 9];
@@ -14,7 +13,7 @@ export default function LandingPage() {
 
   return (
     <div id="view-landing">
-      <section className="l-hero">
+      <section className="l-hero l-hero-single">
         <div>
           <div className="l-kicker">Bemanning &amp; rekrytering · Sverige</div>
           <h1>
@@ -23,18 +22,14 @@ export default function LandingPage() {
             utefter dina behov och villkor.
           </h1>
           <p className="l-hero-sub">
-            Med Recruitable kan du se över samtliga bemannings- och rekryteringsföretag i er region mer detaljerat innan
-            ni lägger tid och energi på möten och avtalsdialoger.
-            <br />
-            <br />
-            Genom Recruitable går det att sätta villkoren och förmedla behoven innan ett första möte.
+            Filtrera fram bemannings- och rekryteringsföretag efter yrkesområde, tjänst och ort — och skicka en
+            förfrågan direkt till de som faktiskt är relevanta.
           </p>
           <div className="l-cta-row">
-            <Link className="btn-lg primary" href="/bolag">Se alla {COMPANIES.length} bolag</Link>
-            <a className="btn-lg text" href="#l-how">Så funkar det ↓</a>
+            <Link className="btn-lg primary" href="/rekrytera">Till Rekrytera →</Link>
+            <Link className="btn-lg text" href="/bolag">Se alla {COMPANIES.length} bolag</Link>
           </div>
         </div>
-        <QuickStartPanel />
       </section>
 
       <section className="l-section tight">
@@ -47,7 +42,7 @@ export default function LandingPage() {
           <div className="pain-cell">
             <div className="pain-mark">// 02</div>
             <h4>Villkoren är otydliga</h4>
-            <p>Kollektivavtal, ledtider och storlek på konsultstocken avgör om ett samarbete funkar i praktiken — men syns sällan förrän ni redan är i dialog.</p>
+            <p>Kollektivavtal, auktorisation och storlek på konsultstocken avgör om ett samarbete funkar i praktiken — men syns sällan förrän ni redan är i dialog.</p>
           </div>
           <div className="pain-cell">
             <div className="pain-mark">// 03</div>
@@ -55,52 +50,6 @@ export default function LandingPage() {
             <p>Att boka in och sitta av introduktionsmöten med bolag som ändå inte passar är den dyraste delen av att hitta rätt partner.</p>
           </div>
         </div>
-      </section>
-
-      <section className="l-section tight" id="l-branch">
-        <div className="l-kicker">Bransch</div>
-        <h2>Välj er bransch</h2>
-        <p className="l-section-sub">Fler branscher tillkommer efter hand — börja med att se bolag inom industri eller logistik.</p>
-        <BranchPicker />
-      </section>
-
-      <section className="l-section" id="l-how">
-        <div className="l-kicker">Så funkar det</div>
-        <h2>Sex steg till rätt partner</h2>
-        <p className="l-section-sub">Recruitable ersätter inte samtalet med bemanningsbolaget — det ser bara till att ni bara behöver ha det samtalet med de som faktiskt är relevanta.</p>
-        <div className="steps-row">
-          <div className="step-card">
-            <div className="step-num"><span className="box-num">1</span>Yrke</div>
-            <h4>Välj yrke</h4>
-            <p>Välj yrkesområde och sedan yrke — precis som på Arbetsförmedlingens &ldquo;Hitta yrken&rdquo; (industri, IT, vård, ekonomi och 17 andra yrkesområden).</p>
-          </div>
-          <div className="step-card">
-            <div className="step-num"><span className="box-num">2</span>Ort</div>
-            <h4>Välj ort</h4>
-            <p>Välj bland alla Sveriges 21 län, och sedan bland de kommuner som hör till länet — så matchas ni mot bolag med kontor nära er.</p>
-          </div>
-          <div className="step-card">
-            <div className="step-num"><span className="box-num">3</span>Villkor</div>
-            <h4>Kollektivavtal &amp; prisintervall</h4>
-            <p>Ange ert eget kollektivavtal (IF Metall eller Unionen) och vilket timpris ni söker, så vet bolagen direkt om det matchar.</p>
-          </div>
-          <div className="step-card">
-            <div className="step-num"><span className="box-num">4</span>Uppdrag</div>
-            <h4>Uppdragstyp &amp; start</h4>
-            <p>Långsiktigt eller kortsiktigt, heltid eller extra — och när uppdraget förväntas dra igång.</p>
-          </div>
-          <div className="step-card">
-            <div className="step-num"><span className="box-num">5</span>Förfrågan</div>
-            <h4>Skicka förfrågan</h4>
-            <p>Bocka ur de bolag ni inte vill kontakta, och skicka sedan förfrågan till resten direkt via Recruitable.</p>
-          </div>
-          <div className="step-card">
-            <div className="step-num"><span className="box-num">6</span>Svar</div>
-            <h4>Återkoppling</h4>
-            <p>Se vilka bolag som är aktuella och vill veta mer om ert behov — och vilka som tackar nej.</p>
-          </div>
-        </div>
-        <Link className="btn-lg primary" style={{ marginTop: 32 }} href="/matcha">Prova flödet (demo) →</Link>
       </section>
 
       <div className="l-stat-band">
@@ -111,6 +60,19 @@ export default function LandingPage() {
           <div className="l-stat"><span className="num">{oldestYear}</span><span className="label">Äldsta etableringsåret</span></div>
         </div>
       </div>
+
+      <section className="l-section tight">
+        <div className="l-kicker">Branschnyheter</div>
+        <h2>Vad som händer i branschen</h2>
+        <div className="news-list">
+          {INDUSTRY_NEWS.map((n) => (
+            <a className="news-item" href={n.url} target="_blank" rel="noopener noreferrer" key={n.url}>
+              <div className="news-meta">{n.source} · {n.date}</div>
+              <div className="news-title">{n.title}</div>
+            </a>
+          ))}
+        </div>
+      </section>
 
       <section className="l-section">
         <div className="l-kicker">Ett urval</div>
@@ -134,16 +96,15 @@ export default function LandingPage() {
             </Link>
           ))}
         </div>
-        <Link className="btn-lg primary" href="/bolag">Se alla {COMPANIES.length} bolag →</Link>
       </section>
 
       <section className="l-section tight">
         <div className="l-cta-band">
           <div>
-            <h3>Redo att sålla bland Sveriges bemanningsbolag?</h3>
-            <p>Filtrera på bransch och gå vidare till rätt bolags egen webbplats — direkt.</p>
+            <h3>Redo att hitta rätt bemannings- eller rekryteringspartner?</h3>
+            <p>Filtrera på yrkesområde, tjänst och ort — och skicka en förfrågan direkt till de bolag ni vill kontakta.</p>
           </div>
-          <Link className="btn-lg primary" href="/bolag">Kom igång</Link>
+          <Link className="btn-lg primary" href="/rekrytera">Till Rekrytera</Link>
         </div>
       </section>
 
