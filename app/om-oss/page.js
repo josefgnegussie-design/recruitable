@@ -35,8 +35,8 @@ export default function OmOssPage() {
         <div className="l-kicker">Om Recruitable</div>
         <h1>Rätt val av en ny rekryteringspartner sker inte av en slump.</h1>
         <p className="about-hero-lead">
-          Samtal, research via Recruitable och därför ett första möte — så hittar ni er nästa rekryteringspartner
-          som täcker era behov, på era villkor.
+          Gör er research via Recruitable och initiera era dialoger med tänkbara partners mer effektivt — täck
+          era behov, på era villkor, mer träffsäkert!
         </p>
       </section>
 
