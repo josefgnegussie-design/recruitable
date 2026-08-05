@@ -39,7 +39,7 @@ export default function PartnersPage() {
       <section className="hero" style={{ minHeight: "calc(100vh - 160px)", alignContent: "center" }}>
         <div>
           <div className="eyebrow">Hitta partners · Sverige</div>
-          <h1 className="hero-title">Partners</h1>
+          <h1 className="hero-title">Rekrytera</h1>
           <p className="hero-sub">
             Ange yrkesområde, tjänst och ort så visar vi bemannings- och rekryteringsbolagen i Sverige
             rangordnade efter relevans för just era behov.
@@ -83,12 +83,20 @@ export default function PartnersPage() {
           </div>
           <div className="field">
             <label htmlFor="pt-ort">Ort</label>
-            <select id="pt-ort" value={ort} onChange={(e) => setOrt(e.target.value)}>
-              <option value="">Alla orter</option>
+            <input
+              id="pt-ort"
+              type="text"
+              list="pt-ort-list"
+              placeholder="Alla orter"
+              value={ort}
+              onChange={(e) => setOrt(e.target.value)}
+              autoComplete="off"
+            />
+            <datalist id="pt-ort-list">
               {cities.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c} />
               ))}
-            </select>
+            </datalist>
           </div>
           <button className="qs-btn" onClick={handleSearch}>Hitta bolag &rarr;</button>
         </div>
