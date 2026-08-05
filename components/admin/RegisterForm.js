@@ -83,7 +83,7 @@ export default function RegisterForm() {
           Steg 1 av 2 — Dina uppgifter
         </p>
         <div className="field">
-          <label htmlFor="reg-name">Ditt namn</label>
+          <label htmlFor="reg-name">För- & Efternamn</label>
           <input id="reg-name" type="text" value={name} onChange={(e) => setName(e.target.value)} required />
         </div>
         <div className="field">
