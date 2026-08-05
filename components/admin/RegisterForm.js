@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { YRKESOMRADEN } from "@/lib/taxonomy";
 
 export default function RegisterForm() {
   const [step, setStep] = useState(1);
@@ -14,6 +15,9 @@ export default function RegisterForm() {
   const [orgNumber, setOrgNumber] = useState("");
   const [address, setAddress] = useState("");
   const [website, setWebsite] = useState("");
+
+  const [focusAreas, setFocusAreas] = useState([]);
+  const [roles, setRoles] = useState([]);
 
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -44,15 +48,48 @@ export default function RegisterForm() {
     setStep(2);
   }
 
-  async function handleStep2(e) {
+  function handleStep2(e) {
     e.preventDefault();
-    setStatus("loading");
+    setStep(3);
+  }
+
+  function addFocusArea(area) {
+    if (area && !focusAreas.includes(area)) setFocusAreas([...focusAreas, area]);
+  }
+
+  function removeFocusArea(area) {
+    setFocusAreas(focusAreas.filter((a) => a !== area));
+    setRoles(roles.filter((r) => !YRKESOMRADEN[area].includes(r)));
+  }
+
+  function toggleRole(role) {
+    setRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
+  }
+
+  function toggleAllRolesForArea(area) {
+    const areaRoles = YRKESOMRADEN[area];
+    const allSelected = areaRoles.every((r) => roles.includes(r));
+    setRoles((prev) =>
+      allSelected ? prev.filter((r) => !areaRoles.includes(r)) : [...new Set([...prev, ...areaRoles])]
+    );
+  }
+
+  async function handleStep3(e) {
+    e.preventDefault();
     setErrorMsg("");
+
+    if (focusAreas.length === 0 || roles.length === 0) {
+      setStatus("error");
+      setErrorMsg("Välj minst ett yrkesområde och minst ett yrke.");
+      return;
+    }
+
+    setStatus("loading");
 
     const res = await fetch("/api/auth/registrera", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, email, companyName, orgNumber, address, website }),
+      body: JSON.stringify({ userId, email, companyName, orgNumber, address, website, focusAreas, roles }),
     });
 
     if (!res.ok) {
@@ -80,7 +117,7 @@ export default function RegisterForm() {
     return (
       <form className="auth-panel" onSubmit={handleStep1}>
         <p style={{ fontSize: 13, color: "var(--color-muted)", marginTop: 0, marginBottom: 18 }}>
-          Steg 1 av 2 — Dina uppgifter
+          Steg 1 av 3 — Dina uppgifter
         </p>
         <div className="field">
           <label htmlFor="reg-name">För- & Efternamn</label>
@@ -109,62 +146,124 @@ export default function RegisterForm() {
     );
   }
 
+  if (step === 2) {
+    return (
+      <form className="auth-panel" onSubmit={handleStep2}>
+        <p style={{ fontSize: 13, color: "var(--color-muted)", marginTop: 0, marginBottom: 18 }}>
+          Steg 2 av 3 — Ert bolag
+        </p>
+        <div className="field">
+          <label htmlFor="reg-company-name">Företagsnamn</label>
+          <input
+            id="reg-company-name"
+            type="text"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            required
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="reg-org-number">Org.nummer</label>
+          <input
+            id="reg-org-number"
+            type="text"
+            placeholder="XXXXXX-XXXX"
+            value={orgNumber}
+            onChange={(e) => setOrgNumber(e.target.value)}
+            required
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="reg-website">Webbplats</label>
+          <input
+            id="reg-website"
+            type="text"
+            placeholder="www.bolaget.se"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            required
+          />
+          <p style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 6 }}>
+            Måste matcha samma domän som din e-postadress.
+          </p>
+        </div>
+        <div className="field">
+          <label htmlFor="reg-address">Adress</label>
+          <input
+            id="reg-address"
+            type="text"
+            placeholder="Gatuadress, postnummer och ort"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            required
+          />
+          <p style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 6 }}>
+            Ange kontoret du representerar — bolag med flera orter kan ha olika administratörer.
+          </p>
+        </div>
+        <button className="qs-btn" type="submit">Nästa</button>
+      </form>
+    );
+  }
+
   return (
-    <form className="auth-panel" onSubmit={handleStep2}>
+    <form className="auth-panel" onSubmit={handleStep3}>
       <p style={{ fontSize: 13, color: "var(--color-muted)", marginTop: 0, marginBottom: 18 }}>
-        Steg 2 av 2 — Ert bolag
+        Steg 3 av 3 — Profiler
       </p>
       <div className="field">
-        <label htmlFor="reg-company-name">Företagsnamn</label>
-        <input
-          id="reg-company-name"
-          type="text"
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
-          required
-        />
-      </div>
-      <div className="field">
-        <label htmlFor="reg-org-number">Org.nummer</label>
-        <input
-          id="reg-org-number"
-          type="text"
-          placeholder="XXXXXX-XXXX"
-          value={orgNumber}
-          onChange={(e) => setOrgNumber(e.target.value)}
-          required
-        />
-      </div>
-      <div className="field">
-        <label htmlFor="reg-website">Webbplats</label>
-        <input
-          id="reg-website"
-          type="text"
-          placeholder="www.bolaget.se"
-          value={website}
-          onChange={(e) => setWebsite(e.target.value)}
-          required
-        />
+        <label htmlFor="reg-add-area">Yrkesområde</label>
+        <select
+          id="reg-add-area"
+          value=""
+          onChange={(e) => addFocusArea(e.target.value)}
+        >
+          <option value="">Lägg till yrkesområde...</option>
+          {Object.keys(YRKESOMRADEN)
+            .filter((a) => !focusAreas.includes(a))
+            .map((a) => (
+              <option key={a} value={a}>{a}</option>
+            ))}
+        </select>
         <p style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 6 }}>
-          Måste matcha samma domän som din e-postadress.
+          Välj ett eller flera yrken per yrkesområde genom att markera dem. Vill ni lägga till fler
+          yrkesområden går det bra — varje område får en egen lista.
         </p>
       </div>
-      <div className="field">
-        <label htmlFor="reg-address">Adress</label>
-        <input
-          id="reg-address"
-          type="text"
-          placeholder="Gatuadress, postnummer och ort"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          required
-        />
-        <p style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 6 }}>
-          Ange kontoret du representerar — bolag med flera orter kan ha olika administratörer.
-        </p>
-      </div>
-      {status === "error" && <p style={{ color: "#c0392b", fontSize: 13 }}>{errorMsg}</p>}
-      <button className="qs-btn" type="submit" disabled={status === "loading"}>
+
+      {focusAreas.length > 0 && (
+        <div className="role-picker-columns">
+          {focusAreas.map((area) => (
+            <div className="role-picker-area" key={area}>
+              <div className="role-picker-area-head">
+                <p className="role-picker-area-title">{area}</p>
+                <button type="button" className="member-remove" onClick={() => removeFocusArea(area)}>
+                  Ta bort
+                </button>
+              </div>
+              <div className="checkbox-list">
+                <label className="checkbox-row" style={{ fontWeight: 600 }}>
+                  <input
+                    type="checkbox"
+                    checked={YRKESOMRADEN[area].every((r) => roles.includes(r))}
+                    onChange={() => toggleAllRolesForArea(area)}
+                  />
+                  Alla yrken
+                </label>
+                {YRKESOMRADEN[area].map((role) => (
+                  <label className="checkbox-row" key={role}>
+                    <input type="checkbox" checked={roles.includes(role)} onChange={() => toggleRole(role)} />
+                    {role}
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {status === "error" && <p style={{ color: "#c0392b", fontSize: 13, marginTop: 16 }}>{errorMsg}</p>}
+      <button className="qs-btn" type="submit" disabled={status === "loading"} style={{ marginTop: 20 }}>
         {status === "loading" ? "Skickar..." : "Begär tillgång"}
       </button>
     </form>

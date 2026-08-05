@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { YRKESOMRADEN } from "@/lib/taxonomy";
+
+const VALID_AREAS = new Set(Object.keys(YRKESOMRADEN));
+const VALID_ROLES = new Set(Object.values(YRKESOMRADEN).flat());
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,8 +31,12 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { userId, email, companyName, orgNumber, address, website } = body;
+  const { userId, email, companyName, orgNumber, address, website, focusAreas, roles } = body;
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const focusAreasValid =
+    Array.isArray(focusAreas) && focusAreas.length <= 21 && focusAreas.every((a) => VALID_AREAS.has(a));
+  const rolesValid = Array.isArray(roles) && roles.length <= 200 && roles.every((r) => VALID_ROLES.has(r));
 
   if (
     typeof userId !== "string" ||
@@ -39,7 +47,9 @@ export async function POST(request) {
     !isValidText(companyName, 200) ||
     !isValidText(orgNumber, 20) ||
     !isValidText(address, 300) ||
-    !isValidText(website, 200)
+    !isValidText(website, 200) ||
+    !focusAreasValid ||
+    !rolesValid
   ) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
   }
@@ -62,6 +72,8 @@ export async function POST(request) {
     claimed_org_number: orgNumber.trim(),
     claimed_address: address.trim(),
     claimed_website: website.trim(),
+    claimed_focus_areas: focusAreas,
+    claimed_roles: roles,
     verified: false,
   });
 
