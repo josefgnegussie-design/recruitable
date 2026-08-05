@@ -553,12 +553,6 @@ a:hover{color:var(--color-accent)}
 
   @media (max-width:640px){
     .member-row{grid-template-columns:1fr;}
-    :root{
-      --text-display-xl-size:30px;--text-display-xl-lh:1.18;
-      --text-display-lg-size:26px;--text-display-lg-lh:1.2;
-      --text-display-md-size:22px;--text-display-md-lh:1.22;
-      --text-display-sm-size:19px;
-    }
     .l-hero-sub, .hero-sub, .about-hero-lead, .about-hero-sub{font-size:15px;}
     .l-section-sub{font-size:14px;}
 
@@ -670,6 +664,17 @@ a:hover{color:var(--color-accent)}
       --text-display-xl-size:40px;--text-display-xl-lh:1.14;
       --text-display-lg-size:32px;--text-display-lg-lh:1.16;
       --text-display-md-size:26px;--text-display-md-lh:1.2;
+    }
+  }
+
+  /* Måste komma EFTER 900px-blocket ovan så den vinner vid smala skärmar
+     (annars skriver 900px-blockets :root-regel över den här pga källordning). */
+  @media (max-width:640px){
+    :root{
+      --text-display-xl-size:30px;--text-display-xl-lh:1.18;
+      --text-display-lg-size:26px;--text-display-lg-lh:1.2;
+      --text-display-md-size:22px;--text-display-md-lh:1.22;
+      --text-display-sm-size:19px;
     }
   }
 
