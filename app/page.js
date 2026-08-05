@@ -17,14 +17,14 @@ export default function LandingPage() {
         <div>
           <div className="l-kicker">Bemanning &amp; rekrytering · Sverige</div>
           <h1>
-            Beskriv rollen. Vi hittar <em>rätt partner</em>.
+            Beskriv rollen och hitta <em>rätt partner</em>
           </h1>
           <p className="l-hero-sub">
             Fyra steg från behov till rätt bemannings- eller rekryteringspartner: beskriv rollen, se vilka bolag
             som matchar, skicka en förfrågan till de som är intressanta — och låt dem höra av sig till er.
           </p>
           <div className="l-cta-row">
-            <Link className="btn-lg primary" href="/rekrytera">Till Rekrytera →</Link>
+            <Link className="btn-lg primary" href="/rekrytera">Rekrytera →</Link>
             <Link className="btn-lg text" href="/bolag">Se alla {COMPANIES.length} bolag</Link>
           </div>
         </div>
@@ -144,7 +144,7 @@ export default function LandingPage() {
             <h3>Redo att hitta rätt bemannings- eller rekryteringspartner?</h3>
             <p>Filtrera på yrkesområde, tjänst och ort — och skicka en förfrågan direkt till de bolag ni vill kontakta.</p>
           </div>
-          <Link className="btn-lg primary" href="/rekrytera">Till Rekrytera</Link>
+          <Link className="btn-lg primary" href="/rekrytera">Rekrytera</Link>
         </div>
       </section>
 
