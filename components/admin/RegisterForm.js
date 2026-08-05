@@ -222,7 +222,7 @@ export default function RegisterForm() {
       <div className="field">
         <label htmlFor="reg-add-area">Yrkesområden ni rekryterar inom</label>
         <select id="reg-add-area" value="" onChange={(e) => handleAreaSelect(e.target.value)}>
-          <option value="">Lägg till yrkesområde...</option>
+          <option value="" disabled hidden>Yrkesområde...</option>
           {Object.keys(YRKESOMRADEN)
             .filter((a) => !focusAreas.includes(a))
             .map((a) => (
@@ -249,7 +249,7 @@ export default function RegisterForm() {
       <div className="field">
         <label htmlFor="reg-add-service">Tjänster</label>
         <select id="reg-add-service" value="" onChange={(e) => handleServiceSelect(e.target.value)}>
-          <option value="">Lägg till tjänst...</option>
+          <option value="" disabled hidden>Tjänst...</option>
           {SERVICE_OPTIONS.filter((s) => !services.includes(s)).map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
