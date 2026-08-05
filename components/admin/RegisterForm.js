@@ -230,7 +230,7 @@ export default function RegisterForm() {
               checked={services.length === SERVICE_OPTIONS.length}
               onChange={toggleAllServices}
             />
-            Alla ovanstående
+            Alla nedanstående
           </label>
           {SERVICE_OPTIONS.map((service) => (
             <label className="checkbox-row" key={service}>
