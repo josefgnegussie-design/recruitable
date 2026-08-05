@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
 
 const VALID_AREAS = new Set(Object.keys(YRKESOMRADEN));
-const VALID_ROLES = new Set(Object.values(YRKESOMRADEN).flat());
+const VALID_SERVICES = new Set(["Bemanning", "Rekrytering", "Interim"]);
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,12 +31,15 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { userId, email, companyName, orgNumber, address, website, focusAreas, roles } = body;
+  const { userId, email, companyName, orgNumber, address, website, focusAreas, services } = body;
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const focusAreasValid =
-    Array.isArray(focusAreas) && focusAreas.length <= 21 && focusAreas.every((a) => VALID_AREAS.has(a));
-  const rolesValid = Array.isArray(roles) && roles.length <= 200 && roles.every((r) => VALID_ROLES.has(r));
+    Array.isArray(focusAreas) && focusAreas.length > 0 && focusAreas.length <= 21 &&
+    focusAreas.every((a) => VALID_AREAS.has(a));
+  const servicesValid =
+    Array.isArray(services) && services.length > 0 && services.length <= 3 &&
+    services.every((s) => VALID_SERVICES.has(s));
 
   if (
     typeof userId !== "string" ||
@@ -49,7 +52,7 @@ export async function POST(request) {
     !isValidText(address, 300) ||
     !isValidText(website, 200) ||
     !focusAreasValid ||
-    !rolesValid
+    !servicesValid
   ) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
   }
@@ -73,7 +76,7 @@ export async function POST(request) {
     claimed_address: address.trim(),
     claimed_website: website.trim(),
     claimed_focus_areas: focusAreas,
-    claimed_roles: roles,
+    claimed_services: services,
     verified: false,
   });
 

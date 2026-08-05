@@ -4,6 +4,8 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
 
+const SERVICE_OPTIONS = ["Bemanning", "Rekrytering", "Interim"];
+
 export default function RegisterForm() {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
@@ -17,7 +19,7 @@ export default function RegisterForm() {
   const [website, setWebsite] = useState("");
 
   const [focusAreas, setFocusAreas] = useState([]);
-  const [roles, setRoles] = useState([]);
+  const [services, setServices] = useState([]);
 
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -53,34 +55,25 @@ export default function RegisterForm() {
     setStep(3);
   }
 
-  function addFocusArea(area) {
-    if (area && !focusAreas.includes(area)) setFocusAreas([...focusAreas, area]);
+  function toggleFocusArea(area) {
+    setFocusAreas((prev) => (prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area]));
   }
 
-  function removeFocusArea(area) {
-    setFocusAreas(focusAreas.filter((a) => a !== area));
-    setRoles(roles.filter((r) => !YRKESOMRADEN[area].includes(r)));
+  function toggleService(service) {
+    setServices((prev) => (prev.includes(service) ? prev.filter((s) => s !== service) : [...prev, service]));
   }
 
-  function toggleRole(role) {
-    setRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
-  }
-
-  function toggleAllRolesForArea(area) {
-    const areaRoles = YRKESOMRADEN[area];
-    const allSelected = areaRoles.every((r) => roles.includes(r));
-    setRoles((prev) =>
-      allSelected ? prev.filter((r) => !areaRoles.includes(r)) : [...new Set([...prev, ...areaRoles])]
-    );
+  function toggleAllServices() {
+    setServices((prev) => (prev.length === SERVICE_OPTIONS.length ? [] : [...SERVICE_OPTIONS]));
   }
 
   async function handleStep3(e) {
     e.preventDefault();
     setErrorMsg("");
 
-    if (focusAreas.length === 0 || roles.length === 0) {
+    if (focusAreas.length === 0 || services.length === 0) {
       setStatus("error");
-      setErrorMsg("Välj minst ett yrkesområde och minst ett yrke.");
+      setErrorMsg("Välj minst ett yrkesområde och minst en tjänst.");
       return;
     }
 
@@ -89,7 +82,7 @@ export default function RegisterForm() {
     const res = await fetch("/api/auth/registrera", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, email, companyName, orgNumber, address, website, focusAreas, roles }),
+      body: JSON.stringify({ userId, email, companyName, orgNumber, address, website, focusAreas, services }),
     });
 
     if (!res.ok) {
@@ -211,56 +204,46 @@ export default function RegisterForm() {
       <p style={{ fontSize: 13, color: "var(--color-muted)", marginTop: 0, marginBottom: 18 }}>
         Steg 3 av 3 — Profiler
       </p>
-      <div className="field">
-        <label htmlFor="reg-add-area">Yrkesområde</label>
-        <select
-          id="reg-add-area"
-          value=""
-          onChange={(e) => addFocusArea(e.target.value)}
-        >
-          <option value="">Lägg till yrkesområde...</option>
-          {Object.keys(YRKESOMRADEN)
-            .filter((a) => !focusAreas.includes(a))
-            .map((a) => (
-              <option key={a} value={a}>{a}</option>
-            ))}
-        </select>
-        <p style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 6 }}>
-          Välj ett eller flera yrken per yrkesområde genom att markera dem. Vill ni lägga till fler
-          yrkesområden går det bra — varje område får en egen lista.
-        </p>
-      </div>
 
-      {focusAreas.length > 0 && (
-        <div className="role-picker-columns">
-          {focusAreas.map((area) => (
-            <div className="role-picker-area" key={area}>
-              <div className="role-picker-area-head">
-                <p className="role-picker-area-title">{area}</p>
-                <button type="button" className="member-remove" onClick={() => removeFocusArea(area)}>
-                  Ta bort
-                </button>
-              </div>
-              <div className="checkbox-list">
-                <label className="checkbox-row" style={{ fontWeight: 600 }}>
-                  <input
-                    type="checkbox"
-                    checked={YRKESOMRADEN[area].every((r) => roles.includes(r))}
-                    onChange={() => toggleAllRolesForArea(area)}
-                  />
-                  Alla yrken
-                </label>
-                {YRKESOMRADEN[area].map((role) => (
-                  <label className="checkbox-row" key={role}>
-                    <input type="checkbox" checked={roles.includes(role)} onChange={() => toggleRole(role)} />
-                    {role}
-                  </label>
-                ))}
-              </div>
-            </div>
+      <div className="field">
+        <label>Yrkesområden ni rekryterar inom</label>
+        <div className="checkbox-list">
+          {Object.keys(YRKESOMRADEN).map((area) => (
+            <label className="checkbox-row" key={area}>
+              <input
+                type="checkbox"
+                checked={focusAreas.includes(area)}
+                onChange={() => toggleFocusArea(area)}
+              />
+              {area}
+            </label>
           ))}
         </div>
-      )}
+      </div>
+
+      <div className="field">
+        <label>Tjänster</label>
+        <div className="checkbox-list" style={{ maxHeight: "none" }}>
+          <label className="checkbox-row" style={{ fontWeight: 600 }}>
+            <input
+              type="checkbox"
+              checked={services.length === SERVICE_OPTIONS.length}
+              onChange={toggleAllServices}
+            />
+            Alla ovanstående
+          </label>
+          {SERVICE_OPTIONS.map((service) => (
+            <label className="checkbox-row" key={service}>
+              <input
+                type="checkbox"
+                checked={services.includes(service)}
+                onChange={() => toggleService(service)}
+              />
+              {service}
+            </label>
+          ))}
+        </div>
+      </div>
 
       {status === "error" && <p style={{ color: "#c0392b", fontSize: 13, marginTop: 16 }}>{errorMsg}</p>}
       <button className="qs-btn" type="submit" disabled={status === "loading"} style={{ marginTop: 20 }}>
