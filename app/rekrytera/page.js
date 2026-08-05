@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { COMPANIES } from "@/lib/companies";
 import { YRKESOMRADEN, FILTER_DEFS } from "@/lib/taxonomy";
@@ -16,14 +16,16 @@ export default function PartnersPage() {
 
   const cities = useMemo(() => allRegionCities(), []);
 
-  const topRated = useMemo(
-    () =>
-      [...COMPANIES]
-        .filter((c) => c.rating)
-        .sort((a, b) => b.rating - a.rating || b.ratingCount - a.ratingCount || a.name.localeCompare(b.name, "sv"))
-        .slice(0, 6),
-    []
-  );
+  const [featured, setFeatured] = useState(() => COMPANIES.slice(0, 6));
+
+  useEffect(() => {
+    const shuffled = [...COMPANIES];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setFeatured(shuffled.slice(0, 6));
+  }, []);
 
   function handleSearch() {
     const params = new URLSearchParams();
@@ -103,11 +105,9 @@ export default function PartnersPage() {
       </section>
 
       <section className="l-section tight">
-        <div className="l-kicker">Bäst rankade · Google-betyg</div>
-        <h2>Topprankade partners</h2>
-        <p className="l-section-sub">Sex av registrets högst rankade bolag enligt Google-recensioner.</p>
+        <h2>Urval av bolag</h2>
         <div className="grid">
-          {topRated.map((c) => (
+          {featured.map((c) => (
             <CompanyCard company={c} key={c.id} />
           ))}
         </div>
