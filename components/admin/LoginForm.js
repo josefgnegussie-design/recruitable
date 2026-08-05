@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginForm() {
@@ -46,6 +47,10 @@ export default function LoginForm() {
       <button className="qs-btn" type="submit" disabled={loading}>
         {loading ? "Loggar in..." : "Logga in"}
       </button>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 14, fontSize: 13 }}>
+        <Link href="/glomt-losenord" style={{ color: "var(--color-muted)" }}>Glömt lösenord?</Link>
+        <Link href="/for-bolag/registrera" style={{ color: "var(--color-muted)" }}>Skapa konto</Link>
+      </div>
     </form>
   );
 }
