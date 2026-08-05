@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import ProfileEditor from "@/components/admin/ProfileEditor";
+import MinaSidorTabs from "@/components/admin/MinaSidorTabs";
 
 export default async function MinaSidorPage() {
   const supabase = await createClient();
@@ -46,16 +46,15 @@ export default async function MinaSidorPage() {
     .eq("id", adminRow.company_id)
     .single();
 
-  if (!company?.is_premium) {
-    return (
-      <div style={{ maxWidth: 640, margin: "60px auto", padding: "0 24px" }}>
-        <p>
-          Den utökade profilen kräver en aktiv premium-prenumeration. Kontakta info@recruitable.se för att
-          komma igång.
-        </p>
-      </div>
-    );
-  }
+  const { data: inquiryRows } = await supabase
+    .from("inquiry_recipients")
+    .select("id, created_at, inquiries(*)")
+    .eq("company_id", adminRow.company_id)
+    .order("created_at", { ascending: false });
 
-  return <ProfileEditor company={company} />;
+  const inquiries = (inquiryRows || [])
+    .filter((row) => row.inquiries)
+    .map((row) => ({ recipientId: row.id, receivedAt: row.created_at, ...row.inquiries }));
+
+  return <MinaSidorTabs company={company} inquiries={inquiries} />;
 }

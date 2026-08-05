@@ -3,18 +3,20 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { COMPANIES } from "@/lib/companies";
-import { YRKESOMRADEN, REGION_MAP } from "@/lib/taxonomy";
-import { rolesForArea, citiesForRegion } from "@/lib/helpers";
+import { YRKESOMRADEN, REGION_MAP, FILTER_DEFS } from "@/lib/taxonomy";
+import { citiesForRegion } from "@/lib/helpers";
 import CompanyCard from "@/components/CompanyCard";
 
 export default function PartnersPage() {
   const router = useRouter();
   const [omrade, setOmrade] = useState("");
-  const [yrke, setYrke] = useState("");
+  const [service, setService] = useState("");
+  const [sokroll, setSokroll] = useState("");
   const [region, setRegion] = useState("");
   const [ort, setOrt] = useState("");
+  const [requireKa, setRequireKa] = useState(false);
+  const [requireAuktorisation, setRequireAuktorisation] = useState(false);
 
-  const roles = useMemo(() => rolesForArea(omrade), [omrade]);
   const cities = useMemo(() => citiesForRegion(region), [region]);
 
   const topRated = useMemo(
@@ -26,10 +28,6 @@ export default function PartnersPage() {
     []
   );
 
-  function handleOmradeChange(e) {
-    setOmrade(e.target.value);
-    setYrke("");
-  }
   function handleRegionChange(e) {
     setRegion(e.target.value);
     setOrt("");
@@ -38,7 +36,11 @@ export default function PartnersPage() {
   function handleSearch() {
     const params = new URLSearchParams();
     if (omrade) params.set("omrade", omrade);
+    if (service) params.set("tjanst", service);
+    if (sokroll.trim()) params.set("sokroll", sokroll.trim());
     if (ort) params.set("ort", ort);
+    if (requireKa) params.set("ka", "1");
+    if (requireAuktorisation) params.set("auk", "1");
     router.push(`/partners/resultat?${params.toString()}`);
   }
 
@@ -49,7 +51,7 @@ export default function PartnersPage() {
           <div className="eyebrow">Hitta partners · Sverige</div>
           <h1 className="hero-title">Partners</h1>
           <p className="hero-sub">
-            Ange yrkesområde/yrke och län/ort så visar vi bemannings- och rekryteringsbolagen i Sverige
+            Ange yrkesområde, tjänst och län/ort så visar vi bemannings- och rekryteringsbolagen i Sverige
             rangordnade efter relevans för just era behov.
           </p>
           <div className="hero-stats">
@@ -57,11 +59,11 @@ export default function PartnersPage() {
           </div>
         </div>
         <div className="hero-panel">
-          <p>Filtrera på yrke och ort.</p>
+          <p>Filtrera på yrkesområde, tjänst och ort.</p>
           <div className="field-row">
             <div className="field">
               <label htmlFor="pt-omrade">Yrkesområde</label>
-              <select id="pt-omrade" value={omrade} onChange={handleOmradeChange}>
+              <select id="pt-omrade" value={omrade} onChange={(e) => setOmrade(e.target.value)}>
                 <option value="">Alla yrkesområden</option>
                 {Object.keys(YRKESOMRADEN).map((o) => (
                   <option key={o} value={o}>{o}</option>
@@ -69,14 +71,25 @@ export default function PartnersPage() {
               </select>
             </div>
             <div className="field">
-              <label htmlFor="pt-yrke">Yrke</label>
-              <select id="pt-yrke" value={yrke} onChange={(e) => setYrke(e.target.value)}>
-                <option value="">Alla yrken</option>
-                {roles.map((r) => (
-                  <option key={r} value={r}>{r}</option>
+              <label htmlFor="pt-service">Tjänst</label>
+              <select id="pt-service" value={service} onChange={(e) => setService(e.target.value)}>
+                <option value="">Alla tjänster</option>
+                {FILTER_DEFS.service.options.map((s) => (
+                  <option key={s} value={s}>{s}</option>
                 ))}
               </select>
             </div>
+          </div>
+          <div className="field">
+            <label htmlFor="pt-sokroll">Vad vill ni rekrytera till? (valfritt)</label>
+            <input
+              id="pt-sokroll"
+              type="text"
+              placeholder="T.ex. aluminiumsvetsare"
+              value={sokroll}
+              onChange={(e) => setSokroll(e.target.value)}
+              maxLength={45}
+            />
           </div>
           <div className="field-row">
             <div className="field">
@@ -97,6 +110,21 @@ export default function PartnersPage() {
                 ))}
               </select>
             </div>
+          </div>
+          <div className="field">
+            <label>Krav (valfritt)</label>
+            <label className="checkbox-row">
+              <input type="checkbox" checked={requireKa} onChange={(e) => setRequireKa(e.target.checked)} />
+              Kollektivavtal
+            </label>
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={requireAuktorisation}
+                onChange={(e) => setRequireAuktorisation(e.target.checked)}
+              />
+              Auktoriserat bolag
+            </label>
           </div>
           <button className="qs-btn" onClick={handleSearch}>Hitta bolag &rarr;</button>
         </div>
