@@ -44,8 +44,6 @@ export async function POST(request) {
     service,
     region,
     city,
-    requireKa,
-    requireAuktorisation,
     requesterName,
     requesterEmail,
     requesterWebsite,
@@ -68,8 +66,6 @@ export async function POST(request) {
     (service && !VALID_SERVICES.has(service)) ||
     !isValidOptionalText(region, 100) ||
     !isValidOptionalText(city, 100) ||
-    typeof requireKa !== "boolean" ||
-    typeof requireAuktorisation !== "boolean" ||
     !isValidText(requesterName, 100) ||
     typeof requesterEmail !== "string" ||
     !EMAIL_RE.test(requesterEmail) ||
@@ -102,8 +98,6 @@ export async function POST(request) {
       service: service || null,
       region: region || null,
       city: city || null,
-      require_ka: requireKa,
-      require_auktorisation: requireAuktorisation,
       description: description.trim(),
       requester_name: requesterName.trim(),
       requester_email: requesterEmail.trim(),

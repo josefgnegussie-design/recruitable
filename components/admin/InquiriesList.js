@@ -35,8 +35,6 @@ export default function InquiriesList({ inquiries }) {
               {inq.search_role && <span className="tag">{inq.search_role}</span>}
               {inq.focus_area && <span className="tag">{inq.focus_area}</span>}
               {inq.service && <span className="tag">{inq.service}</span>}
-              {inq.require_ka && <span className="tag">Kräver kollektivavtal</span>}
-              {inq.require_auktorisation && <span className="tag">Kräver auktorisation</span>}
             </div>
           )}
 

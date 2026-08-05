@@ -12,8 +12,6 @@ function PartnersResultContent() {
     service: searchParams.get("tjanst") || "",
     sokroll: searchParams.get("sokroll") || "",
     ort: searchParams.get("ort") || "",
-    requireKa: searchParams.get("ka") === "1",
-    requireAuktorisation: searchParams.get("auk") === "1",
   };
 
   return <InquiryWizard filters={filters} />;

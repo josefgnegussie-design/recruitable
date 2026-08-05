@@ -84,8 +84,6 @@ export default function InquiryWizard({ filters }) {
         service: filters.service || "",
         region: regionForCity(filters.ort) || "",
         city: filters.ort || "",
-        requireKa: !!filters.requireKa,
-        requireAuktorisation: !!filters.requireAuktorisation,
         requesterName: name,
         requesterEmail: email,
         requesterWebsite: website,
