@@ -55,16 +55,30 @@ export default function RegisterForm() {
     setStep(3);
   }
 
-  function toggleFocusArea(area) {
-    setFocusAreas((prev) => (prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area]));
+  function handleAreaSelect(value) {
+    if (!value) return;
+    if (value === "__ALL__") {
+      setFocusAreas(Object.keys(YRKESOMRADEN));
+    } else if (!focusAreas.includes(value)) {
+      setFocusAreas([...focusAreas, value]);
+    }
   }
 
-  function toggleService(service) {
-    setServices((prev) => (prev.includes(service) ? prev.filter((s) => s !== service) : [...prev, service]));
+  function removeFocusArea(area) {
+    setFocusAreas(focusAreas.filter((a) => a !== area));
   }
 
-  function toggleAllServices() {
-    setServices((prev) => (prev.length === SERVICE_OPTIONS.length ? [] : [...SERVICE_OPTIONS]));
+  function handleServiceSelect(value) {
+    if (!value) return;
+    if (value === "__ALL__") {
+      setServices([...SERVICE_OPTIONS]);
+    } else if (!services.includes(value)) {
+      setServices([...services, value]);
+    }
+  }
+
+  function removeService(service) {
+    setServices(services.filter((s) => s !== service));
   }
 
   async function handleStep3(e) {
@@ -206,43 +220,53 @@ export default function RegisterForm() {
       </p>
 
       <div className="field">
-        <label>Yrkesområden ni rekryterar inom</label>
-        <div className="checkbox-list">
-          {Object.keys(YRKESOMRADEN).map((area) => (
-            <label className="checkbox-row" key={area}>
-              <input
-                type="checkbox"
-                checked={focusAreas.includes(area)}
-                onChange={() => toggleFocusArea(area)}
-              />
-              {area}
-            </label>
-          ))}
-        </div>
+        <label htmlFor="reg-add-area">Yrkesområden ni rekryterar inom</label>
+        <select id="reg-add-area" value="" onChange={(e) => handleAreaSelect(e.target.value)}>
+          <option value="">Lägg till yrkesområde...</option>
+          {Object.keys(YRKESOMRADEN)
+            .filter((a) => !focusAreas.includes(a))
+            .map((a) => (
+              <option key={a} value={a}>{a}</option>
+            ))}
+          {focusAreas.length < Object.keys(YRKESOMRADEN).length && (
+            <option value="__ALL__">Alla ovanstående</option>
+          )}
+        </select>
+        {focusAreas.length > 0 && (
+          <div className="chip-list">
+            {focusAreas.map((area) => (
+              <span className="chip" key={area}>
+                {area}
+                <button type="button" onClick={() => removeFocusArea(area)} aria-label={`Ta bort ${area}`}>
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="field">
-        <label>Tjänster</label>
-        <div className="checkbox-list" style={{ maxHeight: "none" }}>
-          <label className="checkbox-row" style={{ fontWeight: 600 }}>
-            <input
-              type="checkbox"
-              checked={services.length === SERVICE_OPTIONS.length}
-              onChange={toggleAllServices}
-            />
-            Alla nedanstående
-          </label>
-          {SERVICE_OPTIONS.map((service) => (
-            <label className="checkbox-row" key={service}>
-              <input
-                type="checkbox"
-                checked={services.includes(service)}
-                onChange={() => toggleService(service)}
-              />
-              {service}
-            </label>
+        <label htmlFor="reg-add-service">Tjänster</label>
+        <select id="reg-add-service" value="" onChange={(e) => handleServiceSelect(e.target.value)}>
+          <option value="">Lägg till tjänst...</option>
+          {SERVICE_OPTIONS.filter((s) => !services.includes(s)).map((s) => (
+            <option key={s} value={s}>{s}</option>
           ))}
-        </div>
+          {services.length < SERVICE_OPTIONS.length && <option value="__ALL__">Alla ovanstående</option>}
+        </select>
+        {services.length > 0 && (
+          <div className="chip-list">
+            {services.map((service) => (
+              <span className="chip" key={service}>
+                {service}
+                <button type="button" onClick={() => removeService(service)} aria-label={`Ta bort ${service}`}>
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {status === "error" && <p style={{ color: "#c0392b", fontSize: 13, marginTop: 16 }}>{errorMsg}</p>}
