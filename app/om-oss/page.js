@@ -113,7 +113,7 @@ export default function OmOssPage() {
         <Link className="btn-lg primary" style={{ marginTop: 32 }} href="/rekrytera">Kom igång →</Link>
       </section>
 
-      <section className="l-section">
+      <section className="l-section tight">
         <div className="l-kicker">Vanliga frågor</div>
         <h2>Frågor och svar</h2>
         <div className="faq-list">

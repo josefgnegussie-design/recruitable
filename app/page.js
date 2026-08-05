@@ -114,7 +114,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="l-section">
+      <section className="l-section tight">
         <div className="l-kicker">Ett urval</div>
         <h2>Tre bolag att börja med</h2>
         <p className="l-section-sub">Ett litet nischat bolag, ett mellanstort med lokal förankring och en global generalist — så spänner registret.</p>
