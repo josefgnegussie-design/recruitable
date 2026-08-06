@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { COMPANIES } from "@/lib/companies";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
+import { sendInquiryEmails } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -121,6 +122,24 @@ export async function POST(request) {
     console.error("Kunde inte spara mottagare:", JSON.stringify(recipientsError));
     return NextResponse.json({ error: "Kunde inte spara förfrågan. Försök igen." }, { status: 500 });
   }
+
+  const targetCompanies = COMPANIES.filter((c) => companyIds.includes(c.id));
+  after(() =>
+    sendInquiryEmails({
+      recipients: targetCompanies,
+      inquiry: {
+        requesterName: requesterName.trim(),
+        requesterEmail: requesterEmail.trim(),
+        requesterRole: requesterRole.trim(),
+        requesterCompany: requesterCompany.trim(),
+        requesterCity: requesterCity.trim(),
+        description: description.trim(),
+        searchRole: searchRole || "",
+        focusArea: focusArea || "",
+        service: service || "",
+      },
+    }).catch((err) => console.error("Oväntat fel vid mejlutskick:", err))
+  );
 
   return NextResponse.json({ ok: true, count: recipients.length });
 }
