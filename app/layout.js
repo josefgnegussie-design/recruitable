@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/Header";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import CookieConsent from "@/components/CookieConsent";
@@ -17,6 +18,7 @@ export default function RootLayout({ children }) {
         <Header />
         {children}
         <CookieConsent />
+        <Analytics />
       </body>
     </html>
   );
