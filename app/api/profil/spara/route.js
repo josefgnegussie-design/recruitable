@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
 export async function POST(request) {
+  const limited = await rateLimit(request, "profil-spara", 30, 3600);
+  if (limited) return limited;
+
   const supabase = await createClient();
   const {
     data: { user },

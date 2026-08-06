@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,6 +10,9 @@ export const dynamic = "force-dynamic";
 // förfrågan faktiskt är markerad som accepterad. Företagsnamn och ort syns
 // redan innan dess i den vanliga listan, det är bara kontaktvägen som är låst.
 export async function POST(request) {
+  const limited = await rateLimit(request, "forfragan-detaljer", 30, 3600);
+  if (limited) return limited;
+
   const supabase = await createClient();
   const {
     data: { user },

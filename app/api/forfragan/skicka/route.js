@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { COMPANIES } from "@/lib/companies";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
+import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,6 +30,9 @@ function domainOf(url) {
 }
 
 export async function POST(request) {
+  const limited = await rateLimit(request, "forfragan-skicka", 10, 3600);
+  if (limited) return limited;
+
   let body;
   try {
     body = await request.json();

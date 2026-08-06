@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
+import { rateLimit } from "@/lib/rateLimit";
 
 const VALID_AREAS = new Set(Object.keys(YRKESOMRADEN));
 const VALID_SERVICES = new Set(["Bemanning", "Rekrytering", "Interim", "Search"]);
@@ -24,6 +25,9 @@ function domainOf(url) {
 }
 
 export async function POST(request) {
+  const limited = await rateLimit(request, "registrera", 5, 3600);
+  if (limited) return limited;
+
   let body;
   try {
     body = await request.json();
