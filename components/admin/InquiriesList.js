@@ -113,7 +113,9 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
                 </a>
               ) : (
                 <span className="note" style={{ fontSize: 12.5 }}>
-                  Kontaktuppgifter visas här så snart ni accepterat förfrågan.
+                  {inq.status === "accepted"
+                    ? "Tack! Kontaktuppgifterna granskas av Recruitable och släpps inom kort."
+                    : "Kontaktuppgifter visas här så snart ni accepterat förfrågan och vi granskat den."}
                 </span>
               )}
               <button
