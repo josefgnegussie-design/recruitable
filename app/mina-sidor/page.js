@@ -48,13 +48,13 @@ export default async function MinaSidorPage() {
 
   const { data: inquiryRows } = await supabase
     .from("inquiry_recipients")
-    .select("id, created_at, inquiries(*)")
+    .select("id, created_at, status, inquiries(*)")
     .eq("company_id", adminRow.company_id)
     .order("created_at", { ascending: false });
 
   const inquiries = (inquiryRows || [])
     .filter((row) => row.inquiries)
-    .map((row) => ({ recipientId: row.id, receivedAt: row.created_at, ...row.inquiries }));
+    .map((row) => ({ recipientId: row.id, receivedAt: row.created_at, status: row.status, ...row.inquiries }));
 
   return <MinaSidorTabs company={company} inquiries={inquiries} />;
 }

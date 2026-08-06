@@ -1,10 +1,34 @@
 "use client";
 
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString("sv-SE", { year: "numeric", month: "short", day: "numeric" });
 }
 
-export default function InquiriesList({ inquiries }) {
+const STATUS_LABEL = { accepted: "Accepterad", declined: "Nekad" };
+
+export default function InquiriesList({ inquiries: initialInquiries }) {
+  const [inquiries, setInquiries] = useState(initialInquiries);
+  const [updatingId, setUpdatingId] = useState(null);
+
+  async function setStatus(recipientId, status) {
+    setUpdatingId(recipientId);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("inquiry_recipients")
+      .update({ status, responded_at: new Date().toISOString() })
+      .eq("id", recipientId);
+    setUpdatingId(null);
+
+    if (error) {
+      console.error("Kunde inte uppdatera status:", JSON.stringify(error));
+      return;
+    }
+    setInquiries((prev) => prev.map((inq) => (inq.recipientId === recipientId ? { ...inq, status } : inq)));
+  }
+
   if (inquiries.length === 0) {
     return (
       <p style={{ marginTop: 24, color: "var(--color-muted)" }}>
@@ -40,10 +64,29 @@ export default function InquiriesList({ inquiries }) {
 
           <p style={{ marginTop: 12, marginBottom: 0, fontSize: 14.5, lineHeight: 1.5 }}>{inq.description}</p>
 
-          <div style={{ marginTop: 14 }}>
+          <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <a className="btn btn-primary" href={`mailto:${inq.requester_email}`} style={{ display: "inline-block" }}>
               Svara {inq.requester_name.split(" ")[0]}
             </a>
+            <button
+              type="button"
+              className={`status-btn accept${inq.status === "accepted" ? " active" : ""}`}
+              disabled={updatingId === inq.recipientId}
+              onClick={() => setStatus(inq.recipientId, "accepted")}
+            >
+              Acceptera
+            </button>
+            <button
+              type="button"
+              className={`status-btn decline${inq.status === "declined" ? " active" : ""}`}
+              disabled={updatingId === inq.recipientId}
+              onClick={() => setStatus(inq.recipientId, "declined")}
+            >
+              Neka
+            </button>
+            {inq.status !== "pending" && (
+              <span className={`status-pill ${inq.status}`}>{STATUS_LABEL[inq.status]}</span>
+            )}
           </div>
         </div>
       ))}
