@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MinaSidorTabs from "@/components/admin/MinaSidorTabs";
+import { INQUIRIES_PAGE_SIZE, mapInquiryRow } from "@/lib/inquiries";
 
 export default async function MinaSidorPage() {
   const supabase = await createClient();
@@ -46,35 +47,22 @@ export default async function MinaSidorPage() {
     .eq("id", adminRow.company_id)
     .single();
 
+  // Hämtar bara den första sidan (senaste INQUIRIES_PAGE_SIZE) — fler sidor
+  // laddas vid behov via /api/mina-sidor/forfragan-lista. Annars skulle ett
+  // bolag med många förfrågningar över tid göra sidan tyngre och tyngre.
   const { data: inquiryRows } = await supabase
     .from("inquiry_recipients")
     .select("id, created_at, status, inquiries(*)")
     .eq("company_id", adminRow.company_id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(INQUIRIES_PAGE_SIZE + 1);
 
-  // Kontaktuppgifter (namn, e-post, roll) skickas medvetet inte till klienten
-  // förrän bolaget accepterat förfrågan — bara företagsnamn och ort syns
-  // innan dess. Låses upp via /api/mina-sidor/forfragan-detaljer efter accept.
-  const inquiries = (inquiryRows || [])
+  const rows = inquiryRows || [];
+  const hasMore = rows.length > INQUIRIES_PAGE_SIZE;
+  const inquiries = rows
+    .slice(0, INQUIRIES_PAGE_SIZE)
     .filter((row) => row.inquiries)
-    .map((row) => {
-      const unlocked = row.status === "accepted";
-      const inq = row.inquiries;
-      return {
-        recipientId: row.id,
-        receivedAt: row.created_at,
-        status: row.status,
-        description: inq.description,
-        search_role: inq.search_role,
-        focus_area: inq.focus_area,
-        service: inq.service,
-        requester_company: inq.requester_company,
-        requester_city: inq.requester_city,
-        requester_name: unlocked ? inq.requester_name : null,
-        requester_email: unlocked ? inq.requester_email : null,
-        requester_role: unlocked ? inq.requester_role : null,
-      };
-    });
+    .map(mapInquiryRow);
 
-  return <MinaSidorTabs company={company} inquiries={inquiries} />;
+  return <MinaSidorTabs company={company} inquiries={inquiries} hasMore={hasMore} />;
 }

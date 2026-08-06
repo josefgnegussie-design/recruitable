@@ -9,9 +9,30 @@ function formatDate(iso) {
 
 const STATUS_LABEL = { accepted: "Accepterad", declined: "Nekad" };
 
-export default function InquiriesList({ inquiries: initialInquiries }) {
+export default function InquiriesList({ inquiries: initialInquiries, initialHasMore }) {
   const [inquiries, setInquiries] = useState(initialInquiries);
   const [updatingId, setUpdatingId] = useState(null);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  async function loadMore() {
+    const last = inquiries[inquiries.length - 1];
+    if (!last) return;
+
+    setLoadingMore(true);
+    const res = await fetch("/api/mina-sidor/forfragan-lista", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ before: last.receivedAt }),
+    });
+
+    if (res.ok) {
+      const { inquiries: more, hasMore: nextHasMore } = await res.json();
+      setInquiries((prev) => [...prev, ...more]);
+      setHasMore(nextHasMore);
+    }
+    setLoadingMore(false);
+  }
 
   async function setStatus(recipientId, status) {
     setUpdatingId(recipientId);
@@ -118,6 +139,18 @@ export default function InquiriesList({ inquiries: initialInquiries }) {
           </div>
         );
       })}
+
+      {hasMore && (
+        <button
+          type="button"
+          className="btn btn-ghost"
+          disabled={loadingMore}
+          onClick={loadMore}
+          style={{ alignSelf: "center" }}
+        >
+          {loadingMore ? "Laddar..." : "Visa fler"}
+        </button>
+      )}
     </div>
   );
 }

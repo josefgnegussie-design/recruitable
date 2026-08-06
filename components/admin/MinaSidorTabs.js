@@ -4,7 +4,7 @@ import { useState } from "react";
 import ProfileEditor from "@/components/admin/ProfileEditor";
 import InquiriesList from "@/components/admin/InquiriesList";
 
-export default function MinaSidorTabs({ company, inquiries }) {
+export default function MinaSidorTabs({ company, inquiries, hasMore }) {
   const [tab, setTab] = useState("forfragningar");
 
   return (
@@ -26,7 +26,7 @@ export default function MinaSidorTabs({ company, inquiries }) {
         </button>
       </div>
 
-      {tab === "forfragningar" && <InquiriesList inquiries={inquiries} />}
+      {tab === "forfragningar" && <InquiriesList inquiries={inquiries} initialHasMore={hasMore} />}
 
       {tab === "profil" &&
         (company?.is_premium ? (
