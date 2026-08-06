@@ -42,6 +42,14 @@ export default function InquiryWizard({ filters }) {
     });
   }
 
+  function selectAll() {
+    setSelected(new Set(results.map((c) => c.id)));
+  }
+
+  function deselectAll() {
+    setSelected(new Set());
+  }
+
   function goStep1Next() {
     if (selected.size === 0) {
       setError("Välj minst ett bolag att skicka förfrågan till.");
@@ -126,6 +134,10 @@ export default function InquiryWizard({ filters }) {
           <div style={{ maxWidth: 1180, margin: "0 auto", padding: "10px 24px 40px" }}>
             <div className="results-bar">
               <div className="results-count"><b>{selected.size}</b> av {results.length} valda</div>
+              <div style={{ display: "flex", gap: 14 }}>
+                <button type="button" className="link-btn" onClick={selectAll}>Välj alla</button>
+                <button type="button" className="link-btn" onClick={deselectAll}>Avmarkera alla</button>
+              </div>
             </div>
             {results.length === 0 ? (
               <p>Inga bolag matchar filtret. <Link href="/rekrytera">Justera filtret</Link>.</p>
