@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const MAINTENANCE_ALLOW = ["/coming-soon", "/favicon.ico", "/robots.txt", "/sitemap.xml", "/logo"];
+const MAINTENANCE_ALLOW = ["/coming-soon", "/favicon.ico", "/icon.png", "/icon.svg", "/robots.txt", "/sitemap.xml", "/logo"];
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
