@@ -6,10 +6,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // Lämnar ut en förfrågans kontaktuppgifter (namn, e-post, roll) — men bara
-// om den inloggade användaren är verifierad admin för mottagande bolag,
-// förfrågan är markerad som accepterad, OCH Recruitable manuellt släppt
-// uppgifterna via /admin/forfragningar. Företagsnamn och ort syns redan
-// innan dess i den vanliga listan, det är bara kontaktvägen som är låst.
+// om den inloggade användaren är verifierad admin för mottagande bolag OCH
+// förfrågan faktiskt är markerad som accepterad. Företagsnamn och ort syns
+// redan innan dess i den vanliga listan, det är bara kontaktvägen som är låst.
 export async function POST(request) {
   const limited = await rateLimit(request, "forfragan-detaljer", 30, 3600);
   if (limited) return limited;
@@ -37,7 +36,7 @@ export async function POST(request) {
 
   const { data: recipient } = await supabase
     .from("inquiry_recipients")
-    .select("company_id, status, released_at, inquiries(requester_name, requester_email, requester_role)")
+    .select("company_id, status, inquiries(requester_name, requester_email, requester_role)")
     .eq("id", recipientId)
     .maybeSingle();
 
@@ -58,13 +57,6 @@ export async function POST(request) {
 
   if (recipient.status !== "accepted") {
     return NextResponse.json({ error: "Kontaktuppgifterna låses upp först när förfrågan accepterats." }, { status: 403 });
-  }
-
-  if (!recipient.released_at) {
-    return NextResponse.json(
-      { error: "Kontaktuppgifterna granskas av Recruitable och släpps inom kort." },
-      { status: 403 }
-    );
   }
 
   return NextResponse.json(recipient.inquiries);

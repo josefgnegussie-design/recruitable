@@ -7,11 +7,13 @@ import { rateLimit } from "@/lib/rateLimit";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Recruitables egen manuella granskning — släpper en accepterad förfrågans
-// kontaktuppgifter till bolaget. Separat spärr utöver bolagets egen
-// Acceptera-knapp, se lib/inquiries.js.
+const VALID_DECISIONS = new Set(["approved", "rejected"]);
+
+// Recruitables egen granskning av nyinkomna förfrågningar — ingen förfrågan
+// syns för något bolag (inte ens redigerad) förrän den godkänts här. Se
+// moderation_status i migration_inquiry_moderation.sql.
 export async function POST(request) {
-  const limited = await rateLimit(request, "admin-slapp-uppgifter", 60, 3600);
+  const limited = await rateLimit(request, "admin-moderera-forfragan", 60, 3600);
   if (limited) return limited;
 
   const supabase = await createClient();
@@ -30,35 +32,35 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { recipientId } = body;
-  if (typeof recipientId !== "string" || !recipientId) {
+  const { inquiryId, decision } = body;
+  if (typeof inquiryId !== "string" || !inquiryId || !VALID_DECISIONS.has(decision)) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
   const admin = createAdminClient();
 
-  const { data: recipient } = await admin
-    .from("inquiry_recipients")
-    .select("status")
-    .eq("id", recipientId)
+  const { data: inquiry } = await admin
+    .from("inquiries")
+    .select("moderation_status")
+    .eq("id", inquiryId)
     .maybeSingle();
 
-  if (!recipient) {
+  if (!inquiry) {
     return NextResponse.json({ error: "Hittades inte." }, { status: 404 });
   }
 
-  if (recipient.status !== "accepted") {
-    return NextResponse.json({ error: "Bolaget har inte accepterat förfrågan än." }, { status: 400 });
+  if (inquiry.moderation_status !== "pending") {
+    return NextResponse.json({ error: "Förfrågan är redan hanterad." }, { status: 400 });
   }
 
   const { error } = await admin
-    .from("inquiry_recipients")
-    .update({ released_at: new Date().toISOString() })
-    .eq("id", recipientId);
+    .from("inquiries")
+    .update({ moderation_status: decision })
+    .eq("id", inquiryId);
 
   if (error) {
-    console.error("Kunde inte släppa kontaktuppgifter:", JSON.stringify(error));
-    return NextResponse.json({ error: "Kunde inte släppa kontaktuppgifter." }, { status: 500 });
+    console.error("Kunde inte uppdatera moderation_status:", JSON.stringify(error));
+    return NextResponse.json({ error: "Kunde inte spara beslutet." }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

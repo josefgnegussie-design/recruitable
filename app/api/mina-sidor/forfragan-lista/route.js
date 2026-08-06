@@ -48,7 +48,7 @@ export async function POST(request) {
 
   const { data: inquiryRows, error } = await supabase
     .from("inquiry_recipients")
-    .select("id, created_at, status, released_at, inquiries(*)")
+    .select("id, created_at, status, inquiries(*)")
     .eq("company_id", adminRow.company_id)
     .lt("created_at", before)
     .order("created_at", { ascending: false })

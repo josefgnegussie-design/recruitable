@@ -52,7 +52,7 @@ export default async function MinaSidorPage() {
   // bolag med många förfrågningar över tid göra sidan tyngre och tyngre.
   const { data: inquiryRows } = await supabase
     .from("inquiry_recipients")
-    .select("id, created_at, status, released_at, inquiries(*)")
+    .select("id, created_at, status, inquiries(*)")
     .eq("company_id", adminRow.company_id)
     .order("created_at", { ascending: false })
     .limit(INQUIRIES_PAGE_SIZE + 1);
