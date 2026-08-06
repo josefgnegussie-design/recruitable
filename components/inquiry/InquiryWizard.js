@@ -34,6 +34,7 @@ export default function InquiryWizard({ filters }) {
   const [company, setCompany] = useState("");
   const [city, setCity] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
   const handleTurnstileVerify = useCallback((token) => setTurnstileToken(token), []);
 
   function toggleCompany(id) {
@@ -71,7 +72,7 @@ export default function InquiryWizard({ filters }) {
     setStep(3);
   }
 
-  async function submitStep3(e) {
+  function openConfirm(e) {
     e.preventDefault();
     setError("");
 
@@ -82,6 +83,10 @@ export default function InquiryWizard({ filters }) {
       return;
     }
 
+    setShowConfirm(true);
+  }
+
+  async function confirmSend() {
     setStatus("loading");
 
     const res = await fetch("/api/forfragan/skicka", {
@@ -109,10 +114,12 @@ export default function InquiryWizard({ filters }) {
       const body = await res.json().catch(() => ({}));
       setStatus("error");
       setError(body.error || "Något gick fel. Försök igen.");
+      setShowConfirm(false);
       return;
     }
 
     setStatus("success");
+    setShowConfirm(false);
     setStep(4);
   }
 
@@ -155,7 +162,7 @@ export default function InquiryWizard({ filters }) {
             {error && <p style={{ color: "#c0392b", marginTop: 16 }}>{error}</p>}
             {results.length > 0 && (
               <button className="qs-btn" style={{ maxWidth: 320, marginTop: 24 }} onClick={goStep1Next}>
-                Gå vidare ({selected.size} bolag) &rarr;
+                {`Gå vidare (${selected.size} bolag) →`}
               </button>
             )}
           </div>
@@ -196,7 +203,7 @@ export default function InquiryWizard({ filters }) {
           <p className="hero-sub">
             Din e-postadress måste matcha er webbplats, så bolagen vet att förfrågan är äkta.
           </p>
-          <form className="auth-panel" onSubmit={submitStep3} style={{ marginTop: 24 }}>
+          <form className="auth-panel" onSubmit={openConfirm} style={{ marginTop: 24 }}>
             <div className="field">
               <label htmlFor="inq-name">Namn</label>
               <input id="inq-name" value={name} onChange={(e) => setName(e.target.value)} required />
@@ -238,12 +245,47 @@ export default function InquiryWizard({ filters }) {
               <button
                 className="qs-btn"
                 type="submit"
-                disabled={status === "loading" || (TURNSTILE_SITE_KEY && !turnstileToken)}
+                disabled={TURNSTILE_SITE_KEY && !turnstileToken}
               >
-                {status === "loading" ? "Skickar..." : "Skicka förfrågan"}
+                {`Skicka förfrågan (${selected.size} bolag)`}
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {showConfirm && (
+        <div
+          className="confirm-overlay"
+          onClick={() => status !== "loading" && setShowConfirm(false)}
+        >
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{`Skicka till ${selected.size} bolag?`}</h3>
+            <p className="sub">
+              Dessa bolag får se er förfrågan så snart Recruitable har granskat och godkänt den:
+            </p>
+            <ul className="confirm-company-list">
+              {results
+                .filter((c) => selected.has(c.id))
+                .map((c) => (
+                  <li key={c.id}>{c.name}</li>
+                ))}
+            </ul>
+            {error && <p style={{ color: "#c0392b", fontSize: 13, marginBottom: 12 }}>{error}</p>}
+            <div className="confirm-actions">
+              <button
+                className="btn btn-ghost"
+                type="button"
+                disabled={status === "loading"}
+                onClick={() => setShowConfirm(false)}
+              >
+                Avbryt
+              </button>
+              <button className="qs-btn" type="button" disabled={status === "loading"} onClick={confirmSend}>
+                {status === "loading" ? "Skickar..." : "Bekräfta och skicka"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
