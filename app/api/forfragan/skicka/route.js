@@ -3,6 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { COMPANIES } from "@/lib/companies";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
+import { verifyTurnstile } from "@/lib/turnstile";
+import { clientIp } from "@/lib/requestIp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,6 +56,7 @@ export async function POST(request) {
     requesterRole,
     requesterCompany,
     requesterCity,
+    turnstileToken,
   } = body;
 
   const companyIdsValid =
@@ -80,6 +83,10 @@ export async function POST(request) {
     !isValidText(requesterCity, 100)
   ) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
+  }
+
+  if (!(await verifyTurnstile(turnstileToken, clientIp(request)))) {
+    return NextResponse.json({ error: "Kunde inte verifiera att du inte är en robot. Försök igen." }, { status: 403 });
   }
 
   const websiteDomain = domainOf(requesterWebsite.trim());

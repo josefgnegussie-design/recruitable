@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { COMPANIES } from "@/lib/companies";
 import { filterCompanies, regionForCity } from "@/lib/helpers";
 import Stepper from "@/components/wizard/Stepper";
 import SelectableCompanyCard from "./SelectableCompanyCard";
+import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
 
 function domainOf(url) {
   try {
@@ -32,6 +33,8 @@ export default function InquiryWizard({ filters }) {
   const [role, setRole] = useState("");
   const [company, setCompany] = useState("");
   const [city, setCity] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const handleTurnstileVerify = useCallback((token) => setTurnstileToken(token), []);
 
   function toggleCompany(id) {
     setSelected((prev) => {
@@ -98,6 +101,7 @@ export default function InquiryWizard({ filters }) {
         requesterRole: role,
         requesterCompany: company,
         requesterCity: city,
+        turnstileToken,
       }),
     });
 
@@ -226,10 +230,16 @@ export default function InquiryWizard({ filters }) {
               <label htmlFor="inq-city">Ort</label>
               <input id="inq-city" value={city} onChange={(e) => setCity(e.target.value)} required />
             </div>
+            <Turnstile onVerify={handleTurnstileVerify} />
+
             {error && <p style={{ color: "#c0392b", fontSize: 13 }}>{error}</p>}
             <div style={{ display: "flex", gap: 12 }}>
               <button className="btn btn-ghost" type="button" onClick={() => setStep(2)}>Tillbaka</button>
-              <button className="qs-btn" type="submit" disabled={status === "loading"}>
+              <button
+                className="qs-btn"
+                type="submit"
+                disabled={status === "loading" || (TURNSTILE_SITE_KEY && !turnstileToken)}
+              >
                 {status === "loading" ? "Skickar..." : "Skicka förfrågan"}
               </button>
             </div>

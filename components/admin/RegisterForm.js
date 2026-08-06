@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
+import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
 
 const SERVICE_OPTIONS = ["Bemanning", "Rekrytering", "Interim", "Search"];
 
@@ -23,6 +24,8 @@ export default function RegisterForm() {
 
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const handleTurnstileVerify = useCallback((token) => setTurnstileToken(token), []);
 
   async function handleStep1(e) {
     e.preventDefault();
@@ -96,7 +99,17 @@ export default function RegisterForm() {
     const res = await fetch("/api/auth/registrera", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, email, companyName, orgNumber, address, website, focusAreas, services }),
+      body: JSON.stringify({
+        userId,
+        email,
+        companyName,
+        orgNumber,
+        address,
+        website,
+        focusAreas,
+        services,
+        turnstileToken,
+      }),
     });
 
     if (!res.ok) {
@@ -269,8 +282,15 @@ export default function RegisterForm() {
         )}
       </div>
 
+      <Turnstile onVerify={handleTurnstileVerify} />
+
       {status === "error" && <p style={{ color: "#c0392b", fontSize: 13, marginTop: 16 }}>{errorMsg}</p>}
-      <button className="qs-btn" type="submit" disabled={status === "loading"} style={{ marginTop: 20 }}>
+      <button
+        className="qs-btn"
+        type="submit"
+        disabled={status === "loading" || (TURNSTILE_SITE_KEY && !turnstileToken)}
+        style={{ marginTop: 20 }}
+      >
         {status === "loading" ? "Skickar..." : "Begär tillgång"}
       </button>
     </form>

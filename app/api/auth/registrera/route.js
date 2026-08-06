@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
+import { verifyTurnstile } from "@/lib/turnstile";
+import { clientIp } from "@/lib/requestIp";
 
 const VALID_AREAS = new Set(Object.keys(YRKESOMRADEN));
 const VALID_SERVICES = new Set(["Bemanning", "Rekrytering", "Interim", "Search"]);
@@ -35,7 +37,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { userId, email, companyName, orgNumber, address, website, focusAreas, services } = body;
+  const { userId, email, companyName, orgNumber, address, website, focusAreas, services, turnstileToken } = body;
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const focusAreasValid =
@@ -59,6 +61,10 @@ export async function POST(request) {
     !servicesValid
   ) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
+  }
+
+  if (!(await verifyTurnstile(turnstileToken, clientIp(request)))) {
+    return NextResponse.json({ error: "Kunde inte verifiera att du inte är en robot. Försök igen." }, { status: 403 });
   }
 
   const websiteDomain = domainOf(website.trim());
