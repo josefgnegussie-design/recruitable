@@ -294,8 +294,7 @@ export default function InquiryWizard({ filters }) {
           <div className="auth-panel">
             <h2 style={{ marginTop: 0 }}>Tack!</h2>
             <p>
-              Er förfrågan har skickats till {selected.size} bolag. De ser den under sina Mina sidor och hör av
-              sig direkt till dig på {email}.
+              {`Er förfrågan skickades till granskning hos Recruitable. Så snart den är godkänd ser de ${selected.size} valda bolagen den under sina Mina sidor och kan höra av sig direkt till dig på ${email}.`}
             </p>
             <Link className="qs-btn" href="/" style={{ display: "inline-block", textDecoration: "none" }}>
               Till startsidan
