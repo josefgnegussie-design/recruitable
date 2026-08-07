@@ -21,7 +21,7 @@ export default async function ModereraForfragningarPage() {
   const { data: rows } = await admin
     .from("inquiries")
     .select(
-      "id, created_at, description, search_role, focus_area, service, requester_name, requester_email, requester_role, requester_company, requester_website, requester_city, inquiry_recipients(companies(name))"
+      "id, created_at, description, search_role, focus_area, service, requester_name, requester_email, requester_role, requester_company, requester_website, requester_city, requester_phone, inquiry_recipients(companies(name))"
     )
     .eq("moderation_status", "pending")
     .order("created_at", { ascending: true });
@@ -39,6 +39,7 @@ export default async function ModereraForfragningarPage() {
     requesterCompany: row.requester_company,
     requesterWebsite: row.requester_website,
     requesterCity: row.requester_city,
+    requesterPhone: row.requester_phone,
     companies: (row.inquiry_recipients || []).map((r) => r.companies?.name).filter(Boolean),
   }));
 

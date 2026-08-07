@@ -83,7 +83,9 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
               <div>
                 <p style={{ margin: 0, fontWeight: 600, fontSize: 16 }}>{inq.requester_company}</p>
                 <p style={{ margin: "2px 0 0", fontSize: 13, color: "var(--color-muted)" }}>
-                  {unlocked ? `${inq.requester_name} · ${inq.requester_role} · ` : ""}
+                  {unlocked
+                    ? `${inq.requester_name} · ${inq.requester_role}${inq.requester_phone ? ` · ${inq.requester_phone}` : ""} · `
+                    : ""}
                   {inq.requester_city}
                 </p>
               </div>
@@ -104,13 +106,20 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
 
             <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
               {unlocked ? (
-                <a
-                  className="btn btn-primary"
-                  href={`mailto:${inq.requester_email}`}
-                  style={{ display: "inline-block" }}
-                >
-                  Svara {inq.requester_name.split(" ")[0]}
-                </a>
+                <>
+                  <a
+                    className="btn btn-primary"
+                    href={`mailto:${inq.requester_email}`}
+                    style={{ display: "inline-block" }}
+                  >
+                    {`Svara ${inq.requester_name.split(" ")[0]}`}
+                  </a>
+                  {inq.requester_phone && (
+                    <a className="btn btn-ghost" href={`tel:${inq.requester_phone}`} style={{ display: "inline-block" }}>
+                      {`Ring ${inq.requester_phone}`}
+                    </a>
+                  )}
+                </>
               ) : (
                 <span className="note" style={{ fontSize: 12.5 }}>
                   Kontaktuppgifter visas här så snart ni accepterat förfrågan.

@@ -56,6 +56,7 @@ export async function POST(request) {
     requesterRole,
     requesterCompany,
     requesterCity,
+    requesterPhone,
     turnstileToken,
   } = body;
 
@@ -80,7 +81,8 @@ export async function POST(request) {
     !isValidText(requesterWebsite, 200) ||
     !isValidText(requesterRole, 100) ||
     !isValidText(requesterCompany, 200) ||
-    !isValidText(requesterCity, 100)
+    !isValidText(requesterCity, 100) ||
+    !isValidOptionalText(requesterPhone, 30)
   ) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
   }
@@ -116,6 +118,7 @@ export async function POST(request) {
       requester_role: requesterRole.trim(),
       requester_company: requesterCompany.trim(),
       requester_city: requesterCity.trim(),
+      requester_phone: requesterPhone?.trim() || null,
     })
     .select("id")
     .single();

@@ -33,6 +33,8 @@ export default function InquiryWizard({ filters }) {
   const [role, setRole] = useState("");
   const [company, setCompany] = useState("");
   const [city, setCity] = useState("");
+  const [wantsCall, setWantsCall] = useState(false);
+  const [phone, setPhone] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const handleTurnstileVerify = useCallback((token) => setTurnstileToken(token), []);
@@ -106,6 +108,7 @@ export default function InquiryWizard({ filters }) {
         requesterRole: role,
         requesterCompany: company,
         requesterCity: city,
+        requesterPhone: wantsCall ? phone : "",
         turnstileToken,
       }),
     });
@@ -145,9 +148,14 @@ export default function InquiryWizard({ filters }) {
           <div style={{ maxWidth: 1180, margin: "0 auto", padding: "10px 24px 40px" }}>
             <div className="results-bar">
               <div className="results-count"><b>{selected.size}</b> av {results.length} valda</div>
-              <div style={{ display: "flex", gap: 14 }}>
+              <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                 <button type="button" className="link-btn" onClick={selectAll}>Välj alla</button>
                 <button type="button" className="link-btn" onClick={deselectAll}>Avmarkera alla</button>
+                {results.length > 0 && (
+                  <button className="qs-btn" style={{ padding: "10px 18px" }} onClick={goStep1Next}>
+                    {`Gå vidare (${selected.size} bolag) →`}
+                  </button>
+                )}
               </div>
             </div>
             {results.length === 0 ? (
@@ -209,11 +217,44 @@ export default function InquiryWizard({ filters }) {
               <input id="inq-name" value={name} onChange={(e) => setName(e.target.value)} required />
             </div>
             <div className="field">
+              <label htmlFor="inq-company">Företag</label>
+              <input id="inq-company" value={company} onChange={(e) => setCompany(e.target.value)} required />
+            </div>
+            <div className="field">
+              <label htmlFor="inq-role">Din roll</label>
+              <input id="inq-role" value={role} onChange={(e) => setRole(e.target.value)} required />
+            </div>
+            <div className="field">
               <label htmlFor="inq-email">E-post</label>
               <input id="inq-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="field">
-              <label htmlFor="inq-website">Webbplats</label>
+              <label className="checkbox-row" htmlFor="inq-wants-call">
+                <input
+                  id="inq-wants-call"
+                  type="checkbox"
+                  checked={wantsCall}
+                  onChange={(e) => setWantsCall(e.target.checked)}
+                />
+                Jag vill bli uppringd snarast möjligt
+              </label>
+              {wantsCall && (
+                <input
+                  id="inq-phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Telefonnummer (valfritt)"
+                  style={{ marginTop: 10 }}
+                />
+              )}
+            </div>
+            <div className="field">
+              <label htmlFor="inq-city">Ort</label>
+              <input id="inq-city" value={city} onChange={(e) => setCity(e.target.value)} required />
+            </div>
+            <div className="field">
+              <label htmlFor="inq-website">Webbplats (företag)</label>
               <input
                 id="inq-website"
                 value={website}
@@ -224,18 +265,6 @@ export default function InquiryWizard({ filters }) {
               <p style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 6 }}>
                 Måste matcha samma domän som din e-postadress.
               </p>
-            </div>
-            <div className="field">
-              <label htmlFor="inq-role">Din roll</label>
-              <input id="inq-role" value={role} onChange={(e) => setRole(e.target.value)} required />
-            </div>
-            <div className="field">
-              <label htmlFor="inq-company">Företag</label>
-              <input id="inq-company" value={company} onChange={(e) => setCompany(e.target.value)} required />
-            </div>
-            <div className="field">
-              <label htmlFor="inq-city">Ort</label>
-              <input id="inq-city" value={city} onChange={(e) => setCity(e.target.value)} required />
             </div>
             <Turnstile onVerify={handleTurnstileVerify} />
 

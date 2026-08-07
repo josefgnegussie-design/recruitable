@@ -5,7 +5,7 @@ import { rateLimit } from "@/lib/rateLimit";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Lämnar ut en förfrågans kontaktuppgifter (namn, e-post, roll) — men bara
+// Lämnar ut en förfrågans kontaktuppgifter (namn, e-post, roll, telefon) — men bara
 // om den inloggade användaren är verifierad admin för mottagande bolag OCH
 // förfrågan faktiskt är markerad som accepterad. Företagsnamn och ort syns
 // redan innan dess i den vanliga listan, det är bara kontaktvägen som är låst.
@@ -36,7 +36,7 @@ export async function POST(request) {
 
   const { data: recipient } = await supabase
     .from("inquiry_recipients")
-    .select("company_id, status, inquiries(requester_name, requester_email, requester_role)")
+    .select("company_id, status, inquiries(requester_name, requester_email, requester_role, requester_phone)")
     .eq("id", recipientId)
     .maybeSingle();
 

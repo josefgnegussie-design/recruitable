@@ -48,6 +48,12 @@ export default function ModerationQueue({ initialQueue }) {
                 <a href={`https://${item.requesterWebsite.replace(/^https?:\/\//, "")}`} target="_blank" rel="noreferrer">
                   {item.requesterWebsite}
                 </a>
+                {item.requesterPhone && (
+                  <>
+                    {" · "}
+                    <a href={`tel:${item.requesterPhone}`}>{item.requesterPhone}</a>
+                  </>
+                )}
               </p>
             </div>
             <span style={{ fontSize: 12, color: "var(--color-muted)", whiteSpace: "nowrap" }}>
