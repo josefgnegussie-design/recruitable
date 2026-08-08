@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import MinaSidorTabs from "@/components/admin/MinaSidorTabs";
 import { INQUIRIES_PAGE_SIZE, mapInquiryRow } from "@/lib/inquiries";
 
@@ -64,5 +65,23 @@ export default async function MinaSidorPage() {
     .filter((row) => row.inquiries)
     .map(mapInquiryRow);
 
-  return <MinaSidorTabs company={company} inquiries={inquiries} hasMore={hasMore} />;
+  // Övriga administratörer för samma bolag — auth.users är bara läsbart via
+  // service role-klienten, så vi slår upp e-postadresserna separat här.
+  const admin = createAdminClient();
+  const { data: adminRows } = await admin
+    .from("company_admins")
+    .select("id, user_id")
+    .eq("company_id", adminRow.company_id)
+    .order("created_at", { ascending: true });
+
+  const teamMembers = await Promise.all(
+    (adminRows || []).map(async (row) => {
+      const { data } = await admin.auth.admin.getUserById(row.user_id);
+      return { id: row.id, email: data?.user?.email || "(okänt konto)", isSelf: row.user_id === user.id };
+    })
+  );
+
+  return (
+    <MinaSidorTabs company={company} inquiries={inquiries} hasMore={hasMore} teamMembers={teamMembers} />
+  );
 }

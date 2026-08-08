@@ -331,8 +331,10 @@ a:hover{color:var(--color-accent)}
   .logo .mark{width:11px;height:11px;background:var(--color-accent);border-radius:3px;transform:rotate(45deg);flex-shrink:0;}
   .doc-tag{font-family:var(--font-mono);font-size:11px;color:var(--color-on-dark-soft);letter-spacing:1px;}
   nav.site-nav{display:flex;gap:28px;font-size:13px;letter-spacing:0.2px;}
-  nav.site-nav span, nav.site-nav a{padding-bottom:3px;border-bottom:2px solid transparent;cursor:pointer;font-weight:500;color:var(--color-on-dark-soft);text-decoration:none;}
+  nav.site-nav span, nav.site-nav a, nav.site-nav .nav-link-btn{padding-bottom:3px;border-bottom:2px solid transparent;cursor:pointer;font-weight:500;color:var(--color-on-dark-soft);text-decoration:none;}
   nav.site-nav span.active, nav.site-nav a.active{color:var(--color-on-dark);border-bottom-color:var(--color-accent);}
+  nav.site-nav .nav-link-btn{background:none;border-width:0 0 2px;border-color:transparent;padding-left:0;padding-right:0;font-size:13px;letter-spacing:0.2px;font-family:var(--font-body);}
+  nav.site-nav .nav-link-btn:hover{color:var(--color-on-dark);}
   .menu-toggle{display:none;flex-direction:column;justify-content:center;gap:5px;width:34px;height:34px;background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;}
   .menu-toggle span{display:block;width:100%;height:2px;background:var(--color-on-dark);border-radius:1px;transition:opacity .15s ease, transform .15s ease;}
 
@@ -564,9 +566,9 @@ a:hover{color:var(--color-accent)}
     .menu-toggle{display:flex;}
     nav.site-nav{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;background:var(--color-surface-dark);border-bottom:3px solid var(--color-accent);padding:4px 24px 16px;box-shadow:0 8px 20px rgba(0,0,0,0.2);}
     nav.site-nav.open{display:flex;}
-    nav.site-nav a{padding:13px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
+    nav.site-nav a, nav.site-nav .nav-link-btn{padding:13px 0;border-bottom:1px solid rgba(255,255,255,0.1);width:100%;text-align:left;}
     nav.site-nav a.active{border-bottom-color:rgba(255,255,255,0.1);}
-    nav.site-nav a:last-child{border-bottom:none;}
+    nav.site-nav a:last-child, nav.site-nav .nav-link-btn:last-child{border-bottom:none;}
 
     .l-cta-band{flex-direction:column;align-items:stretch;padding:32px 24px;}
     .l-cta-band h3, .l-cta-band p{max-width:none;}

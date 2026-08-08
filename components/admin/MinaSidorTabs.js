@@ -3,8 +3,9 @@
 import { useState } from "react";
 import ProfileEditor from "@/components/admin/ProfileEditor";
 import InquiriesList from "@/components/admin/InquiriesList";
+import AccountSettings from "@/components/admin/AccountSettings";
 
-export default function MinaSidorTabs({ company, inquiries, hasMore }) {
+export default function MinaSidorTabs({ company, inquiries, hasMore, teamMembers }) {
   const [tab, setTab] = useState("forfragningar");
 
   return (
@@ -24,6 +25,13 @@ export default function MinaSidorTabs({ company, inquiries, hasMore }) {
         >
           Profil
         </button>
+        <button
+          type="button"
+          className={`tab-btn${tab === "konto" ? " active" : ""}`}
+          onClick={() => setTab("konto")}
+        >
+          Konto
+        </button>
       </div>
 
       {tab === "forfragningar" && <InquiriesList inquiries={inquiries} initialHasMore={hasMore} />}
@@ -37,6 +45,8 @@ export default function MinaSidorTabs({ company, inquiries, hasMore }) {
             komma igång.
           </p>
         ))}
+
+      {tab === "konto" && <AccountSettings teamMembers={teamMembers} />}
     </div>
   );
 }
