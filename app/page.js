@@ -6,7 +6,7 @@ import NearbyCompanies from "@/components/NearbyCompanies";
 const PREVIEW_IDS = [4, 1, 9];
 
 export default function LandingPage() {
-  const preview = PREVIEW_IDS.map((id) => COMPANIES.find((c) => c.id === id));
+  const preview = PREVIEW_IDS.map((id) => COMPANIES.find((c) => c.id === id)).filter(Boolean);
   const focusAreaCount = new Set(COMPANIES.flatMap((c) => c.focus)).size;
   const kaCount = COMPANIES.filter((c) => c.ka).length;
   const oldestYear = Math.min(...COMPANIES.map((c) => c.founded));
@@ -116,8 +116,8 @@ export default function LandingPage() {
 
       <section className="l-section tight">
         <div className="l-kicker">Ett urval</div>
-        <h2>Tre bolag att börja med</h2>
-        <p className="l-section-sub">Ett litet nischat bolag, ett mellanstort med lokal förankring och en global generalist — så spänner registret.</p>
+        <h2>Bolag att börja med</h2>
+        <p className="l-section-sub">Fler bolag fylls på i registret löpande.</p>
         <div className="preview-grid">
           {preview.map((c) => (
             <Link className="preview-card" href={`/bolag/${c.id}`} key={c.id}>
