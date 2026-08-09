@@ -19,43 +19,52 @@ export default function ResetPasswordForm() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setReady(true);
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) setReady(true);
     });
 
-    // Nyare Supabase-projekt skickar återställningskoden som ?code=... i
-    // stället för i URL-hashen — då krävs ett uttryckligt utbyte, annars
-    // hänger sidan kvar på "Kontrollerar länken..." utan felmeddelande om
-    // det misslyckas (t.ex. länken öppnad i en annan webbläsare/enhet än
-    // den återställningen begärdes från).
-    const code = new URLSearchParams(window.location.search).get("code");
+    async function checkLink() {
+      // Biblioteket försöker självt hantera länken (både äldre hash-baserade
+      // och nyare kodbaserade återställningslänkar) direkt när klienten
+      // skapas — vänta en kort stund på det INNAN vi rör koden själva.
+      // Återställningskoder går bara att lösa in en gång; om vi också
+      // försöker samtidigt konsumeras den två gånger och det andra
+      // försöket misslyckas alltid med "länken har gått ut".
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      if (cancelled) return;
 
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ error: exchangeError }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (session) {
+        setReady(true);
+        return;
+      }
+
+      const code = new URLSearchParams(window.location.search).get("code");
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
         if (cancelled) return;
         if (exchangeError) {
           setLinkError("Länken har gått ut eller är ogiltig — begär en ny återställningslänk.");
           return;
         }
         setReady(true);
-      });
-    } else {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (cancelled) return;
-        if (session) setReady(true);
-      });
+        return;
+      }
 
-      // Hash-baserade länkar (äldre flöde) hanteras automatiskt av
-      // biblioteket vid sidladdning — ge det en kort stund, annars visa
-      // ett fel istället för att hänga kvar för evigt.
+      // Varken en redan upprättad session eller en kod i URL:en — länken är
+      // ogiltig. Visa ett fel istället för att hänga kvar på "Kontrollerar
+      // länken..." för evigt.
       timeout = setTimeout(() => {
         if (cancelled) return;
         setReady((current) => {
           if (!current) setLinkError("Länken har gått ut eller är ogiltig — begär en ny återställningslänk.");
           return current;
         });
-      }, 4000);
+      }, 2000);
     }
+
+    checkLink();
 
     return () => {
       cancelled = true;
