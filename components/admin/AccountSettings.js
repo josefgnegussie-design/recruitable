@@ -31,6 +31,7 @@ function ChangePasswordForm() {
     setStatus("success");
     setPassword("");
     setConfirm("");
+    fetch("/api/mina-sidor/konto/losenord-bytt", { method: "POST" }).catch(() => {});
   }
 
   return (
