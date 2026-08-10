@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const MAINTENANCE_ALLOW = ["/coming-soon", "/favicon.ico", "/icon.png", "/icon.svg", "/robots.txt", "/sitemap.xml", "/logo"];
+// /api/stripe/webhook måste alltid vara nåbar, oavsett underhållsläge —
+// annars kan Stripe aldrig meddela oss om lyckade betalningar/uppsägningar.
+const MAINTENANCE_ALLOW = [
+  "/coming-soon",
+  "/favicon.ico",
+  "/icon.png",
+  "/icon.svg",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/logo",
+  "/api/stripe/webhook",
+];
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
