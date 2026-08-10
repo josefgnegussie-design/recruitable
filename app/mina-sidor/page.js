@@ -3,7 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import MinaSidorTabs from "@/components/admin/MinaSidorTabs";
 import { INQUIRIES_PAGE_SIZE, mapInquiryRow } from "@/lib/inquiries";
 
-export default async function MinaSidorPage() {
+export default async function MinaSidorPage({ searchParams }) {
+  const params = await searchParams;
+  const premiumStatus = params?.premium;
   const supabase = await createClient();
   const {
     data: { user },
@@ -64,5 +66,5 @@ export default async function MinaSidorPage() {
     .filter((row) => row.inquiries)
     .map(mapInquiryRow);
 
-  return <MinaSidorTabs company={company} inquiries={inquiries} hasMore={hasMore} />;
+  return <MinaSidorTabs company={company} inquiries={inquiries} hasMore={hasMore} premiumStatus={premiumStatus} />;
 }
