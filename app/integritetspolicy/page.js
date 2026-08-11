@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function IntegritetspolicyPage() {
   return (
     <div id="view-integritetspolicy">
@@ -102,6 +104,7 @@ export default function IntegritetspolicyPage() {
       <footer className="site-footer">
         <div className="footer-inner">
           <div>RECRUITABLE — BEMANNING &amp; REKRYTERING</div>
+          <Link href="/kontakt">Kontakt</Link>
           <div>Data kontrollerad augusti 2026 · Prototyp</div>
         </div>
       </footer>

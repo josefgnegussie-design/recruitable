@@ -5,6 +5,7 @@ import { YRKESOMRADEN } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { clientIp } from "@/lib/requestIp";
+import { sendInquiryConfirmationToRequester, sendModerationAlertToAdmins } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -136,9 +137,26 @@ export async function POST(request) {
     return NextResponse.json({ error: "Kunde inte spara förfrågan. Försök igen." }, { status: 500 });
   }
 
-  // Mejlutskick medvetet pausat (2026-08) tills vi bestämt hur vi vill hantera
-  // bolag som inte själva registrerat sig hos oss — se sendInquiryEmails i
-  // lib/email.js. Förfrågan sparas ändå som vanligt och syns på Mina sidor.
+  const inquiryForEmail = {
+    requesterName: requesterName.trim(),
+    requesterEmail: requesterEmail.trim(),
+    requesterRole: requesterRole.trim(),
+    requesterCompany: requesterCompany.trim(),
+    requesterCity: requesterCity.trim(),
+    description: description.trim(),
+    searchRole: searchRole || "",
+    focusArea: focusArea || "",
+    service: service || "",
+  };
+
+  // Bekräftelse till avsändaren och granskningsnotis till plattformsadmin
+  // skickas alltid — best effort, misslyckas aldrig hela requesten.
+  // Mejl till BOLAGEN som fått förfrågan är medvetet pausat tills Josef
+  // säger till — se sendInquiryReceivedToCompany i lib/email.js.
+  await Promise.allSettled([
+    sendInquiryConfirmationToRequester(inquiryForEmail),
+    sendModerationAlertToAdmins(inquiryForEmail),
+  ]);
 
   return NextResponse.json({ ok: true, count: recipients.length });
 }
