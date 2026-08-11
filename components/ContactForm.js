@@ -68,6 +68,10 @@ export default function ContactForm() {
       <button className="qs-btn" type="submit" disabled={status === "loading" || (TURNSTILE_SITE_KEY && !turnstileToken)}>
         {status === "loading" ? "Skickar..." : "Skicka meddelande"}
       </button>
+      <p style={{ fontStyle: "italic", fontSize: 12, color: "var(--color-muted)", marginTop: 10 }}>
+        Recruitable tar inte emot rekryteringsförfrågningar via det här formuläret. Vill ni skicka en förfrågan
+        till bolag, använd <a href="/rekrytera">Rekrytera</a>-sidan istället.
+      </p>
     </form>
   );
 }
