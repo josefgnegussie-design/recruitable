@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString("sv-SE", { year: "numeric", month: "short", day: "numeric" });
@@ -36,26 +35,27 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
 
   async function setStatus(recipientId, status) {
     setUpdatingId(recipientId);
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("inquiry_recipients")
-      .update({ status, responded_at: new Date().toISOString() })
-      .eq("id", recipientId);
 
-    if (error) {
-      console.error("Kunde inte uppdatera status:", JSON.stringify(error));
+    const res = await fetch("/api/mina-sidor/forfragan-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ recipientId, status }),
+    });
+
+    if (!res.ok) {
+      console.error("Kunde inte uppdatera status");
       setUpdatingId(null);
       return;
     }
 
     let extra = {};
     if (status === "accepted") {
-      const res = await fetch("/api/mina-sidor/forfragan-detaljer", {
+      const detailsRes = await fetch("/api/mina-sidor/forfragan-detaljer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ recipientId }),
       });
-      if (res.ok) extra = await res.json();
+      if (detailsRes.ok) extra = await detailsRes.json();
     }
 
     setInquiries((prev) =>
