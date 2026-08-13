@@ -8,6 +8,7 @@ function PartnersResultContent() {
   const searchParams = useSearchParams();
 
   const filters = {
+    beskrivning: searchParams.get("beskrivning") || "",
     omrade: searchParams.get("omrade") || "",
     service: searchParams.get("tjanst") || "",
     sokroll: searchParams.get("sokroll") || "",

@@ -9,10 +9,12 @@ import CompanyCard from "@/components/CompanyCard";
 
 export default function PartnersPage() {
   const router = useRouter();
+  const [beskrivning, setBeskrivning] = useState("");
   const [omrade, setOmrade] = useState("");
   const [service, setService] = useState("");
   const [sokroll, setSokroll] = useState("");
   const [ort, setOrt] = useState("");
+  const [error, setError] = useState("");
 
   const cities = useMemo(() => allRegionCities(), []);
 
@@ -28,7 +30,14 @@ export default function PartnersPage() {
   }, []);
 
   function handleSearch() {
+    if (!beskrivning.trim()) {
+      setError("Beskriv kortfattat vad ni söker.");
+      return;
+    }
+    setError("");
+
     const params = new URLSearchParams();
+    params.set("beskrivning", beskrivning.trim());
     if (omrade) params.set("omrade", omrade);
     if (service) params.set("tjanst", service);
     if (sokroll.trim()) params.set("sokroll", sokroll.trim());
@@ -43,15 +52,27 @@ export default function PartnersPage() {
           <div className="eyebrow">Hitta partners · Sverige</div>
           <h1 className="hero-title">Rekrytera</h1>
           <p className="hero-sub">
-            Ange yrkesområde, tjänst och ort så visar vi bemannings- och rekryteringsbolagen i Sverige
-            rangordnade efter relevans för just era behov.
+            Beskriv vad ni söker så visar vi bemannings- och rekryteringsbolagen i Sverige rangordnade efter
+            relevans för just era behov.
           </p>
           <div className="hero-stats">
             <div className="stat"><span className="num">{COMPANIES.length}</span><span className="label">Bolag i registret</span></div>
           </div>
         </div>
         <div className="hero-panel">
-          <p>Filtrera på yrkesområde, tjänst och ort.</p>
+          <p>Beskriv ert behov, filtrera sedan på yrkesområde, tjänst och ort.</p>
+          <div className="field">
+            <label htmlFor="pt-beskrivning">Beskriv ert behov</label>
+            <textarea
+              id="pt-beskrivning"
+              value={beskrivning}
+              onChange={(e) => setBeskrivning(e.target.value.slice(0, 350))}
+              maxLength={350}
+              rows={4}
+              placeholder="T.ex. roll, omfattning, önskad start och annat som är bra för bolagen att veta."
+            />
+            <div className="char-counter">{beskrivning.length}/350 tecken</div>
+          </div>
           <div className="field-row">
             <div className="field">
               <label htmlFor="pt-omrade">Yrkesområde</label>
@@ -100,6 +121,7 @@ export default function PartnersPage() {
               ))}
             </datalist>
           </div>
+          {error && <p style={{ color: "#c0392b", fontSize: 13 }}>{error}</p>}
           <button className="qs-btn" onClick={handleSearch}>Hitta bolag &rarr;</button>
         </div>
       </section>

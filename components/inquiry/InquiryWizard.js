@@ -25,7 +25,7 @@ export default function InquiryWizard({ filters }) {
   const results = useMemo(() => filterCompanies(COMPANIES, filters), [filters]);
   const [selected, setSelected] = useState(() => new Set(results.map((c) => c.id)));
 
-  const [description, setDescription] = useState("");
+  const [description] = useState(filters.beskrivning || "");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -63,15 +63,6 @@ export default function InquiryWizard({ filters }) {
     }
     setError("");
     setStep(2);
-  }
-
-  function goStep2Next() {
-    if (!description.trim()) {
-      setError("Beskriv kortfattat vad ni söker.");
-      return;
-    }
-    setError("");
-    setStep(3);
   }
 
   function openConfirm(e) {
@@ -123,21 +114,21 @@ export default function InquiryWizard({ filters }) {
 
     setStatus("success");
     setShowConfirm(false);
-    setStep(4);
+    setStep(3);
   }
 
   return (
     <div id="view-rekrytera-results">
       {step === 1 && <Link className="back-link" href="/rekrytera">&larr; Tillbaka till filtret</Link>}
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 24px 0" }}>
-        <Stepper step={step} total={4} />
+        <Stepper step={step} total={3} />
       </div>
 
       {step === 1 && (
         <>
           <section className="hero">
             <div>
-              <div className="eyebrow">Steg 1 av 4 · Rangordnade efter relevans</div>
+              <div className="eyebrow">Steg 1 av 3 · Rangordnade efter relevans</div>
               <h1 className="hero-title">Välj de bolag <em>ni vill kontakta</em></h1>
               <p className="hero-sub">
                 Visar {results.length} bolag för {filters.omrade || "alla yrkesområden"} ·{" "}
@@ -178,35 +169,8 @@ export default function InquiryWizard({ filters }) {
       )}
 
       {step === 2 && (
-        <div style={{ maxWidth: 640, margin: "0 auto", padding: "20px 24px 60px" }}>
-          <div className="eyebrow">Steg 2 av 4</div>
-          <h1 className="hero-title" style={{ fontSize: 32 }}>Beskriv <em>behovet</em></h1>
-          <p className="hero-sub">
-            Vad söker ni, och när ska rollen tillsättas? De {selected.size} bolag ni valt får den här texten.
-          </p>
-          <div className="field" style={{ marginTop: 24 }}>
-            <label htmlFor="inq-desc">Beskrivning</label>
-            <textarea
-              id="inq-desc"
-              value={description}
-              onChange={(e) => setDescription(e.target.value.slice(0, 350))}
-              maxLength={350}
-              rows={6}
-              placeholder="T.ex. roll, omfattning, önskad start och annat som är bra för bolagen att veta."
-            />
-            <div className="char-counter">{description.length}/350 tecken</div>
-          </div>
-          {error && <p style={{ color: "#c0392b", fontSize: 13 }}>{error}</p>}
-          <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-            <button className="btn btn-ghost" type="button" onClick={() => setStep(1)}>Tillbaka</button>
-            <button className="qs-btn" type="button" onClick={goStep2Next}>Nästa</button>
-          </div>
-        </div>
-      )}
-
-      {step === 3 && (
         <div style={{ maxWidth: 480, margin: "0 auto", padding: "20px 24px 60px" }}>
-          <div className="eyebrow">Steg 3 av 4</div>
+          <div className="eyebrow">Steg 2 av 3</div>
           <h1 className="hero-title" style={{ fontSize: 32 }}>Verifiera <em>dig själv</em></h1>
           <p className="hero-sub">
             Din e-postadress måste matcha er webbplats, så bolagen vet att förfrågan är äkta.
@@ -270,7 +234,7 @@ export default function InquiryWizard({ filters }) {
 
             {error && <p style={{ color: "#c0392b", fontSize: 13 }}>{error}</p>}
             <div style={{ display: "flex", gap: 12 }}>
-              <button className="btn btn-ghost" type="button" onClick={() => setStep(2)}>Tillbaka</button>
+              <button className="btn btn-ghost" type="button" onClick={() => setStep(1)}>Tillbaka</button>
               <button
                 className="qs-btn"
                 type="submit"
@@ -318,7 +282,7 @@ export default function InquiryWizard({ filters }) {
         </div>
       )}
 
-      {step === 4 && (
+      {step === 3 && (
         <div style={{ maxWidth: 480, margin: "20px auto 60px", padding: "0 24px", textAlign: "center" }}>
           <div className="auth-panel">
             <h2 style={{ marginTop: 0 }}>Tack!</h2>
