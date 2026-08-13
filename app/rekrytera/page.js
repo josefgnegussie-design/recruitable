@@ -12,7 +12,6 @@ export default function PartnersPage() {
   const [beskrivning, setBeskrivning] = useState("");
   const [omrade, setOmrade] = useState("");
   const [service, setService] = useState("");
-  const [sokroll, setSokroll] = useState("");
   const [ort, setOrt] = useState("");
   const [error, setError] = useState("");
 
@@ -40,7 +39,6 @@ export default function PartnersPage() {
     params.set("beskrivning", beskrivning.trim());
     if (omrade) params.set("omrade", omrade);
     if (service) params.set("tjanst", service);
-    if (sokroll.trim()) params.set("sokroll", sokroll.trim());
     if (ort) params.set("ort", ort);
     router.push(`/rekrytera/resultat?${params.toString()}`);
   }
@@ -92,17 +90,6 @@ export default function PartnersPage() {
                 ))}
               </select>
             </div>
-          </div>
-          <div className="field">
-            <label htmlFor="pt-sokroll">Vad vill ni rekrytera till? (valfritt)</label>
-            <input
-              id="pt-sokroll"
-              type="text"
-              placeholder="Roll"
-              value={sokroll}
-              onChange={(e) => setSokroll(e.target.value)}
-              maxLength={45}
-            />
           </div>
           <div className="field">
             <label htmlFor="pt-ort">Ort</label>

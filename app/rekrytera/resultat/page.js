@@ -11,7 +11,6 @@ function PartnersResultContent() {
     beskrivning: searchParams.get("beskrivning") || "",
     omrade: searchParams.get("omrade") || "",
     service: searchParams.get("tjanst") || "",
-    sokroll: searchParams.get("sokroll") || "",
     ort: searchParams.get("ort") || "",
   };
 

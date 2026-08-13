@@ -88,7 +88,6 @@ export default function InquiryWizard({ filters }) {
       body: JSON.stringify({
         companyIds: [...selected],
         description,
-        searchRole: filters.sokroll || "",
         focusArea: filters.omrade || "",
         service: filters.service || "",
         region: regionForCity(filters.ort) || "",
