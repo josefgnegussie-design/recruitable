@@ -50,47 +50,15 @@ export default function PartnersPage() {
           <div className="eyebrow">Hitta partners · Sverige</div>
           <h1 className="hero-title">Rekrytera</h1>
           <p className="hero-sub">
-            Beskriv vad ni söker så visar vi bemannings- och rekryteringsbolagen i Sverige rangordnade efter
-            relevans för just era behov.
+            Ange ort och yrkesområde så visar vi bemannings- och rekryteringsbolagen i Sverige rangordnade
+            efter relevans för just era behov.
           </p>
           <div className="hero-stats">
             <div className="stat"><span className="num">{COMPANIES.length}</span><span className="label">Bolag i registret</span></div>
           </div>
         </div>
         <div className="hero-panel">
-          <p>Beskriv ert behov, filtrera sedan på yrkesområde, tjänst och ort.</p>
-          <div className="field">
-            <label htmlFor="pt-beskrivning">Beskriv ert behov</label>
-            <textarea
-              id="pt-beskrivning"
-              value={beskrivning}
-              onChange={(e) => setBeskrivning(e.target.value.slice(0, 350))}
-              maxLength={350}
-              rows={4}
-              placeholder="T.ex. roll, omfattning, önskad start och annat som är bra för bolagen att veta."
-            />
-            <div className="char-counter">{beskrivning.length}/350 tecken</div>
-          </div>
-          <div className="field-row">
-            <div className="field">
-              <label htmlFor="pt-omrade">Yrkesområde</label>
-              <select id="pt-omrade" value={omrade} onChange={(e) => setOmrade(e.target.value)}>
-                <option value="">Alla yrkesområden</option>
-                {Object.keys(YRKESOMRADEN).map((o) => (
-                  <option key={o} value={o}>{o}</option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="pt-service">Tjänst</label>
-              <select id="pt-service" value={service} onChange={(e) => setService(e.target.value)}>
-                <option value="">Alla tjänster</option>
-                {FILTER_DEFS.service.options.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <p>Välj ort och yrkesområde, beskriv sedan ert behov och filtrera på tjänst.</p>
           <div className="field">
             <label htmlFor="pt-ort">Ort</label>
             <input
@@ -107,6 +75,36 @@ export default function PartnersPage() {
                 <option key={c} value={c} />
               ))}
             </datalist>
+          </div>
+          <div className="field">
+            <label htmlFor="pt-omrade">Yrkesområde</label>
+            <select id="pt-omrade" value={omrade} onChange={(e) => setOmrade(e.target.value)}>
+              <option value="">Alla yrkesområden</option>
+              {Object.keys(YRKESOMRADEN).map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="pt-beskrivning">Beskriv ert behov</label>
+            <textarea
+              id="pt-beskrivning"
+              value={beskrivning}
+              onChange={(e) => setBeskrivning(e.target.value.slice(0, 350))}
+              maxLength={350}
+              rows={4}
+              placeholder="T.ex. roll, omfattning, önskad start och annat som är bra för bolagen att veta."
+            />
+            <div className="char-counter">{beskrivning.length}/350 tecken</div>
+          </div>
+          <div className="field">
+            <label htmlFor="pt-service">Tjänst</label>
+            <select id="pt-service" value={service} onChange={(e) => setService(e.target.value)}>
+              <option value="">Alla tjänster</option>
+              {FILTER_DEFS.service.options.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
           </div>
           {error && <p style={{ color: "#c0392b", fontSize: 13 }}>{error}</p>}
           <button className="qs-btn" onClick={handleSearch}>Hitta bolag &rarr;</button>
