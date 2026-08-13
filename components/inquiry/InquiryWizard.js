@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { COMPANIES } from "@/lib/companies";
-import { filterCompanies, regionForCity } from "@/lib/helpers";
+import { allRegionCities, filterCompanies, regionForCity } from "@/lib/helpers";
 import Stepper from "@/components/wizard/Stepper";
 import SelectableCompanyCard from "./SelectableCompanyCard";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
@@ -24,6 +24,8 @@ export default function InquiryWizard({ filters }) {
 
   const results = useMemo(() => filterCompanies(COMPANIES, filters), [filters]);
   const [selected, setSelected] = useState(() => new Set(results.map((c) => c.id)));
+
+  const cities = useMemo(() => allRegionCities(), []);
 
   const [description] = useState(filters.beskrivning || "");
 
@@ -214,7 +216,19 @@ export default function InquiryWizard({ filters }) {
             </div>
             <div className="field">
               <label htmlFor="inq-city">Ort</label>
-              <input id="inq-city" value={city} onChange={(e) => setCity(e.target.value)} required />
+              <input
+                id="inq-city"
+                list="inq-city-list"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                autoComplete="off"
+                required
+              />
+              <datalist id="inq-city-list">
+                {cities.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
             </div>
             <div className="field">
               <label htmlFor="inq-website">Webbplats (företag)</label>
