@@ -137,16 +137,22 @@ export async function POST(request) {
     return NextResponse.json({ error: "Kunde inte spara förfrågan. Försök igen." }, { status: 500 });
   }
 
+  const companyNames = COMPANIES.filter((c) => companyIds.includes(c.id)).map((c) => c.name);
+
   const inquiryForEmail = {
     requesterName: requesterName.trim(),
     requesterEmail: requesterEmail.trim(),
     requesterRole: requesterRole.trim(),
     requesterCompany: requesterCompany.trim(),
     requesterCity: requesterCity.trim(),
+    requesterWebsite: requesterWebsite.trim(),
+    requesterPhone: requesterPhone?.trim() || "",
+    region: region || "",
     description: description.trim(),
     searchRole: searchRole || "",
     focusArea: focusArea || "",
     service: service || "",
+    companyNames,
   };
 
   // Bekräftelse till avsändaren och granskningsnotis till plattformsadmin
