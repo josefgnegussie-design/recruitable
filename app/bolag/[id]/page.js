@@ -97,7 +97,7 @@ export default async function ProfilePage({ params }) {
           <div>
             <div className="panel">
               <h3>Snabbfakta</h3>
-              <div className="side-fact"><span className="k">Kontorsadress</span><span className="v">{c.address}</span></div>
+              <div className="side-fact"><span className="k">Orter</span><span className="v">{c.officeCities?.length ? c.officeCities.join(", ") : c.address}</span></div>
               <div className="side-fact"><span className="k">Fokusområden</span><span className="v">{c.focus.length ? c.focus.join(", ") : "Ej specificerat"}</span></div>
               <div className="side-fact"><span className="k">Tjänster</span><span className="v">{c.services.join(", ")}</span></div>
               <div className="note">Källa: offentlig bolagsdata (Allabolag/Ratsit/Bolagsfakta) + bolagets webbplats, kontrollerad augusti 2026.</div>
