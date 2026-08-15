@@ -14,8 +14,32 @@ const MAINTENANCE_ALLOW = [
   "/api/stripe/webhook",
 ];
 
+// Lösenordsskyddar alla Preview-driftsättningar med HTTP Basic Auth, så vi
+// kan dela en staging-länk med t.ex. andra utan Vercel-konto och slippa
+// slå på underhållsläget i produktion bara för att visa något under
+// utveckling. Aktivt enbart när VERCEL_ENV="preview" (sätts automatiskt av
+// Vercel) — rör aldrig produktion.
+function isStagingAuthorized(request) {
+  const auth = request.headers.get("authorization");
+  if (!auth?.startsWith("Basic ")) return false;
+  try {
+    const decoded = atob(auth.slice(6));
+    const password = decoded.slice(decoded.indexOf(":") + 1);
+    return password === process.env.STAGING_PASSWORD;
+  } catch {
+    return false;
+  }
+}
+
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
+
+  if (process.env.VERCEL_ENV === "preview" && !isStagingAuthorized(request)) {
+    return new NextResponse("Autentisering krävs.", {
+      status: 401,
+      headers: { "WWW-Authenticate": 'Basic realm="Recruitable staging"' },
+    });
+  }
 
   if (
     process.env.MAINTENANCE_MODE === "1" &&
