@@ -100,9 +100,6 @@ export default async function ProfilePage({ params }) {
               <div className="side-fact"><span className="k">Kontorsadress</span><span className="v">{c.address}</span></div>
               <div className="side-fact"><span className="k">Fokusområden</span><span className="v">{c.focus.length ? c.focus.join(", ") : "Ej specificerat"}</span></div>
               <div className="side-fact"><span className="k">Tjänster</span><span className="v">{c.services.join(", ")}</span></div>
-              {c.contact && (
-                <div className="side-fact"><span className="k">Kontakt</span><span className="v">{c.contact}</span></div>
-              )}
               <div className="note">Källa: offentlig bolagsdata (Allabolag/Ratsit/Bolagsfakta) + bolagets webbplats, kontrollerad augusti 2026.</div>
             </div>
           </div>
