@@ -6,6 +6,7 @@ import { INQUIRIES_PAGE_SIZE, mapInquiryRow } from "@/lib/inquiries";
 export default async function MinaSidorPage({ searchParams }) {
   const params = await searchParams;
   const premiumStatus = params?.premium;
+  const officeStatus = params?.kontor;
   const supabase = await createClient();
   const {
     data: { user },
@@ -49,6 +50,12 @@ export default async function MinaSidorPage({ searchParams }) {
     .eq("id", adminRow.company_id)
     .single();
 
+  const { data: officeRows } = await supabase
+    .from("offices")
+    .select("id, city, address, contact_name, contact_email, is_headquarters, paid, created_at")
+    .eq("company_id", adminRow.company_id)
+    .order("created_at", { ascending: true });
+
   // Hämtar bara den första sidan (senaste INQUIRIES_PAGE_SIZE) — fler sidor
   // laddas vid behov via /api/mina-sidor/forfragan-lista. Annars skulle ett
   // bolag med många förfrågningar över tid göra sidan tyngre och tyngre.
@@ -66,5 +73,14 @@ export default async function MinaSidorPage({ searchParams }) {
     .filter((row) => row.inquiries)
     .map(mapInquiryRow);
 
-  return <MinaSidorTabs company={company} inquiries={inquiries} hasMore={hasMore} premiumStatus={premiumStatus} />;
+  return (
+    <MinaSidorTabs
+      company={company}
+      inquiries={inquiries}
+      hasMore={hasMore}
+      premiumStatus={premiumStatus}
+      offices={officeRows || []}
+      officeStatus={officeStatus}
+    />
+  );
 }
