@@ -4,19 +4,10 @@ import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { COMPANIES } from "@/lib/companies";
 import { FILTER_DEFS } from "@/lib/taxonomy";
-import { empNum, allRegionCities } from "@/lib/helpers";
+import { empNum, allRegionCities, flowMatches } from "@/lib/helpers";
 import CompanyCard from "@/components/CompanyCard";
 
 const CITY_OPTIONS = allRegionCities();
-
-function auktorisationCategory(c) {
-  const hasBemanning = c.auktorisation.includes("Bemanning");
-  const hasRekrytering = c.auktorisation.includes("Rekrytering");
-  if (hasBemanning && hasRekrytering) return "Både och";
-  if (hasBemanning) return "Bemanning";
-  if (hasRekrytering) return "Rekrytering";
-  return "Inget av ovanstående";
-}
 
 function BolagContent() {
   const searchParams = useSearchParams();
@@ -24,38 +15,24 @@ function BolagContent() {
 
   const [city, setCity] = useState("");
   const [focus, setFocus] = useState(() => (initialFocus ? initialFocus.split(",")[0] : ""));
-  const [service, setService] = useState("");
-  const [sizeBand, setSizeBand] = useState("");
-  const [ka, setKa] = useState("");
-  const [auktorisation, setAuktorisation] = useState("");
   const [sort, setSort] = useState("name");
+
+  const hasFilter = Boolean(city || focus);
 
   function resetFilters() {
     setCity("");
     setFocus("");
-    setService("");
-    setSizeBand("");
-    setKa("");
-    setAuktorisation("");
   }
 
   const list = useMemo(() => {
-    const filtered = COMPANIES.filter((c) => {
-      if (city && c.city !== city) return false;
-      if (focus && !c.focus.includes(focus)) return false;
-      if (service && !c.services.includes(service)) return false;
-      if (sizeBand && c.sizeBand !== sizeBand) return false;
-      if (ka === "ja" && !c.ka) return false;
-      if (ka === "nej" && c.ka) return false;
-      if (auktorisation && auktorisationCategory(c) !== auktorisation) return false;
-      return true;
-    });
+    if (!hasFilter) return [];
+    const filtered = flowMatches(focus, city, COMPANIES);
     const sorted = [...filtered];
     if (sort === "employees") sorted.sort((a, b) => empNum(b) - empNum(a));
     else if (sort === "founded") sorted.sort((a, b) => a.founded - b.founded);
     else sorted.sort((a, b) => a.name.localeCompare(b.name, "sv"));
     return sorted;
-  }, [city, focus, service, sizeBand, ka, auktorisation, sort]);
+  }, [city, focus, sort, hasFilter]);
 
   return (
     <div id="view-home">
@@ -63,14 +40,11 @@ function BolagContent() {
         <div>
           <div className="eyebrow">Prototyp — klickbar demo · uppdaterad med verkliga bolag</div>
           <h1 className="hero-title">
-            Bemannings- och
-            <br />
-            rekryteringsbolag <em>i Sverige</em>.
+            Hitta <em>bolag</em>.
           </h1>
           <p className="hero-sub">
-            Här ser du bemannings- och rekryteringsföretag verksamma i Sverige, från industri och logistik till
-            IT, vård och ekonomi. Filtrera fram de som matchar era villkor och behov — och gå vidare direkt
-            med rätt partner.
+            Välj yrkesområde och/eller ort för att se de bemannings- och rekryteringsföretag som matchar —
+            hela registret visas inte förrän ni gjort ett val.
           </p>
           <p className="hero-note">
             Notera: Aditro Logistics bytte namn till Posti 2024 efter det finska bolagets förvärv 2020 — de listas
@@ -83,87 +57,53 @@ function BolagContent() {
           </div>
         </div>
         <div className="hero-panel">
-          <div className="filter-title">Filtrering &amp; Segmentering</div>
+          <div className="filter-title">Filtrera</div>
           <div className="field-row">
-            <div className="field">
-              <label htmlFor="f-city">Stad</label>
-              <select id="f-city" value={city} onChange={(e) => setCity(e.target.value)}>
-                <option value="">Alla städer</option>
-                {CITY_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
             <div className="field">
               <label htmlFor="f-focus">{FILTER_DEFS.focus.label}</label>
               <select id="f-focus" value={focus} onChange={(e) => setFocus(e.target.value)}>
-                <option value="">Alla branscher</option>
+                <option value="">Välj yrkesområde</option>
                 {FILTER_DEFS.focus.options.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
             </div>
-          </div>
-          <div className="field-row">
             <div className="field">
-              <label htmlFor="f-service">{FILTER_DEFS.service.label}</label>
-              <select id="f-service" value={service} onChange={(e) => setService(e.target.value)}>
-                <option value="">Alla tjänster</option>
-                {FILTER_DEFS.service.options.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="f-size">{FILTER_DEFS.sizeBand.label}</label>
-              <select id="f-size" value={sizeBand} onChange={(e) => setSizeBand(e.target.value)}>
-                <option value="">Alla storlekar</option>
-                {FILTER_DEFS.sizeBand.options.map((opt) => (
+              <label htmlFor="f-city">Ort</label>
+              <select id="f-city" value={city} onChange={(e) => setCity(e.target.value)}>
+                <option value="">Välj ort</option>
+                {CITY_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
             </div>
           </div>
-          <div className="field-row">
-            <div className="field">
-              <label htmlFor="f-ka">Kollektivavtal</label>
-              <select id="f-ka" value={ka} onChange={(e) => setKa(e.target.value)}>
-                <option value="">Alla</option>
-                <option value="ja">Har kollektivavtal</option>
-                <option value="nej">Har inte kollektivavtal</option>
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="f-auk">Auktorisation</label>
-              <select id="f-auk" value={auktorisation} onChange={(e) => setAuktorisation(e.target.value)}>
-                <option value="">Alla</option>
-                <option value="Bemanning">Bemanning</option>
-                <option value="Rekrytering">Rekrytering</option>
-                <option value="Både och">Både och</option>
-                <option value="Inget av ovanstående">Inget av ovanstående</option>
-              </select>
-            </div>
-          </div>
-          <button className="reset-btn" onClick={resetFilters}>Rensa alla filter</button>
+          <button className="reset-btn" onClick={resetFilters}>Rensa filter</button>
         </div>
       </section>
 
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "10px 24px 40px" }}>
-        <div className="results-bar">
-          <div className="results-count"><b>{list.length}</b> bolag matchar dina filter</div>
-          <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="name">Sortera: Namn A–Ö</option>
-            <option value="employees">Sortera: Flest medarbetare</option>
-            <option value="founded">Sortera: Äldst etablerat</option>
-          </select>
-        </div>
-        <div className="grid">
-          {list.length === 0 ? (
-            <div className="empty-note" style={{ gridColumn: "1/-1" }}>Inga bolag matchar just nu — testa att rensa något filter.</div>
-          ) : (
-            list.map((c) => <CompanyCard company={c} key={c.id} />)
-          )}
-        </div>
+        {!hasFilter ? (
+          <div className="empty-note">Välj yrkesområde och/eller ort ovan för att se matchande bolag.</div>
+        ) : (
+          <>
+            <div className="results-bar">
+              <div className="results-count"><b>{list.length}</b> bolag matchar dina filter</div>
+              <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
+                <option value="name">Sortera: Namn A–Ö</option>
+                <option value="employees">Sortera: Flest medarbetare</option>
+                <option value="founded">Sortera: Äldst etablerat</option>
+              </select>
+            </div>
+            <div className="grid">
+              {list.length === 0 ? (
+                <div className="empty-note" style={{ gridColumn: "1/-1" }}>Inga bolag matchar just nu — testa ett annat val.</div>
+              ) : (
+                list.map((c) => <CompanyCard company={c} key={c.id} />)
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="disclaimer">

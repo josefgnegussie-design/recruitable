@@ -39,7 +39,7 @@ export default function Header() {
         <nav className={`site-nav${menuOpen ? " open" : ""}`}>
           <Link href="/" className={isLanding ? "active" : ""} onClick={closeMenu}>Hem</Link>
           <Link href="/rekrytera" className={isRekrytera ? "active" : ""} onClick={closeMenu}>Rekrytera</Link>
-          <Link href="/bolag" className={isBolag ? "active" : ""} onClick={closeMenu}>Bolag</Link>
+          <Link href="/bolag" className={isBolag ? "active" : ""} onClick={closeMenu}>Hitta bolag</Link>
           <Link href="/om-oss" className={isOmOss ? "active" : ""} onClick={closeMenu}>Om oss</Link>
           <Link href="/logga-in" className={isLoggaIn ? "active" : ""} onClick={closeMenu}>Logga in</Link>
         </nav>

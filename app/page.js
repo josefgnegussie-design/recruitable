@@ -25,7 +25,7 @@ export default function LandingPage() {
           </p>
           <div className="l-cta-row">
             <Link className="btn-lg primary" href="/rekrytera">Rekrytera →</Link>
-            <Link className="btn-lg text" href="/bolag">Se alla {COMPANIES.length} bolag</Link>
+            <Link className="btn-lg text" href="/bolag">Hitta bolag →</Link>
           </div>
         </div>
       </section>
