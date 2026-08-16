@@ -38,9 +38,30 @@ export async function POST(request) {
     if (error) console.error(`Kunde inte uppdatera premium-status för bolag ${companyId}:`, JSON.stringify(error));
   }
 
+  // Samma sak som setPremium, men för ett enskilt kontor (se
+  // /api/stripe/skapa-kontor-checkout) istället för hela bolaget.
+  async function setOfficePaid(officeId, { paid, subscriptionId, checkoutSessionId }) {
+    if (!officeId) return;
+    const update = { paid };
+    if (subscriptionId) update.stripe_subscription_id = subscriptionId;
+    if (checkoutSessionId) update.stripe_checkout_session_id = checkoutSessionId;
+
+    const { error } = await admin.from("offices").update(update).eq("id", officeId);
+    if (error) console.error(`Kunde inte uppdatera betalstatus för kontor ${officeId}:`, JSON.stringify(error));
+  }
+
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object;
+      const officeId = session.metadata?.officeId;
+      if (officeId) {
+        await setOfficePaid(officeId, {
+          paid: true,
+          subscriptionId: session.subscription,
+          checkoutSessionId: session.id,
+        });
+        break;
+      }
       const companyId = session.metadata?.companyId || session.client_reference_id;
       await setPremium(companyId, {
         premium: true,
@@ -52,8 +73,13 @@ export async function POST(request) {
 
     case "customer.subscription.updated": {
       const subscription = event.data.object;
-      const companyId = subscription.metadata?.companyId;
       const active = subscription.status === "active" || subscription.status === "trialing";
+      const officeId = subscription.metadata?.officeId;
+      if (officeId) {
+        await setOfficePaid(officeId, { paid: active, subscriptionId: subscription.id });
+        break;
+      }
+      const companyId = subscription.metadata?.companyId;
       if (companyId) {
         await setPremium(companyId, { premium: active, customerId: subscription.customer, subscriptionId: subscription.id });
       }
@@ -62,6 +88,11 @@ export async function POST(request) {
 
     case "customer.subscription.deleted": {
       const subscription = event.data.object;
+      const officeId = subscription.metadata?.officeId;
+      if (officeId) {
+        await setOfficePaid(officeId, { paid: false });
+        break;
+      }
       const companyId = subscription.metadata?.companyId;
       if (companyId) {
         await setPremium(companyId, { premium: false });
