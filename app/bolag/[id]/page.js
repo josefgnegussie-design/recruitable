@@ -40,7 +40,7 @@ export default async function ProfilePage({ params }) {
             )}
             <div>
               <h2>{c.name}</h2>
-              <div className="sub">{c.city.toUpperCase()} · GRUNDAT {c.founded}</div>
+              <div className="sub">{(c.officeCities?.length > 1 ? "Flera orter" : c.city).toUpperCase()} · GRUNDAT {c.founded}</div>
               <div className="tags">
                 {c.focus.concat(c.services).map((t) => (
                   <span className="tag" key={t}>{t}</span>
