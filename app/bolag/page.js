@@ -15,6 +15,9 @@ function BolagContent() {
 
   const [city, setCity] = useState("");
   const [focus, setFocus] = useState(() => (initialFocus ? initialFocus.split(",")[0] : ""));
+  const [service, setService] = useState("");
+  const [ka, setKa] = useState("");
+  const [iso, setIso] = useState("");
   const [sort, setSort] = useState("name");
 
   const hasFilter = Boolean(city || focus);
@@ -22,17 +25,27 @@ function BolagContent() {
   function resetFilters() {
     setCity("");
     setFocus("");
+    setService("");
+    setKa("");
+    setIso("");
   }
 
   const list = useMemo(() => {
     if (!hasFilter) return [];
-    const filtered = flowMatches(focus, city, COMPANIES);
+    const filtered = flowMatches(focus, city, COMPANIES).filter((c) => {
+      if (service && !c.services.includes(service)) return false;
+      if (ka === "ja" && !c.ka) return false;
+      if (ka === "nej" && c.ka) return false;
+      if (iso === "ja" && !c.iso) return false;
+      if (iso === "nej" && c.iso) return false;
+      return true;
+    });
     const sorted = [...filtered];
     if (sort === "employees") sorted.sort((a, b) => empNum(b) - empNum(a));
     else if (sort === "founded") sorted.sort((a, b) => a.founded - b.founded);
     else sorted.sort((a, b) => a.name.localeCompare(b.name, "sv"));
     return sorted;
-  }, [city, focus, sort, hasFilter]);
+  }, [city, focus, service, ka, iso, sort, hasFilter]);
 
   return (
     <div id="view-home">
@@ -87,6 +100,36 @@ function BolagContent() {
           <div className="empty-note">Välj yrkesområde och/eller ort ovan för att se matchande bolag.</div>
         ) : (
           <>
+            <div className="hero-panel" style={{ marginBottom: 20 }}>
+              <div className="filter-title">Förfina träffarna</div>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="f-service">{FILTER_DEFS.service.label}</label>
+                  <select id="f-service" value={service} onChange={(e) => setService(e.target.value)}>
+                    <option value="">Alla tjänster</option>
+                    {FILTER_DEFS.service.options.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="f-ka">Kollektivavtal</label>
+                  <select id="f-ka" value={ka} onChange={(e) => setKa(e.target.value)}>
+                    <option value="">Alla</option>
+                    <option value="ja">Har kollektivavtal</option>
+                    <option value="nej">Har inte kollektivavtal</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="f-iso">ISO-certifiering</label>
+                  <select id="f-iso" value={iso} onChange={(e) => setIso(e.target.value)}>
+                    <option value="">Alla</option>
+                    <option value="ja">Är ISO-certifierade</option>
+                    <option value="nej">Är inte ISO-certifierade</option>
+                  </select>
+                </div>
+              </div>
+            </div>
             <div className="results-bar">
               <div className="results-count"><b>{list.length}</b> bolag matchar dina filter</div>
               <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
