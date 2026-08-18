@@ -2,15 +2,9 @@ import Link from "next/link";
 import { COMPANIES } from "@/lib/companies";
 import { INDUSTRY_NEWS } from "@/lib/industryNews";
 import NearbyCompanies from "@/components/NearbyCompanies";
-
-const PREVIEW_IDS = [4, 1, 9];
+import PreviewCompanies from "@/components/PreviewCompanies";
 
 export default function LandingPage() {
-  const preview = PREVIEW_IDS.map((id) => COMPANIES.find((c) => c.id === id));
-  const focusAreaCount = new Set(COMPANIES.flatMap((c) => c.focus)).size;
-  const kaCount = COMPANIES.filter((c) => c.ka).length;
-  const oldestYear = Math.min(...COMPANIES.map((c) => c.founded));
-
   return (
     <div id="view-landing">
       <section className="l-hero l-hero-single">
@@ -91,15 +85,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <div className="l-stat-band">
-        <div className="l-stat-inner">
-          <div className="l-stat"><span className="num">{COMPANIES.length}</span><span className="label">Bolag i registret</span></div>
-          <div className="l-stat"><span className="num">{focusAreaCount}</span><span className="label">Fokusområden</span></div>
-          <div className="l-stat"><span className="num">{kaCount}/{COMPANIES.length}</span><span className="label">Med kollektivavtal</span></div>
-          <div className="l-stat"><span className="num">{oldestYear}</span><span className="label">Äldsta etableringsåret</span></div>
-        </div>
-      </div>
-
       <section className="l-section tight">
         <div className="l-kicker">Branschnyheter</div>
         <h2>Vad som händer i branschen</h2>
@@ -116,25 +101,8 @@ export default function LandingPage() {
       <section className="l-section tight">
         <div className="l-kicker">Ett urval</div>
         <h2>Tre bolag att börja med</h2>
-        <p className="l-section-sub">Ett litet nischat bolag, ett mellanstort med lokal förankring och en global generalist — så spänner registret.</p>
-        <div className="preview-grid">
-          {preview.map((c) => (
-            <Link className="preview-card" href={`/bolag/${c.id}`} key={c.id}>
-              <div className="pc-top">
-                <div>
-                  <p className="pc-name">{c.name}</p>
-                  <div className="pc-city">{c.city.toUpperCase()} · GRUNDAT {c.founded}</div>
-                </div>
-              </div>
-              <p className="pc-vision">&ldquo;{c.vision}&rdquo;</p>
-              <div className="pc-tags">
-                {c.focus.map((f) => (
-                  <span className="tag" key={f}>{f}</span>
-                ))}
-              </div>
-            </Link>
-          ))}
-        </div>
+        <p className="l-section-sub">Ett nedslag i registret — tre bolag ur listan, nya för varje gång sidan laddas om.</p>
+        <PreviewCompanies />
       </section>
 
       <section className="l-section tight">
