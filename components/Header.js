@@ -9,7 +9,6 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const isLanding = pathname === "/";
   const isRekrytera = pathname.startsWith("/rekrytera");
-  const isBolag = pathname.startsWith("/bolag");
   const isOmOss = pathname.startsWith("/om-oss");
   const isLoggaIn = pathname.startsWith("/logga-in");
 
@@ -39,7 +38,6 @@ export default function Header() {
         <nav className={`site-nav${menuOpen ? " open" : ""}`}>
           <Link href="/" className={isLanding ? "active" : ""} onClick={closeMenu}>Hem</Link>
           <Link href="/rekrytera" className={isRekrytera ? "active" : ""} onClick={closeMenu}>Rekrytera</Link>
-          <Link href="/bolag" className={isBolag ? "active" : ""} onClick={closeMenu}>Hitta bolag</Link>
           <Link href="/om-oss" className={isOmOss ? "active" : ""} onClick={closeMenu}>Om oss</Link>
           <Link href="/logga-in" className={isLoggaIn ? "active" : ""} onClick={closeMenu}>Logga in</Link>
         </nav>

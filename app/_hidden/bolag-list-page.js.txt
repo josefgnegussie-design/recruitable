@@ -1,0 +1,170 @@
+"use client";
+
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { COMPANIES } from "@/lib/companies";
+import { FILTER_DEFS } from "@/lib/taxonomy";
+import { empNum, allRegionCities, flowMatches } from "@/lib/helpers";
+import CompanyCard from "@/components/CompanyCard";
+
+const CITY_OPTIONS = allRegionCities();
+
+function BolagContent() {
+  const searchParams = useSearchParams();
+  const initialFocus = searchParams.get("fokus");
+
+  const [city, setCity] = useState("");
+  const [focus, setFocus] = useState(() => (initialFocus ? initialFocus.split(",")[0] : ""));
+  const [service, setService] = useState("");
+  const [ka, setKa] = useState("");
+  const [iso, setIso] = useState("");
+  const [sort, setSort] = useState("name");
+
+  const hasFilter = Boolean(city || focus);
+
+  function resetFilters() {
+    setCity("");
+    setFocus("");
+    setService("");
+    setKa("");
+    setIso("");
+  }
+
+  const list = useMemo(() => {
+    if (!hasFilter) return [];
+    const filtered = flowMatches(focus, city, COMPANIES).filter((c) => {
+      if (service && !c.services.includes(service)) return false;
+      if (ka === "ja" && !c.ka) return false;
+      if (ka === "nej" && c.ka) return false;
+      if (iso === "ja" && !c.iso) return false;
+      if (iso === "nej" && c.iso) return false;
+      return true;
+    });
+    const sorted = [...filtered];
+    if (sort === "employees") sorted.sort((a, b) => empNum(b) - empNum(a));
+    else if (sort === "founded") sorted.sort((a, b) => a.founded - b.founded);
+    else sorted.sort((a, b) => a.name.localeCompare(b.name, "sv"));
+    return sorted;
+  }, [city, focus, service, ka, iso, sort, hasFilter]);
+
+  return (
+    <div id="view-home">
+      <section className="hero">
+        <div>
+          <div className="eyebrow">Prototyp — klickbar demo · uppdaterad med verkliga bolag</div>
+          <h1 className="hero-title">
+            Hitta <em>bolag</em>.
+          </h1>
+          <p className="hero-sub">
+            Välj yrkesområde och/eller ort för att se de bemannings- och rekryteringsföretag som matchar —
+            hela registret visas inte förrän ni gjort ett val.
+          </p>
+          <p className="hero-note">
+            Notera: Aditro Logistics bytte namn till Posti 2024 efter det finska bolagets förvärv 2020 — de listas
+            darför som ett och samma bolag nedan.
+          </p>
+          <div className="hero-stats">
+            <div className="stat"><span className="num">{COMPANIES.length}</span><span className="label">Bolag i registret</span></div>
+            <div className="stat"><span className="num">{FILTER_DEFS.focus.options.length}</span><span className="label">Fokusområden</span></div>
+            <div className="stat"><span className="num">1</span><span className="label">Region: Sverige</span></div>
+          </div>
+        </div>
+        <div className="hero-panel">
+          <div className="filter-title">Filtrera</div>
+          <div className="field-row">
+            <div className="field">
+              <label htmlFor="f-focus">{FILTER_DEFS.focus.label}</label>
+              <select id="f-focus" value={focus} onChange={(e) => setFocus(e.target.value)}>
+                <option value="">Välj yrkesområde</option>
+                {FILTER_DEFS.focus.options.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="f-city">Ort</label>
+              <select id="f-city" value={city} onChange={(e) => setCity(e.target.value)}>
+                <option value="">Välj ort</option>
+                {CITY_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <button className="reset-btn" onClick={resetFilters}>Rensa filter</button>
+        </div>
+      </section>
+
+      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "10px 24px 40px" }}>
+        {!hasFilter ? (
+          <div className="empty-note">Välj yrkesområde och/eller ort ovan för att se matchande bolag.</div>
+        ) : (
+          <>
+            <div className="hero-panel" style={{ marginBottom: 20 }}>
+              <div className="filter-title">Förfina träffarna</div>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="f-service">{FILTER_DEFS.service.label}</label>
+                  <select id="f-service" value={service} onChange={(e) => setService(e.target.value)}>
+                    <option value="">Alla tjänster</option>
+                    {FILTER_DEFS.service.options.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="f-ka">Kollektivavtal</label>
+                  <select id="f-ka" value={ka} onChange={(e) => setKa(e.target.value)}>
+                    <option value="">Alla</option>
+                    <option value="ja">Har kollektivavtal</option>
+                    <option value="nej">Har inte kollektivavtal</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="f-iso">ISO-certifiering</label>
+                  <select id="f-iso" value={iso} onChange={(e) => setIso(e.target.value)}>
+                    <option value="">Alla</option>
+                    <option value="ja">Är ISO-certifierade</option>
+                    <option value="nej">Är inte ISO-certifierade</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="results-bar">
+              <div className="results-count"><b>{list.length}</b> bolag matchar dina filter</div>
+              <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
+                <option value="name">Sortera: Namn A–Ö</option>
+                <option value="employees">Sortera: Flest medarbetare</option>
+                <option value="founded">Sortera: Äldst etablerat</option>
+              </select>
+            </div>
+            <div className="grid">
+              {list.length === 0 ? (
+                <div className="empty-note" style={{ gridColumn: "1/-1" }}>Inga bolag matchar just nu — testa ett annat val.</div>
+              ) : (
+                list.map((c) => <CompanyCard company={c} key={c.id} />)
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="disclaimer">
+        <b>Om datan:</b> Omsättning, antal medarbetare, adress och etableringsår är hämtade från offentliga källor
+        (Bolagsverket via Allabolag/Ratsit/Bolagsfakta/hitta.se) samt respektive bolags egna webbplatser, kontrollerade
+        i augusti 2026. Där bolagens årsredovisning för 2025 ännu inte var tillgänglig visas senaste rapporterade år
+        (2024) istället — detta anges vid varje bolag. Vissa siffror avser koncernnivå snarare än den enskilda
+        juridiska person som är verksam i Sverige. Uppgifterna bör verifieras direkt mot bolagen innan de
+        används i skarpt beslutsunderlag.
+      </div>
+    </div>
+  );
+}
+
+export default function BolagPage() {
+  return (
+    <Suspense fallback={null}>
+      <BolagContent />
+    </Suspense>
+  );
+}

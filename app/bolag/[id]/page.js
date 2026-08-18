@@ -26,7 +26,7 @@ export default async function ProfilePage({ params }) {
 
   return (
     <div id="view-profile">
-      <Link className="back-link" href="/bolag">&larr; Tillbaka till alla bolag</Link>
+      <Link className="back-link" href="/rekrytera">&larr; Tillbaka till sökningen</Link>
       <div className="profile-wrap">
         {isPremium && premium?.cover_image && (
           <div className="profile-cover">

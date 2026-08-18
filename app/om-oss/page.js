@@ -132,7 +132,7 @@ export default function OmOssPage() {
             <h3>Redo att se vad marknaden faktiskt erbjuder?</h3>
             <p>Filtrera fram de bolag som matchar era villkor — och gå vidare direkt.</p>
           </div>
-          <Link className="btn-lg primary" href="/bolag">Utforska registret</Link>
+          <Link className="btn-lg primary" href="/rekrytera">Utforska registret</Link>
         </div>
       </section>
 
