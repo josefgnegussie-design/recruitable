@@ -12,6 +12,9 @@ const MAINTENANCE_ALLOW = [
   "/sitemap.xml",
   "/logo",
   "/api/stripe/webhook",
+  // Bevakningsjobbet ska kunna köra även när sajten står i underhållsläge —
+  // annars tystnar larmet just när något är fel.
+  "/api/cron",
 ];
 
 export async function middleware(request) {

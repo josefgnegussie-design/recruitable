@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/premium-koll",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

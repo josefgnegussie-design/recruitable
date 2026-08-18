@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { COMPANIES } from "@/lib/companies";
 import { createPublicClient } from "@/lib/supabase/public";
+import { readCachedPremium, writeCachedPremium } from "@/lib/premiumCache";
 
 export const revalidate = 300;
 
@@ -14,12 +15,27 @@ export default async function ProfilePage({ params }) {
   const c = COMPANIES.find((x) => x.id === Number(id));
   if (!c) notFound();
 
-  const supabase = createPublicClient();
-  const { data: premium } = await supabase
-    .from("companies")
-    .select("is_premium, logo, cover_image, extended_vision, mission, history, expertise, team_members, surveys")
-    .eq("id", c.id)
-    .maybeSingle();
+  // Premiumdata är ett tillägg till grundprofilen i lib/companies.js. Går den
+  // inte att hämta — saknad konfiguration, nere eller långsam — ska besökaren
+  // ändå få se bolaget, inte ett serverfel.
+  let premium = null;
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase
+      .from("companies")
+      .select("is_premium, logo, cover_image, extended_vision, mission, history, expertise, team_members, surveys")
+      .eq("id", c.id)
+      .maybeSingle();
+    if (error) throw error;
+    premium = data;
+    await writeCachedPremium(c.id, data);
+  } catch (err) {
+    console.error(`Kunde inte hämta premiumdata för bolag ${c.id}:`, err.message);
+    // Faller tillbaka på senast lyckade hämtning så att en betalande kunds
+    // utökade profil inte försvinner under en störning.
+    premium = await readCachedPremium(c.id);
+    if (premium) console.warn(`Visar cachad premiumdata för bolag ${c.id}.`);
+  }
 
   const isPremium = premium?.is_premium ?? false;
   const logo = premium?.logo || c.logo;
