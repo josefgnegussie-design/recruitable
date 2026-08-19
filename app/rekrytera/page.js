@@ -1,18 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { COMPANIES } from "@/lib/companies";
 import { YRKESOMRADEN, FILTER_DEFS } from "@/lib/taxonomy";
 import { allRegionCities } from "@/lib/helpers";
 import CompanyCard from "@/components/CompanyCard";
 
-export default function PartnersPage() {
+function PartnersContent() {
   const router = useRouter();
-  const [beskrivning, setBeskrivning] = useState("");
-  const [omrade, setOmrade] = useState("");
-  const [service, setService] = useState("");
-  const [ort, setOrt] = useState("");
+  const searchParams = useSearchParams();
+
+  // Samma parametrar som skickas vidare till resultatsidan läses tillbaka här, så
+  // att "Tillbaka till filtret" visar det besökaren redan fyllt i istället för ett
+  // tomt formulär.
+  const [beskrivning, setBeskrivning] = useState(() => searchParams.get("beskrivning") || "");
+  const [omrade, setOmrade] = useState(() => searchParams.get("omrade") || "");
+  const [service, setService] = useState(() => searchParams.get("tjanst") || "");
+  const [ort, setOrt] = useState(() => searchParams.get("ort") || "");
   const [error, setError] = useState("");
 
   const cities = useMemo(() => allRegionCities(), []);
@@ -120,5 +125,13 @@ export default function PartnersPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function PartnersPage() {
+  return (
+    <Suspense fallback={null}>
+      <PartnersContent />
+    </Suspense>
   );
 }

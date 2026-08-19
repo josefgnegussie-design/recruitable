@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import PasswordField from "@/components/PasswordField";
 
 export default function ResetPasswordForm() {
   const router = useRouter();
@@ -62,11 +63,10 @@ export default function ResetPasswordForm() {
     <form className="auth-panel" onSubmit={handleSubmit}>
       <div className="field">
         <label htmlFor="new-password">Nytt lösenord</label>
-        <input
+        <PasswordField
           id="new-password"
-          type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={setPassword}
           required
           minLength={8}
         />

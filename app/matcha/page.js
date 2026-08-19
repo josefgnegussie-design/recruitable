@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { flowMatches } from "@/lib/helpers";
 import { COMPANIES } from "@/lib/companies";
+import { useSessionDraft } from "@/lib/useSessionDraft";
 import Stepper from "@/components/wizard/Stepper";
 import Step1Yrke from "@/components/wizard/Step1Yrke";
 import Step2Ort from "@/components/wizard/Step2Ort";
@@ -43,21 +44,46 @@ function newFlowState(initial) {
   };
 }
 
+// Set går inte att JSON-serialisera, och "skickar just nu" hör inte hemma i ett
+// sparat utkast — en omladdning mitt i sändningen ska inte ge en låst knapp.
+function serializeFlow(flow) {
+  return { ...flow, selected: [...flow.selected], sending: false, err: null };
+}
+
+function deserializeFlow(saved) {
+  return { ...saved, selected: new Set(saved.selected || []), sending: false };
+}
+
 function MatchaContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [flow, setFlow] = useState(() =>
-    newFlowState({
-      omrade: searchParams.get("omrade") || "",
-      yrke: searchParams.get("yrke") || "",
-      step: searchParams.get("step") ? Number(searchParams.get("step")) : 1,
-    })
+  const paramOmrade = searchParams.get("omrade") || "";
+  const paramYrke = searchParams.get("yrke") || "";
+  const paramStep = searchParams.get("step");
+
+  // Hela flödet sparas per flik, så att besökaren kan gå tillbaka, ladda om eller
+  // lämna sidan och komma tillbaka utan att tappa det som redan är ifyllt.
+  const { state: flow, setState: setFlow, patch, restored, clearDraft } = useSessionDraft(
+    "matcha",
+    newFlowState({ omrade: paramOmrade, yrke: paramYrke, step: paramStep ? Number(paramStep) : 1 }),
+    { serialize: serializeFlow, deserialize: deserializeFlow }
   );
 
-  function patch(partial) {
-    setFlow((prev) => ({ ...prev, ...partial }));
-  }
+  // En länk hit med yrke/område är ett medvetet nytt utgångsläge och ska väga
+  // tyngre än utkastet — resten av svaren behålls.
+  const appliedParams = useRef(false);
+  useEffect(() => {
+    if (!restored || appliedParams.current) return;
+    appliedParams.current = true;
+    if (paramOmrade || paramYrke) {
+      patch({
+        ...(paramOmrade ? { omrade: paramOmrade } : {}),
+        ...(paramYrke ? { yrke: paramYrke } : {}),
+        ...(paramStep ? { step: Number(paramStep) } : {}),
+      });
+    }
+  }, [restored, paramOmrade, paramYrke, paramStep, patch]);
 
   function onNext() {
     if (flow.step === 3) {
@@ -114,12 +140,15 @@ function MatchaContent() {
   }
 
   function onRestart() {
+    clearDraft();
     setFlow(newFlowState());
   }
 
   function onExit() {
     router.push("/");
   }
+
+  if (!restored) return null;
 
   return (
     <div id="view-flow">

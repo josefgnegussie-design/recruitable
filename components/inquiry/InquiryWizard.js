@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { COMPANIES } from "@/lib/companies";
 import { allRegionCities, filterCompanies, regionForCity } from "@/lib/helpers";
+import { useSessionDraft } from "@/lib/useSessionDraft";
 import Stepper from "@/components/wizard/Stepper";
 import SelectableCompanyCard from "./SelectableCompanyCard";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
@@ -17,45 +18,93 @@ function domainOf(url) {
   }
 }
 
+// Filtret följer med tillbaka till /rekrytera, så att den som vill ändra ort eller
+// yrkesområde hittar sina egna svar kvar i formuläret istället för tomma fält.
+function filterHref(filters) {
+  const params = new URLSearchParams();
+  if (filters.beskrivning) params.set("beskrivning", filters.beskrivning);
+  if (filters.omrade) params.set("omrade", filters.omrade);
+  if (filters.service) params.set("tjanst", filters.service);
+  if (filters.ort) params.set("ort", filters.ort);
+  const query = params.toString();
+  return query ? `/rekrytera?${query}` : "/rekrytera";
+}
+
+function serializeDraft(draft) {
+  // Set går inte att JSON-serialisera.
+  return { ...draft, selected: [...draft.selected] };
+}
+
+function deserializeDraft(saved) {
+  return { ...saved, selected: new Set(saved.selected || []) };
+}
+
 export default function InquiryWizard({ filters }) {
-  const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("idle");
 
   const results = useMemo(() => filterCompanies(COMPANIES, filters), [filters]);
-  const [selected, setSelected] = useState(() => new Set(results.map((c) => c.id)));
-
   const cities = useMemo(() => allRegionCities(), []);
 
-  const [description] = useState(filters.beskrivning || "");
+  const description = filters.beskrivning || "";
+  // Byter besökaren filter är den gamla bolagsmarkeringen inte längre relevant,
+  // medan kontaktuppgifterna fortfarande är det.
+  const filterSignature = useMemo(
+    () => [filters.omrade || "", filters.service || "", filters.ort || ""].join("|"),
+    [filters.omrade, filters.service, filters.ort]
+  );
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [website, setWebsite] = useState("");
-  const [role, setRole] = useState("");
-  const [company, setCompany] = useState("");
-  const [city, setCity] = useState("");
-  const [wantsCall, setWantsCall] = useState(false);
-  const [phone, setPhone] = useState("");
+  const { state: draft, setState: setDraft, patch, restored, clearDraft } = useSessionDraft(
+    "forfragan",
+    {
+      step: 1,
+      selected: new Set(results.map((c) => c.id)),
+      filterSignature,
+      name: "",
+      email: "",
+      website: "",
+      role: "",
+      company: "",
+      city: "",
+      wantsCall: false,
+      phone: "",
+    },
+    { serialize: serializeDraft, deserialize: deserializeDraft }
+  );
+
+  const appliedSignature = useRef(false);
+  useEffect(() => {
+    if (!restored || appliedSignature.current) return;
+    appliedSignature.current = true;
+    if (draft.filterSignature !== filterSignature) {
+      patch({ selected: new Set(results.map((c) => c.id)), filterSignature, step: 1 });
+    }
+  }, [restored, draft.filterSignature, filterSignature, results, patch]);
+
+  const { step, selected } = draft;
+
   const [turnstileToken, setTurnstileToken] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
+  // Kvittosteget ligger utanför utkastet: en skickad förfrågan ska inte kunna
+  // återuppstå som ett halvfyllt formulär nästa gång sidan öppnas.
+  const [sent, setSent] = useState(false);
   const handleTurnstileVerify = useCallback((token) => setTurnstileToken(token), []);
 
   function toggleCompany(id) {
-    setSelected((prev) => {
-      const next = new Set(prev);
+    setDraft((prev) => {
+      const next = new Set(prev.selected);
       if (next.has(id)) next.delete(id);
       else next.add(id);
-      return next;
+      return { ...prev, selected: next };
     });
   }
 
   function selectAll() {
-    setSelected(new Set(results.map((c) => c.id)));
+    patch({ selected: new Set(results.map((c) => c.id)) });
   }
 
   function deselectAll() {
-    setSelected(new Set());
+    patch({ selected: new Set() });
   }
 
   function goStep1Next() {
@@ -64,15 +113,20 @@ export default function InquiryWizard({ filters }) {
       return;
     }
     setError("");
-    setStep(2);
+    patch({ step: 2 });
+  }
+
+  function goBackToStep1() {
+    setError("");
+    patch({ step: 1 });
   }
 
   function openConfirm(e) {
     e.preventDefault();
     setError("");
 
-    const websiteDomain = domainOf(website.trim());
-    const emailDomain = email.split("@")[1]?.toLowerCase();
+    const websiteDomain = domainOf(draft.website.trim());
+    const emailDomain = draft.email.split("@")[1]?.toLowerCase();
     if (!websiteDomain || emailDomain !== websiteDomain) {
       setError(`E-postadressen måste matcha er webbplats (${websiteDomain || "okänd domän"}).`);
       return;
@@ -94,13 +148,13 @@ export default function InquiryWizard({ filters }) {
         service: filters.service || "",
         region: regionForCity(filters.ort) || "",
         city: filters.ort || "",
-        requesterName: name,
-        requesterEmail: email,
-        requesterWebsite: website,
-        requesterRole: role,
-        requesterCompany: company,
-        requesterCity: city,
-        requesterPhone: wantsCall ? phone : "",
+        requesterName: draft.name,
+        requesterEmail: draft.email,
+        requesterWebsite: draft.website,
+        requesterRole: draft.role,
+        requesterCompany: draft.company,
+        requesterCity: draft.city,
+        requesterPhone: draft.wantsCall ? draft.phone : "",
         turnstileToken,
       }),
     });
@@ -115,17 +169,25 @@ export default function InquiryWizard({ filters }) {
 
     setStatus("success");
     setShowConfirm(false);
-    setStep(3);
+    // Förfrågan är skickad — utkastet ska inte ligga kvar till nästa gång.
+    clearDraft();
+    setSent(true);
   }
+
+  if (!restored) return null;
+
+  const visibleStep = sent ? 3 : step;
 
   return (
     <div id="view-rekrytera-results">
-      {step === 1 && <Link className="back-link" href="/rekrytera">&larr; Tillbaka till filtret</Link>}
+      {visibleStep === 1 && (
+        <Link className="back-link" href={filterHref(filters)}>&larr; Tillbaka till filtret</Link>
+      )}
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 24px 0" }}>
-        <Stepper step={step} total={3} />
+        <Stepper step={visibleStep} total={3} />
       </div>
 
-      {step === 1 && (
+      {visibleStep === 1 && (
         <>
           <section className="hero">
             <div>
@@ -151,7 +213,7 @@ export default function InquiryWizard({ filters }) {
               </div>
             </div>
             {results.length === 0 ? (
-              <p>Inga bolag matchar filtret. <Link href="/rekrytera">Justera filtret</Link>.</p>
+              <p>Inga bolag matchar filtret. <Link href={filterHref(filters)}>Justera filtret</Link>.</p>
             ) : (
               <div className="grid">
                 {results.map((c) => (
@@ -169,7 +231,7 @@ export default function InquiryWizard({ filters }) {
         </>
       )}
 
-      {step === 2 && (
+      {visibleStep === 2 && (
         <div style={{ maxWidth: 480, margin: "0 auto", padding: "20px 24px 60px" }}>
           <div className="eyebrow">Steg 2 av 3</div>
           <h1 className="hero-title" style={{ fontSize: 32 }}>Verifiera <em>dig själv</em></h1>
@@ -179,36 +241,42 @@ export default function InquiryWizard({ filters }) {
           <form className="auth-panel" onSubmit={openConfirm} style={{ marginTop: 24 }}>
             <div className="field">
               <label htmlFor="inq-name">Namn</label>
-              <input id="inq-name" value={name} onChange={(e) => setName(e.target.value)} required />
+              <input id="inq-name" value={draft.name} onChange={(e) => patch({ name: e.target.value })} required />
             </div>
             <div className="field">
               <label htmlFor="inq-company">Företag</label>
-              <input id="inq-company" value={company} onChange={(e) => setCompany(e.target.value)} required />
+              <input id="inq-company" value={draft.company} onChange={(e) => patch({ company: e.target.value })} required />
             </div>
             <div className="field">
               <label htmlFor="inq-role">Din roll</label>
-              <input id="inq-role" value={role} onChange={(e) => setRole(e.target.value)} required />
+              <input id="inq-role" value={draft.role} onChange={(e) => patch({ role: e.target.value })} required />
             </div>
             <div className="field">
               <label htmlFor="inq-email">E-post</label>
-              <input id="inq-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <input
+                id="inq-email"
+                type="email"
+                value={draft.email}
+                onChange={(e) => patch({ email: e.target.value })}
+                required
+              />
             </div>
             <div className="field">
               <label className="checkbox-row" htmlFor="inq-wants-call">
                 <input
                   id="inq-wants-call"
                   type="checkbox"
-                  checked={wantsCall}
-                  onChange={(e) => setWantsCall(e.target.checked)}
+                  checked={draft.wantsCall}
+                  onChange={(e) => patch({ wantsCall: e.target.checked })}
                 />
                 Jag vill bli uppringd snarast möjligt
               </label>
-              {wantsCall && (
+              {draft.wantsCall && (
                 <input
                   id="inq-phone"
                   type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  value={draft.phone}
+                  onChange={(e) => patch({ phone: e.target.value })}
                   placeholder="Telefonnummer (valfritt)"
                   style={{ marginTop: 10 }}
                 />
@@ -219,8 +287,8 @@ export default function InquiryWizard({ filters }) {
               <input
                 id="inq-city"
                 list="inq-city-list"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
+                value={draft.city}
+                onChange={(e) => patch({ city: e.target.value })}
                 autoComplete="off"
                 required
               />
@@ -234,8 +302,8 @@ export default function InquiryWizard({ filters }) {
               <label htmlFor="inq-website">Webbplats (företag)</label>
               <input
                 id="inq-website"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
+                value={draft.website}
+                onChange={(e) => patch({ website: e.target.value })}
                 placeholder="www.erabolag.se"
                 required
               />
@@ -247,7 +315,7 @@ export default function InquiryWizard({ filters }) {
 
             {error && <p style={{ color: "#c0392b", fontSize: 13 }}>{error}</p>}
             <div style={{ display: "flex", gap: 12 }}>
-              <button className="btn btn-ghost" type="button" onClick={() => setStep(1)}>Tillbaka</button>
+              <button className="btn btn-ghost" type="button" onClick={goBackToStep1}>Tillbaka</button>
               <button
                 className="qs-btn"
                 type="submit"
@@ -295,12 +363,12 @@ export default function InquiryWizard({ filters }) {
         </div>
       )}
 
-      {step === 3 && (
+      {visibleStep === 3 && (
         <div style={{ maxWidth: 480, margin: "20px auto 60px", padding: "0 24px", textAlign: "center" }}>
           <div className="auth-panel">
             <h2 style={{ marginTop: 0 }}>Tack!</h2>
             <p>
-              {`Er förfrågan skickades till granskning hos Recruitable. Så snart den är godkänd ser de ${selected.size} valda bolagen den under sina Mina sidor och kan höra av sig direkt till dig på ${email}.`}
+              {`Er förfrågan skickades till granskning hos Recruitable. Så snart den är godkänd ser de ${selected.size} valda bolagen den under sina Mina sidor och kan höra av sig direkt till dig på ${draft.email}.`}
             </p>
             <Link className="qs-btn" href="/" style={{ display: "inline-block", textDecoration: "none" }}>
               Till startsidan
