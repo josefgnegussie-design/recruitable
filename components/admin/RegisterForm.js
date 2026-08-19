@@ -6,6 +6,7 @@ import { YRKESOMRADEN } from "@/lib/taxonomy";
 import { useSessionDraft } from "@/lib/useSessionDraft";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
 import MultiSelectField from "@/components/MultiSelectField";
+import PasswordField from "@/components/PasswordField";
 import ForetagsSok from "@/components/admin/ForetagsSok";
 
 const SERVICE_OPTIONS = ["Bemanning", "Rekrytering", "Interim", "Search"];
@@ -249,11 +250,10 @@ export default function RegisterForm() {
         </div>
         <div className="field">
           <label htmlFor="reg-password">Lösenord</label>
-          <input
+          <PasswordField
             id="reg-password"
-            type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={setPassword}
             required={!userId}
             minLength={8}
           />
