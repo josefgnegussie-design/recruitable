@@ -37,8 +37,9 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { userId, email, companyName, orgNumber, address, website, focusAreas, services, turnstileToken } = body;
+  const { userId, email, companyName, orgNumber, gatuadress, postnummer, postort, website, focusAreas, services, turnstileToken } = body;
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const POSTNUMMER_RE = /^\d{3}\s?\d{2}$/;
 
   const focusAreasValid =
     Array.isArray(focusAreas) && focusAreas.length > 0 && focusAreas.length <= 21 &&
@@ -55,7 +56,10 @@ export async function POST(request) {
     email.length > 254 ||
     !isValidText(companyName, 200) ||
     !isValidText(orgNumber, 20) ||
-    !isValidText(address, 300) ||
+    !isValidText(gatuadress, 200) ||
+    !isValidText(postnummer, 10) ||
+    !POSTNUMMER_RE.test(postnummer.trim()) ||
+    !isValidText(postort, 100) ||
     !isValidText(website, 200) ||
     !focusAreasValid ||
     !servicesValid
@@ -83,7 +87,9 @@ export async function POST(request) {
     company_id: null,
     claimed_company_name: companyName.trim(),
     claimed_org_number: orgNumber.trim(),
-    claimed_address: address.trim(),
+    // Formuläret frågar efter gatuadress, postnummer och postort var för sig;
+    // databasen har en adressrad, så delarna sätts ihop här.
+    claimed_address: `${gatuadress.trim()}, ${postnummer.trim()} ${postort.trim()}`,
     claimed_website: website.trim(),
     claimed_focus_areas: focusAreas,
     claimed_services: services,

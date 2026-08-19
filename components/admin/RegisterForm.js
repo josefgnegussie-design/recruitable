@@ -1,36 +1,122 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
+import { useSessionDraft } from "@/lib/useSessionDraft";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
+import ForetagsSok from "@/components/admin/ForetagsSok";
 
 const SERVICE_OPTIONS = ["Bemanning", "Rekrytering", "Interim", "Search"];
 
+const EMPTY_FORM = {
+  step: 1,
+  name: "",
+  email: "",
+  companyName: "",
+  orgNumber: "",
+  gatuadress: "",
+  postnummer: "",
+  postort: "",
+  website: "",
+  focusAreas: [],
+  services: [],
+  // Sätts när kontot väl är skapat i Supabase, så att ett steg bakåt och framåt
+  // igen inte försöker skapa samma konto en gång till.
+  userId: null,
+  accountEmail: "",
+};
+
+function domainFromEmail(email) {
+  const domain = String(email || "").split("@")[1];
+  return domain ? domain.trim().toLowerCase() : "";
+}
+
 export default function RegisterForm() {
-  const [step, setStep] = useState(1);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  // Allt utom lösenordet sparas som utkast, så att stegen går att backa i och
+  // rätta — även efter en omladdning eller webbläsarens bakåtknapp.
+  const { state: form, patch, restored, clearDraft } = useSessionDraft("registrera", EMPTY_FORM);
+
+  // Lösenordet ligger utanför utkastet och överlever därför varken omladdning
+  // eller stängd flik.
   const [password, setPassword] = useState("");
-  const [userId, setUserId] = useState(null);
-
-  const [companyName, setCompanyName] = useState("");
-  const [orgNumber, setOrgNumber] = useState("");
-  const [address, setAddress] = useState("");
-  const [website, setWebsite] = useState("");
-
-  const [focusAreas, setFocusAreas] = useState([]);
-  const [services, setServices] = useState([]);
 
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
   const handleTurnstileVerify = useCallback((token) => setTurnstileToken(token), []);
 
+  const [lookup, setLookup] = useState({ status: "idle", info: null, message: "" });
+  const lastLookedUpOrgnr = useRef("");
+
+  const { step, userId, accountEmail, email, website } = form;
+
+  // Webbplatsen måste ändå matcha e-postens domän — fyll den åt användaren så fort
+  // vi vet vilken domän det gäller, men rör aldrig något hen själv skrivit.
+  useEffect(() => {
+    if (step !== 2 || website) return;
+    const domain = domainFromEmail(email);
+    if (domain) patch({ website: `www.${domain}` });
+  }, [step, website, email, patch]);
+
+  async function slaUpp(rawOrgnr) {
+    const digits = String(rawOrgnr || "").replace(/\D/g, "");
+    if (digits.length !== 10 || digits === lastLookedUpOrgnr.current) return;
+    lastLookedUpOrgnr.current = digits;
+
+    setLookup({ status: "loading", info: null, message: "" });
+    try {
+      const res = await fetch(`/api/foretag/uppslag?orgnr=${encodeURIComponent(digits)}`);
+      const body = await res.json();
+      if (!res.ok) {
+        setLookup({ status: "miss", info: null, message: body.error || "Hittade inget bolag." });
+        return;
+      }
+      // Skriv bara i fält som är tomma — det användaren själv fyllt i väger tyngre
+      // än registerdatan, t.ex. när kontoret ligger på en annan adress än sätet.
+      patch((prev) => ({
+        orgNumber: body.orgnr || prev.orgNumber,
+        companyName: prev.companyName || body.namn || "",
+        gatuadress: prev.gatuadress || body.gatuadress || "",
+        postnummer: prev.postnummer || body.postnummer || "",
+        postort: prev.postort || body.postort || "",
+      }));
+      setLookup({ status: "ok", info: body, message: "" });
+    } catch {
+      setLookup({ status: "miss", info: null, message: "Kunde inte nå registret just nu." });
+    }
+  }
+
+  function handleSelectCompany(candidate) {
+    lastLookedUpOrgnr.current = "";
+    patch({
+      companyName: candidate.namn,
+      orgNumber: candidate.orgnr,
+      gatuadress: candidate.gatuadress || "",
+      postnummer: candidate.postnummer || "",
+      postort: candidate.postort || "",
+    });
+    slaUpp(candidate.orgnr);
+  }
+
   async function handleStep1(e) {
     e.preventDefault();
     setStatus("loading");
     setErrorMsg("");
+
+    // Kontot kan redan vara skapat om användaren gått tillbaka hit för att rätta
+    // något. Bara en ny e-postadress kräver en ny registrering.
+    if (userId && accountEmail === email) {
+      setStatus("idle");
+      patch({ step: 2 });
+      return;
+    }
+
+    if (userId && accountEmail !== email && !password) {
+      setStatus("error");
+      setErrorMsg("Ange lösenordet igen för att byta e-postadress.");
+      return;
+    }
 
     const supabase = createClient();
     const { data, error } = await supabase.auth.signUp({ email, password });
@@ -48,47 +134,54 @@ export default function RegisterForm() {
       return;
     }
 
-    setUserId(id);
     setStatus("idle");
-    setStep(2);
+    patch({ userId: id, accountEmail: email, step: 2 });
   }
 
   function handleStep2(e) {
     e.preventDefault();
-    setStep(3);
+    setErrorMsg("");
+    setStatus("idle");
+    patch({ step: 3 });
+  }
+
+  function goBack() {
+    setErrorMsg("");
+    setStatus("idle");
+    patch((prev) => ({ step: Math.max(1, prev.step - 1) }));
   }
 
   function handleAreaSelect(value) {
     if (!value) return;
     if (value === "__ALL__") {
-      setFocusAreas(Object.keys(YRKESOMRADEN));
-    } else if (!focusAreas.includes(value)) {
-      setFocusAreas([...focusAreas, value]);
+      patch({ focusAreas: Object.keys(YRKESOMRADEN) });
+    } else if (!form.focusAreas.includes(value)) {
+      patch({ focusAreas: [...form.focusAreas, value] });
     }
   }
 
   function removeFocusArea(area) {
-    setFocusAreas(focusAreas.filter((a) => a !== area));
+    patch({ focusAreas: form.focusAreas.filter((a) => a !== area) });
   }
 
   function handleServiceSelect(value) {
     if (!value) return;
     if (value === "__ALL__") {
-      setServices([...SERVICE_OPTIONS]);
-    } else if (!services.includes(value)) {
-      setServices([...services, value]);
+      patch({ services: [...SERVICE_OPTIONS] });
+    } else if (!form.services.includes(value)) {
+      patch({ services: [...form.services, value] });
     }
   }
 
   function removeService(service) {
-    setServices(services.filter((s) => s !== service));
+    patch({ services: form.services.filter((s) => s !== service) });
   }
 
   async function handleStep3(e) {
     e.preventDefault();
     setErrorMsg("");
 
-    if (focusAreas.length === 0 || services.length === 0) {
+    if (form.focusAreas.length === 0 || form.services.length === 0) {
       setStatus("error");
       setErrorMsg("Välj minst ett yrkesområde och minst en tjänst.");
       return;
@@ -102,12 +195,14 @@ export default function RegisterForm() {
       body: JSON.stringify({
         userId,
         email,
-        companyName,
-        orgNumber,
-        address,
-        website,
-        focusAreas,
-        services,
+        companyName: form.companyName,
+        orgNumber: form.orgNumber,
+        gatuadress: form.gatuadress,
+        postnummer: form.postnummer,
+        postort: form.postort,
+        website: form.website,
+        focusAreas: form.focusAreas,
+        services: form.services,
         turnstileToken,
       }),
     });
@@ -119,7 +214,15 @@ export default function RegisterForm() {
       return;
     }
 
+    // Begäran är inne — utkastet ska inte ligga kvar och dyka upp nästa gång.
+    clearDraft();
     setStatus("success");
+  }
+
+  // Vänta med att rita formuläret tills utkastet lästs in, så att användaren inte
+  // hinner se tomma fält som en sekund senare fylls i.
+  if (!restored) {
+    return <div className="auth-panel" aria-busy="true" />;
   }
 
   if (status === "success") {
@@ -141,11 +244,23 @@ export default function RegisterForm() {
         </p>
         <div className="field">
           <label htmlFor="reg-name">För- & Efternamn</label>
-          <input id="reg-name" type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+          <input
+            id="reg-name"
+            type="text"
+            value={form.name}
+            onChange={(e) => patch({ name: e.target.value })}
+            required
+          />
         </div>
         <div className="field">
           <label htmlFor="reg-email">E-post</label>
-          <input id="reg-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input
+            id="reg-email"
+            type="email"
+            value={form.email}
+            onChange={(e) => patch({ email: e.target.value })}
+            required
+          />
         </div>
         <div className="field">
           <label htmlFor="reg-password">Lösenord</label>
@@ -154,9 +269,14 @@ export default function RegisterForm() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
+            required={!userId}
             minLength={8}
           />
+          {userId && (
+            <p className="hint">
+              Kontot är redan skapat. Lösenordet behövs bara om du byter e-postadress här.
+            </p>
+          )}
         </div>
         {status === "error" && <p style={{ color: "#c0392b", fontSize: 13 }}>{errorMsg}</p>}
         <button className="qs-btn" type="submit" disabled={status === "loading"}>
@@ -174,13 +294,15 @@ export default function RegisterForm() {
         </p>
         <div className="field">
           <label htmlFor="reg-company-name">Företagsnamn</label>
-          <input
+          <ForetagsSok
             id="reg-company-name"
-            type="text"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            required
+            value={form.companyName}
+            onChange={(value) => patch({ companyName: value })}
+            onSelect={handleSelectCompany}
           />
+          <p className="hint">
+            Börja skriva så söker vi upp bolaget och fyller i org.nummer och adress åt dig.
+          </p>
         </div>
         <div className="field">
           <label htmlFor="reg-org-number">Org.nummer</label>
@@ -188,10 +310,33 @@ export default function RegisterForm() {
             id="reg-org-number"
             type="text"
             placeholder="XXXXXX-XXXX"
-            value={orgNumber}
-            onChange={(e) => setOrgNumber(e.target.value)}
+            value={form.orgNumber}
+            onChange={(e) => patch({ orgNumber: e.target.value })}
+            onBlur={(e) => slaUpp(e.target.value)}
             required
           />
+          {lookup.status === "loading" && <p className="hint">Hämtar uppgifter…</p>}
+          {lookup.status === "ok" && lookup.info && (
+            <>
+              <p className="hint">
+                {`Hämtat från ${lookup.info.kallor.join(" och ")}: ${[
+                  lookup.info.namn,
+                  lookup.info.bolagsform,
+                  lookup.info.registreringsdatum && `registrerat ${lookup.info.registreringsdatum}`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}`}
+              </p>
+              {(lookup.info.avregistrerad || lookup.info.aktiv === false) && (
+                <p className="hint" style={{ color: "#c0392b" }}>
+                  Registret anger bolaget som{" "}
+                  {lookup.info.avregistrerad ? "avregistrerat" : "ej verksamt"} — kontrollera att
+                  org.numret stämmer.
+                </p>
+              )}
+            </>
+          )}
+          {lookup.status === "miss" && <p className="hint">{lookup.message}</p>}
         </div>
         <div className="field">
           <label htmlFor="reg-website">Webbplats</label>
@@ -199,29 +344,60 @@ export default function RegisterForm() {
             id="reg-website"
             type="text"
             placeholder="www.bolaget.se"
-            value={website}
-            onChange={(e) => setWebsite(e.target.value)}
+            value={form.website}
+            onChange={(e) => patch({ website: e.target.value })}
             required
           />
-          <p style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 6 }}>
-            Måste matcha samma domän som din e-postadress.
-          </p>
+          <p className="hint">Måste matcha samma domän som din e-postadress.</p>
         </div>
         <div className="field">
-          <label htmlFor="reg-address">Adress</label>
+          <label htmlFor="reg-gatuadress">Gatuadress</label>
           <input
-            id="reg-address"
+            id="reg-gatuadress"
             type="text"
-            placeholder="Gatuadress, postnummer och ort"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Storgatan 1"
+            value={form.gatuadress}
+            onChange={(e) => patch({ gatuadress: e.target.value })}
+            autoComplete="street-address"
             required
           />
-          <p style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 6 }}>
-            Ange kontoret du representerar — bolag med flera orter kan ha olika administratörer.
-          </p>
         </div>
-        <button className="qs-btn" type="submit">Nästa</button>
+        <div className="field-row">
+          <div className="field">
+            <label htmlFor="reg-postnummer">Postnummer</label>
+            <input
+              id="reg-postnummer"
+              type="text"
+              inputMode="numeric"
+              placeholder="411 34"
+              value={form.postnummer}
+              onChange={(e) => patch({ postnummer: e.target.value })}
+              autoComplete="postal-code"
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="reg-postort">Postort</label>
+            <input
+              id="reg-postort"
+              type="text"
+              placeholder="Göteborg"
+              value={form.postort}
+              onChange={(e) => patch({ postort: e.target.value })}
+              autoComplete="address-level2"
+              required
+            />
+          </div>
+        </div>
+        <p className="hint" style={{ marginTop: -10 }}>
+          Ange kontoret du representerar — bolag med flera orter kan ha olika administratörer.
+        </p>
+        <div className="step-nav">
+          <button className="btn btn-ghost" type="button" onClick={goBack}>
+            &larr; Tillbaka
+          </button>
+          <button className="qs-btn" type="submit">Nästa</button>
+        </div>
       </form>
     );
   }
@@ -236,14 +412,14 @@ export default function RegisterForm() {
         <label htmlFor="reg-add-service">Tjänster</label>
         <select id="reg-add-service" value="" onChange={(e) => handleServiceSelect(e.target.value)}>
           <option value="" disabled hidden>Välj tjänster...</option>
-          {SERVICE_OPTIONS.filter((s) => !services.includes(s)).map((s) => (
+          {SERVICE_OPTIONS.filter((s) => !form.services.includes(s)).map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
-          {services.length < SERVICE_OPTIONS.length && <option value="__ALL__">Alla ovanstående</option>}
+          {form.services.length < SERVICE_OPTIONS.length && <option value="__ALL__">Alla ovanstående</option>}
         </select>
-        {services.length > 0 && (
+        {form.services.length > 0 && (
           <div className="chip-list">
-            {services.map((service) => (
+            {form.services.map((service) => (
               <span className="chip" key={service}>
                 {service}
                 <button type="button" onClick={() => removeService(service)} aria-label={`Ta bort ${service}`}>
@@ -260,17 +436,17 @@ export default function RegisterForm() {
         <select id="reg-add-area" value="" onChange={(e) => handleAreaSelect(e.target.value)}>
           <option value="" disabled hidden>Välj yrkesområden...</option>
           {Object.keys(YRKESOMRADEN)
-            .filter((a) => !focusAreas.includes(a))
+            .filter((a) => !form.focusAreas.includes(a))
             .map((a) => (
               <option key={a} value={a}>{a}</option>
             ))}
-          {focusAreas.length < Object.keys(YRKESOMRADEN).length && (
+          {form.focusAreas.length < Object.keys(YRKESOMRADEN).length && (
             <option value="__ALL__">Alla ovanstående</option>
           )}
         </select>
-        {focusAreas.length > 0 && (
+        {form.focusAreas.length > 0 && (
           <div className="chip-list">
-            {focusAreas.map((area) => (
+            {form.focusAreas.map((area) => (
               <span className="chip" key={area}>
                 {area}
                 <button type="button" onClick={() => removeFocusArea(area)} aria-label={`Ta bort ${area}`}>
@@ -285,14 +461,18 @@ export default function RegisterForm() {
       <Turnstile onVerify={handleTurnstileVerify} />
 
       {status === "error" && <p style={{ color: "#c0392b", fontSize: 13, marginTop: 16 }}>{errorMsg}</p>}
-      <button
-        className="qs-btn"
-        type="submit"
-        disabled={status === "loading" || (TURNSTILE_SITE_KEY && !turnstileToken)}
-        style={{ marginTop: 20 }}
-      >
-        {status === "loading" ? "Skickar..." : "Begär tillgång"}
-      </button>
+      <div className="step-nav" style={{ marginTop: 20 }}>
+        <button className="btn btn-ghost" type="button" onClick={goBack} disabled={status === "loading"}>
+          &larr; Tillbaka
+        </button>
+        <button
+          className="qs-btn"
+          type="submit"
+          disabled={status === "loading" || (TURNSTILE_SITE_KEY && !turnstileToken)}
+        >
+          {status === "loading" ? "Skickar..." : "Begär tillgång"}
+        </button>
+      </div>
     </form>
   );
 }
