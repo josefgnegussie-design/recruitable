@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
 import { useSessionDraft } from "@/lib/useSessionDraft";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
+import MultiSelectField from "@/components/MultiSelectField";
 import ForetagsSok from "@/components/admin/ForetagsSok";
 
 const SERVICE_OPTIONS = ["Bemanning", "Rekrytering", "Interim", "Search"];
@@ -44,7 +45,9 @@ export default function RegisterForm() {
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileFailed, setTurnstileFailed] = useState(false);
   const handleTurnstileVerify = useCallback((token) => setTurnstileToken(token), []);
+  const handleTurnstileError = useCallback((failed) => setTurnstileFailed(failed), []);
 
   const [lookup, setLookup] = useState({ status: "idle", info: null, message: "" });
   const lastLookedUpOrgnr = useRef("");
@@ -151,26 +154,8 @@ export default function RegisterForm() {
     patch((prev) => ({ step: Math.max(1, prev.step - 1) }));
   }
 
-  function handleAreaSelect(value) {
-    if (!value) return;
-    if (value === "__ALL__") {
-      patch({ focusAreas: Object.keys(YRKESOMRADEN) });
-    } else if (!form.focusAreas.includes(value)) {
-      patch({ focusAreas: [...form.focusAreas, value] });
-    }
-  }
-
   function removeFocusArea(area) {
     patch({ focusAreas: form.focusAreas.filter((a) => a !== area) });
-  }
-
-  function handleServiceSelect(value) {
-    if (!value) return;
-    if (value === "__ALL__") {
-      patch({ services: [...SERVICE_OPTIONS] });
-    } else if (!form.services.includes(value)) {
-      patch({ services: [...form.services, value] });
-    }
   }
 
   function removeService(service) {
@@ -410,13 +395,13 @@ export default function RegisterForm() {
 
       <div className="field">
         <label htmlFor="reg-add-service">Tjänster</label>
-        <select id="reg-add-service" value="" onChange={(e) => handleServiceSelect(e.target.value)}>
-          <option value="" disabled hidden>Välj tjänster...</option>
-          {SERVICE_OPTIONS.filter((s) => !form.services.includes(s)).map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-          {form.services.length < SERVICE_OPTIONS.length && <option value="__ALL__">Alla ovanstående</option>}
-        </select>
+        <MultiSelectField
+          id="reg-add-service"
+          options={SERVICE_OPTIONS}
+          selected={form.services}
+          onChange={(services) => patch({ services })}
+          placeholder="Välj tjänster..."
+        />
         {form.services.length > 0 && (
           <div className="chip-list">
             {form.services.map((service) => (
@@ -433,17 +418,13 @@ export default function RegisterForm() {
 
       <div className="field">
         <label htmlFor="reg-add-area">Yrkesområden ni rekryterar inom</label>
-        <select id="reg-add-area" value="" onChange={(e) => handleAreaSelect(e.target.value)}>
-          <option value="" disabled hidden>Välj yrkesområden...</option>
-          {Object.keys(YRKESOMRADEN)
-            .filter((a) => !form.focusAreas.includes(a))
-            .map((a) => (
-              <option key={a} value={a}>{a}</option>
-            ))}
-          {form.focusAreas.length < Object.keys(YRKESOMRADEN).length && (
-            <option value="__ALL__">Alla ovanstående</option>
-          )}
-        </select>
+        <MultiSelectField
+          id="reg-add-area"
+          options={Object.keys(YRKESOMRADEN)}
+          selected={form.focusAreas}
+          onChange={(focusAreas) => patch({ focusAreas })}
+          placeholder="Välj yrkesområden..."
+        />
         {form.focusAreas.length > 0 && (
           <div className="chip-list">
             {form.focusAreas.map((area) => (
@@ -458,7 +439,15 @@ export default function RegisterForm() {
         )}
       </div>
 
-      <Turnstile onVerify={handleTurnstileVerify} />
+      <Turnstile onVerify={handleTurnstileVerify} onError={handleTurnstileError} />
+
+      {turnstileFailed && (
+        <p style={{ color: "#c0392b", fontSize: 13, marginTop: 8 }}>
+          Robotkontrollen kunde inte genomföras, så det går inte att skicka just nu. Ladda om sidan
+          och försök igen — dina uppgifter finns kvar. Kvarstår felet, hör av dig till
+          info@recruitable.se så tar vi emot er begäran manuellt.
+        </p>
+      )}
 
       {status === "error" && <p style={{ color: "#c0392b", fontSize: 13, marginTop: 16 }}>{errorMsg}</p>}
       <div className="step-nav" style={{ marginTop: 20 }}>
