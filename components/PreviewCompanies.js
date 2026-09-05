@@ -1,27 +1,13 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { COMPANIES } from "@/lib/companies";
 
-// Serverrenderar de tre första bolagen och byter till ett slumpat urval när
-// sidan laddats — samma mönster som featured-listan på /rekrytera. Att slumpa
-// först i useEffect håller server- och klientmarkup identisk vid hydrering.
-export default function PreviewCompanies() {
-  const [preview, setPreview] = useState(() => COMPANIES.slice(0, 3));
-
-  useEffect(() => {
-    const shuffled = [...COMPANIES];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    setPreview(shuffled.slice(0, 3));
-  }, []);
-
+// Tre bolag som exempel på startsidan. Urvalet kommer färdigblandat från servern
+// och innehåller bara bolag med en skriven profil — registret rymmer tusentals
+// hämtade ur offentliga källor, och deras kort skulle bli tomma citattecken utan
+// taggar. Komponenten behöver därför varken vara klientkod eller slumpa själv.
+export default function PreviewCompanies({ bolag = [] }) {
   return (
     <div className="preview-grid">
-      {preview.map((c) => (
+      {bolag.map((c) => (
         <Link className="preview-card" href={`/bolag/${c.id}`} key={c.id}>
           <div className="pc-top">
             <div>

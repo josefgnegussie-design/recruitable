@@ -1,10 +1,14 @@
 import Link from "next/link";
-import { COMPANIES } from "@/lib/companies";
 import { INDUSTRY_NEWS } from "@/lib/industryNews";
+import { hamtaUrval } from "@/lib/companiesRepo";
 import NearbyCompanies from "@/components/NearbyCompanies";
 import PreviewCompanies from "@/components/PreviewCompanies";
 
-export default function LandingPage() {
+export const revalidate = 300;
+
+export default async function LandingPage() {
+  const urval = await hamtaUrval(3);
+
   return (
     <div id="view-landing">
       <section className="l-hero l-hero-single">
@@ -102,7 +106,7 @@ export default function LandingPage() {
         <div className="l-kicker">Ett urval</div>
         <h2>Tre bolag att börja med</h2>
         <p className="l-section-sub">Ett nedslag i registret — tre bolag ur listan, nya för varje gång sidan laddas om.</p>
-        <PreviewCompanies />
+        <PreviewCompanies bolag={urval} />
       </section>
 
       <section className="l-section tight">
