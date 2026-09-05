@@ -43,3 +43,6 @@ next-env.d.ts
 # Granskningsfil för import — genereras av scripts/bygg-import-fran-excel.mjs
 scripts/data/import-granskning.csv
 supabase/satt_koordinater.sql
+scripts/data/research-toppbolag.json
+scripts/data/toppbolag-100.xlsx
+scripts/data/import-granskning.xlsx
