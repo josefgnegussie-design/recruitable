@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { COMPANIES } from "@/lib/companies";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
@@ -10,7 +9,9 @@ import { sendInquiryConfirmationToRequester, sendModerationAlertToAdmins } from 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const VALID_COMPANY_IDS = new Set(COMPANIES.map((c) => c.id));
+// Ett tak, inte en exakt gräns: syftet är att stoppa orimliga anrop, inte att
+// spegla hur många bolag registret råkar innehålla just nu.
+const MAX_MOTTAGARE = 200;
 const VALID_AREAS = new Set(Object.keys(YRKESOMRADEN));
 const VALID_SERVICES = new Set(["Bemanning", "Rekrytering", "Interim", "Search"]);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -61,11 +62,14 @@ export async function POST(request) {
     turnstileToken,
   } = body;
 
+  // Att bolagen verkligen finns kontrolleras mot databasen längre ner, inte mot
+  // en lista som låsts vid modulladdning. Ett nyss godkänt bolag ska kunna ta
+  // emot förfrågningar direkt, utan att sajten först driftsätts om.
   const companyIdsValid =
     Array.isArray(companyIds) &&
     companyIds.length > 0 &&
-    companyIds.length <= COMPANIES.length &&
-    companyIds.every((id) => Number.isInteger(id) && VALID_COMPANY_IDS.has(id));
+    companyIds.length <= MAX_MOTTAGARE &&
+    companyIds.every((id) => Number.isInteger(id) && id > 0);
 
   if (
     !companyIdsValid ||
@@ -104,6 +108,26 @@ export async function POST(request) {
 
   const supabase = createAdminClient();
 
+  // Slå upp de valda bolagen. Det här är både existenskontrollen och källan till
+  // namnen i mejlen — tidigare hämtades namnen ur den statiska filen, som inte
+  // känner till bolag som tillkommit i registret sedan senaste driftsättning.
+  const { data: valdaBolag, error: bolagError } = await supabase
+    .from("companies")
+    .select("id, name")
+    .in("id", companyIds);
+
+  if (bolagError) {
+    console.error("Kunde inte slå upp valda bolag:", JSON.stringify(bolagError));
+    return NextResponse.json({ error: "Kunde inte spara förfrågan. Försök igen." }, { status: 500 });
+  }
+
+  if (!valdaBolag || valdaBolag.length !== companyIds.length) {
+    return NextResponse.json(
+      { error: "Ett eller flera av de valda bolagen finns inte längre i registret." },
+      { status: 400 }
+    );
+  }
+
   const { data: inquiry, error: inquiryError } = await supabase
     .from("inquiries")
     .insert({
@@ -137,7 +161,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "Kunde inte spara förfrågan. Försök igen." }, { status: 500 });
   }
 
-  const companyNames = COMPANIES.filter((c) => companyIds.includes(c.id)).map((c) => c.name);
+  const companyNames = valdaBolag.map((c) => c.name);
 
   const inquiryForEmail = {
     requesterName: requesterName.trim(),

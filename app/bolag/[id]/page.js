@@ -1,18 +1,23 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { COMPANIES } from "@/lib/companies";
+import { hamtaBolagMedId } from "@/lib/companiesRepo";
 import { createPublicClient } from "@/lib/supabase/public";
 import { readCachedPremium, writeCachedPremium } from "@/lib/premiumCache";
 
 export const revalidate = 300;
 
+// Inga profilsidor byggs i förväg. Med 59 bolag gick det an, men registret ska
+// rymma ett par tusen — då blir det lika många sidor att bygga vid varje
+// driftsättning, och ett nytt bolag skulle inte synas förrän nästa bygge.
+// I stället byggs varje sida vid första besöket och sparas i fem minuter, så
+// att ett godkänt bolag har en profil direkt.
 export function generateStaticParams() {
-  return COMPANIES.map((c) => ({ id: String(c.id) }));
+  return [];
 }
 
 export default async function ProfilePage({ params }) {
   const { id } = await params;
-  const c = COMPANIES.find((x) => x.id === Number(id));
+  const c = await hamtaBolagMedId(id);
   if (!c) notFound();
 
   // Premiumdata är ett tillägg till grundprofilen i lib/companies.js. Går den

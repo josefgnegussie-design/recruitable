@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { COMPANIES } from "@/lib/companies";
-import { allRegionCities, filterCompanies, regionForCity } from "@/lib/helpers";
+import { allRegionCities, regionForCity } from "@/lib/helpers";
 import { useSessionDraft } from "@/lib/useSessionDraft";
 import Stepper from "@/components/wizard/Stepper";
 import SelectableCompanyCard from "./SelectableCompanyCard";
@@ -39,11 +38,12 @@ function deserializeDraft(saved) {
   return { ...saved, selected: new Set(saved.selected || []) };
 }
 
-export default function InquiryWizard({ filters }) {
+// results kommer färdigfiltrerad från servern; totalt är hela antalet träffar,
+// som kan vara fler än de som listas här.
+export default function InquiryWizard({ filters, results, totalt }) {
   const [error, setError] = useState("");
   const [status, setStatus] = useState("idle");
 
-  const results = useMemo(() => filterCompanies(COMPANIES, filters), [filters]);
   const cities = useMemo(() => allRegionCities(), []);
 
   const description = filters.beskrivning || "";
@@ -194,8 +194,11 @@ export default function InquiryWizard({ filters }) {
               <div className="eyebrow">Steg 1 av 3 · Rangordnade efter relevans</div>
               <h1 className="hero-title">Välj de bolag <em>ni vill kontakta</em></h1>
               <p className="hero-sub">
-                Visar {results.length} bolag för {filters.omrade || "alla yrkesområden"} ·{" "}
-                {filters.ort || "alla orter"}. Bocka ur de ni inte vill skicka förfrågan till.
+                Visar {results.length}
+                {totalt > results.length ? ` av ${totalt}` : ""} bolag för{" "}
+                {filters.omrade || "alla yrkesområden"} · {filters.ort || "alla orter"}. Bocka ur de ni
+                inte vill skicka förfrågan till.
+                {totalt > results.length && " Snäva in filtret om ni vill se fler."}
               </p>
             </div>
           </section>
