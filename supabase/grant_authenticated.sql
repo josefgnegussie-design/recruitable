@@ -14,4 +14,7 @@ grant select on public.companies to authenticated, anon;
 grant update on public.companies to authenticated;
 grant select on public.company_admins to authenticated;
 
-alter default privileges in schema public grant select on tables to authenticated, anon;
+-- anon togs bort ur den här raden av migration_revoke_anon.sql: nya tabeller
+-- ska inte automatiskt bli läsbara med den publika nyckeln. Det som ska vara
+-- publikt pekas ut uttryckligen i stället.
+alter default privileges in schema public grant select on tables to authenticated;
