@@ -46,3 +46,4 @@ supabase/satt_koordinater.sql
 scripts/data/research-toppbolag.json
 scripts/data/toppbolag-100.xlsx
 scripts/data/import-granskning.xlsx
+scripts/data/verksamhetsbeskrivningar.json
