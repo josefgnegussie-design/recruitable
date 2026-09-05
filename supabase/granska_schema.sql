@@ -3,6 +3,11 @@
 --
 -- Genererad av scripts/bygg-schemagranskning.mjs — kör om det scriptet när nya
 -- migrationer tillkommit.
+--
+-- Medvetet utelämnade ur kontrollen:
+--   company_admins.claimed_roles — ersatt av claimed_services (migration_signup_services.sql)
+--   inquiry_recipients.released_at — tas bort av en senare migration
+
 
 with forvantade_tabeller(tabell) as (
   values
@@ -26,13 +31,11 @@ forvantade_kolumner(tabell, kolumn) as (
     ('company_admins', 'claimed_company_name'),
     ('company_admins', 'claimed_focus_areas'),
     ('company_admins', 'claimed_org_number'),
-    ('company_admins', 'claimed_roles'),
     ('company_admins', 'claimed_services'),
     ('company_admins', 'claimed_website'),
     ('company_admins', 'office_id'),
     ('inquiries', 'moderation_status'),
     ('inquiries', 'requester_phone'),
-    ('inquiry_recipients', 'released_at'),
     ('inquiry_recipients', 'responded_at'),
     ('inquiry_recipients', 'status')
 )

@@ -15,6 +15,13 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 
 const SUPABASE_DIR = new URL("../supabase/", import.meta.url);
 
+// Kolumner som en senare migration ersatt, och som alltså ska saknas i databasen.
+// De kan inte läsas ut mekaniskt — en ersättning syns bara i kommentarerna — så
+// listan underhålls för hand. Utan den rapporteras de som SAKNAS fast allt är rätt.
+const ERSATTA = new Map([
+  ["company_admins|claimed_roles", "ersatt av claimed_services (migration_signup_services.sql)"],
+]);
+
 function q(value) {
   return `'${value.replace(/'/g, "''")}'`;
 }
@@ -22,7 +29,8 @@ function q(value) {
 async function main() {
   const filer = (await readdir(SUPABASE_DIR)).filter((f) => f.endsWith(".sql"));
 
-  const kolumner = new Set();
+  const tillagda = new Set();
+  const borttagna = new Set();
   const tabeller = new Set();
 
   for (const fil of filer) {
@@ -33,10 +41,28 @@ async function main() {
       .replace(/\s+/g, " ");
 
     const kolumnRe = /alter table (?:public\.)?([a-z_]+) add column (?:if not exists )?([a-z_]+)/gi;
-    for (const m of text.matchAll(kolumnRe)) kolumner.add(`${m[1]}|${m[2]}`);
+    for (const m of text.matchAll(kolumnRe)) tillagda.add(`${m[1]}|${m[2]}`);
+
+    // En kolumn som någon migration tar bort ska inte finnas kvar. Utan det här
+    // rapporterades t.ex. inquiry_recipients.released_at som saknad, trots att
+    // migration_inquiry_moderation.sql medvetet tar bort den igen.
+    const dropRe = /alter table (?:public\.)?([a-z_]+) drop column (?:if exists )?([a-z_]+)/gi;
+    for (const m of text.matchAll(dropRe)) borttagna.add(`${m[1]}|${m[2]}`);
 
     const tabellRe = /create table (?:if not exists )?(?:public\.)?([a-z_]+)/gi;
     for (const m of text.matchAll(tabellRe)) tabeller.add(m[1]);
+  }
+
+  const undantagna = [];
+  const kolumner = new Set();
+  for (const kolumn of tillagda) {
+    if (borttagna.has(kolumn)) {
+      undantagna.push(`${kolumn.replace("|", ".")} — tas bort av en senare migration`);
+    } else if (ERSATTA.has(kolumn)) {
+      undantagna.push(`${kolumn.replace("|", ".")} — ${ERSATTA.get(kolumn)}`);
+    } else {
+      kolumner.add(kolumn);
+    }
   }
 
   const tabellRader = [...tabeller].sort().map((t) => `    (${q(t)})`);
@@ -45,11 +71,16 @@ async function main() {
     return `    (${q(tabell)}, ${q(kolumn)})`;
   });
 
+  const undantagsBlock = undantagna.length
+    ? `--\n-- Medvetet utelämnade ur kontrollen:\n${undantagna.sort().map((r) => `--   ${r}`).join("\n")}\n`
+    : "";
+
   const sql = `-- Granskning: vad migrationerna i supabase/ förväntar sig, jämfört med
 -- vad databasen faktiskt innehåller. Läser bara metadata och ändrar ingenting.
 --
 -- Genererad av scripts/bygg-schemagranskning.mjs — kör om det scriptet när nya
 -- migrationer tillkommit.
+${undantagsBlock}
 
 with forvantade_tabeller(tabell) as (
   values
