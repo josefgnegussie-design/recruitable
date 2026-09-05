@@ -48,6 +48,17 @@ export default async function ProfilePage({ params }) {
   return (
     <div id="view-profile">
       <Link className="back-link" href="/rekrytera">&larr; Tillbaka till sökningen</Link>
+      {!c.claimed && (
+        <div className="claim-banner">
+          <p>
+            <strong>Den här profilen är sammanställd ur offentliga register.</strong> Uppgifterna kommer
+            från Bolagsverket och årsredovisningar — bolaget har inte själv fyllt i något här.
+          </p>
+          <Link className="qs-btn" href="/for-bolag/registrera">
+            Är detta ert bolag? Ta över profilen
+          </Link>
+        </div>
+      )}
       <div className="profile-wrap">
         {isPremium && premium?.cover_image && (
           <div className="profile-cover">

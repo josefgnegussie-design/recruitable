@@ -789,3 +789,10 @@ a:hover{color:var(--color-accent)}
 .password-field input{padding-right:64px;}
 .password-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:8px;font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.4px;text-transform:uppercase;color:var(--color-accent);cursor:pointer;}
 .password-toggle:hover{color:var(--color-accent-hover);}
+
+/* ===== Inbjudan att ta över en oövertagen profil ===== */
+.claim-banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;max-width:1180px;margin:0 auto 4px;padding:16px 24px;background:var(--color-surface-soft);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);}
+.claim-banner p{margin:0;font-size:13.5px;line-height:1.5;color:var(--color-body);max-width:640px;}
+.claim-banner strong{color:var(--color-ink);}
+.claim-banner .qs-btn{width:auto;flex-shrink:0;padding:11px 20px;font-size:13.5px;text-decoration:none;}
+@media (max-width:640px){ .claim-banner .qs-btn{width:100%;text-align:center;} }
