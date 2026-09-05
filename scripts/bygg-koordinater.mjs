@@ -162,6 +162,59 @@ from companies;
   console.log(`  ${statistik.ort} via ortsnamn`);
   console.log(`  ${statistik.utan} utan träff`);
   console.log(`\nSparat till supabase/satt_koordinater.sql`);
+
+  if (process.argv.includes("--applicera")) await applicera(traffar);
+}
+
+// Skriver direkt till databasen i stället för att lämna över SQL. Kräver
+// NEXT_PUBLIC_SUPABASE_URL och SUPABASE_SERVICE_ROLE_KEY i miljön:
+//   node --env-file=.env.local scripts/bygg-koordinater.mjs --applicera
+//
+// Bolag som delar postnummer delar koordinat, så uppdateringarna grupperas per
+// koordinatpar — 3 711 bolag blir några tusen anrop i stället för ett per rad.
+// Filtret rör bara rader som saknar koordinater; redan satta värden lämnas.
+async function applicera(traffar) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const nyckel = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !nyckel) throw new Error("Saknar Supabase-uppgifter i miljön");
+
+  const perKoordinat = new Map();
+  for (const [id, lat, lng] of traffar) {
+    const nyckelPar = `${lat},${lng}`;
+    if (!perKoordinat.has(nyckelPar)) perKoordinat.set(nyckelPar, { lat, lng, ider: [] });
+    perKoordinat.get(nyckelPar).ider.push(id);
+  }
+
+  console.log(`\nSkriver till databasen: ${perKoordinat.size} koordinatpar...`);
+
+  const huvuden = {
+    apikey: nyckel,
+    Authorization: `Bearer ${nyckel}`,
+    "Content-Type": "application/json",
+    Prefer: "return=minimal",
+  };
+
+  let klara = 0;
+  let fel = 0;
+
+  for (const { lat, lng, ider } of perKoordinat.values()) {
+    // Långa id-listor delas upp så att adressen inte blir för lång.
+    for (let i = 0; i < ider.length; i += 100) {
+      const del = ider.slice(i, i + 100);
+      const svar = await fetch(
+        `${url}/rest/v1/companies?id=in.(${del.join(",")})&lat=is.null`,
+        { method: "PATCH", headers: huvuden, body: JSON.stringify({ lat, lng }) }
+      );
+      if (!svar.ok) {
+        fel++;
+        if (fel <= 3) console.error(`  fel ${svar.status}: ${(await svar.text()).slice(0, 160)}`);
+      } else {
+        klara += del.length;
+      }
+    }
+  }
+
+  console.log(`Klart: ${klara} bolag uppdaterade, ${fel} misslyckade anrop.`);
 }
 
 main().catch((err) => {
