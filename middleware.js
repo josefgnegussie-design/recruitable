@@ -15,6 +15,20 @@ const MAINTENANCE_ALLOW = [
   // Bevakningsjobbet ska kunna köra även när sajten står i underhållsläge —
   // annars tystnar larmet just när något är fel.
   "/api/cron",
+
+  // Underhållsläget ska dölja sajten för besökare, inte stänga ute den som
+  // driver den. Utan raderna nedan gick varken inloggning, lösenordsåterställning
+  // eller granskningsköerna att nå medan läget var på — inte ens
+  // återställningslänken i mejlet, eftersom den pekar tillbaka hit. Den som glömt
+  // sitt lösenord var utelåst tills sajten öppnades för alla.
+  "/logga-in",
+  "/glomt-losenord",
+  "/aterstall-losenord",
+  "/admin",
+  "/mina-sidor",
+  "/api/profil",
+  "/api/admin",
+  "/api/mina-sidor",
 ];
 
 export async function middleware(request) {
