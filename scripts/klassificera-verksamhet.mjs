@@ -146,7 +146,87 @@ async function main() {
 
   if (!process.argv.includes("--skriv")) {
     console.log("Ingenting skrivet till databasen. Lägg till --skriv när siffrorna duger.");
+    return;
   }
+
+  await skrivTillDatabasen(beskrivningar, facit);
+}
+
+// Skriver klassificeringen. Tre regler:
+//
+//   Bolag som redan har yrkesområde eller tjänst lämnas ifred — de 59 kuraterade
+//   profilerna är genomgångna för hand och ska inte skrivas över av ett mönster.
+//
+//   De 57 största bolagen får handklassificeringen, som bygger på både
+//   bolagsordning och hemsida och därför är säkrare än mönstren.
+//
+//   Övriga får mönstrens förslag. Alla markeras som härledda, så att
+//   gränssnittet kan visa att uppgiften är en slutsats och inte något bolaget
+//   själv lämnat.
+async function skrivTillDatabasen(beskrivningar, facit) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error("Saknar Supabase-uppgifter i miljön");
+
+  const huvuden = {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
+    "Content-Type": "application/json",
+    Prefer: "return=minimal",
+  };
+
+  const befintliga = [];
+  for (let from = 0; ; from += 1000) {
+    const svar = await fetch(`${url}/rest/v1/companies?select=id,focus,services&order=id`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}`, Range: `${from}-${from + 999}` },
+    });
+    const del = await svar.json();
+    befintliga.push(...del);
+    if (del.length < 1000) break;
+  }
+  const harRedan = new Set(
+    befintliga.filter((b) => b.focus?.length || b.services?.length).map((b) => b.id)
+  );
+  console.log(`\n${harRedan.size} bolag har redan klassificering och lämnas orörda.`);
+
+  let skrivna = 0;
+  let fel = 0;
+
+  for (const [id, post] of Object.entries(beskrivningar)) {
+    const nummer = Number(id);
+    const hand = facit[id];
+    const monster = klassificera(post.beskrivning);
+
+    const focus = hand?.focus?.length ? hand.focus : monster.yrken;
+    const services = hand?.services?.length ? hand.services : monster.tjanster;
+
+    const kropp = {};
+    if (post.beskrivning) kropp.verksamhetsbeskrivning = post.beskrivning;
+
+    if (!harRedan.has(nummer) && (focus.length || services.length)) {
+      kropp.focus = focus;
+      kropp.services = services;
+      kropp.klassificering_harledd = true;
+    }
+
+    if (!Object.keys(kropp).length) continue;
+
+    const svar = await fetch(`${url}/rest/v1/companies?id=eq.${nummer}`, {
+      method: "PATCH",
+      headers: huvuden,
+      body: JSON.stringify(kropp),
+    });
+
+    if (svar.ok) skrivna++;
+    else {
+      fel++;
+      if (fel <= 3) console.error(`  fel ${svar.status} för id ${nummer}: ${(await svar.text()).slice(0, 140)}`);
+    }
+
+    if (skrivna % 500 === 0 && skrivna) console.log(`  ${skrivna} skrivna...`);
+  }
+
+  console.log(`\nKlart: ${skrivna} bolag uppdaterade, ${fel} misslyckade.`);
 }
 
 main().catch((err) => {

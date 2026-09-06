@@ -117,22 +117,44 @@ export default async function ProfilePage({ params }) {
 
         <div className="profile-body">
           <div>
-            <div className="panel">
-              <h3>Vision</h3>
-              <p className="vision-quote">&ldquo;{c.vision}&rdquo;</p>
-            </div>
-            <div className="panel">
-              <h3>Om bolaget</h3>
-              <p>{c.desc}</p>
-            </div>
+            {c.vision && (
+              <div className="panel">
+                <h3>Vision</h3>
+                <p className="vision-quote">&ldquo;{c.vision}&rdquo;</p>
+              </div>
+            )}
+            {c.desc && (
+              <div className="panel">
+                <h3>Om bolaget</h3>
+                <p>{c.desc}</p>
+              </div>
+            )}
+            {/* Bolagets egen formulering ur bolagsordningen. Formell, men sann och
+                hämtad från bolaget självt — till skillnad från en text vi skrivit
+                åt dem. Visas bara när ingen egen beskrivning finns. */}
+            {!c.desc && c.verksamhetsbeskrivning && (
+              <div className="panel">
+                <h3>Verksamhet</h3>
+                <p>{c.verksamhetsbeskrivning}</p>
+                <p className="note">Enligt bolagsordningen, registrerad hos Bolagsverket.</p>
+              </div>
+            )}
           </div>
           <div>
             <div className="panel">
               <h3>Snabbfakta</h3>
               <div className="side-fact"><span className="k">Orter</span><span className="v">{c.officeCities?.length ? c.officeCities.join(", ") : c.address}</span></div>
               <div className="side-fact"><span className="k">Fokusområden</span><span className="v">{c.focus.length ? c.focus.join(", ") : "Ej specificerat"}</span></div>
-              <div className="side-fact"><span className="k">Tjänster</span><span className="v">{c.services.join(", ")}</span></div>
-              <div className="note">Källa: offentlig bolagsdata (Allabolag/Ratsit/Bolagsfakta) + bolagets webbplats, kontrollerad augusti 2026.</div>
+              <div className="side-fact"><span className="k">Tjänster</span><span className="v">{c.services.length ? c.services.join(", ") : "Ej specificerat"}</span></div>
+              {c.klassificeringHarledd ? (
+                <div className="note">
+                  Fokusområden och tjänster är härledda ur bolagsordningen, inte lämnade av bolaget.
+                  Ungefär ett bolag av fjorton får en inriktning som inte stämmer helt — stämmer det
+                  inte här, ta över profilen och rätta den.
+                </div>
+              ) : (
+                <div className="note">Källa: offentlig bolagsdata (Allabolag/Ratsit/Bolagsfakta) + bolagets webbplats, kontrollerad augusti 2026.</div>
+              )}
             </div>
           </div>
         </div>
