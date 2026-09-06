@@ -44,6 +44,8 @@ export default async function ProfilePage({ params }) {
 
   const isPremium = premium?.is_premium ?? false;
   const logo = premium?.logo || c.logo;
+  // Har vänsterspalten något att visa alls?
+  const harText = Boolean(c.vision || c.desc || c.verksamhetsbeskrivning);
 
   return (
     <div id="view-profile">
@@ -115,7 +117,10 @@ export default async function ProfilePage({ params }) {
           </div>
         </div>
 
-        <div className="profile-body">
+        {/* Saknar bolaget både vision, beskrivning och verksamhetstext blir
+            vänsterspalten tom, och Snabbfakta hamnar ensam bredvid ett stort
+            hål. Då används en spalt i stället för två. */}
+        <div className={`profile-body${harText ? "" : " single"}`}>
           <div>
             {c.vision && (
               <div className="panel">
@@ -146,14 +151,26 @@ export default async function ProfilePage({ params }) {
               <div className="side-fact"><span className="k">Orter</span><span className="v">{c.officeCities?.length ? c.officeCities.join(", ") : c.address}</span></div>
               <div className="side-fact"><span className="k">Fokusområden</span><span className="v">{c.focus.length ? c.focus.join(", ") : "Ej specificerat"}</span></div>
               <div className="side-fact"><span className="k">Tjänster</span><span className="v">{c.services.length ? c.services.join(", ") : "Ej specificerat"}</span></div>
+              {/* Notisen måste säga sanningen om just den här profilen. Den
+                  ursprungliga texten lovade att bolagets webbplats kontrollerats,
+                  vilket stämmer för de dryga femtio som gåtts igenom för hand —
+                  men inte för de tusentals som hämtats maskinellt ur register. */}
               {c.klassificeringHarledd ? (
                 <div className="note">
                   Fokusområden och tjänster är härledda ur bolagsordningen, inte lämnade av bolaget.
                   Ungefär ett bolag av fjorton får en inriktning som inte stämmer helt — stämmer det
                   inte här, ta över profilen och rätta den.
                 </div>
+              ) : c.desc ? (
+                <div className="note">
+                  Källa: offentlig bolagsdata (Allabolag/Ratsit/Bolagsfakta) + bolagets webbplats,
+                  kontrollerad augusti 2026.
+                </div>
               ) : (
-                <div className="note">Källa: offentlig bolagsdata (Allabolag/Ratsit/Bolagsfakta) + bolagets webbplats, kontrollerad augusti 2026.</div>
+                <div className="note">
+                  Uppgifterna kommer från Bolagsverket och offentliga årsredovisningar. Bolaget har
+                  inte lämnat några uppgifter själv.
+                </div>
               )}
             </div>
           </div>

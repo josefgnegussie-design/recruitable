@@ -799,3 +799,8 @@ a:hover{color:var(--color-accent)}
 
 /* Beskrivning i stället för vision på kort utan citat att visa. */
 .card-vision.plain, .pc-vision.plain{font-style:normal;}
+
+/* Profil utan text i vänsterspalten — Snabbfakta får hela bredden i stället
+   för att ligga ensam bredvid ett tomt fält. */
+.profile-body.single{grid-template-columns:1fr;}
+.profile-body.single > div:first-child:empty{display:none;}
