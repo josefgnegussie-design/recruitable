@@ -4,6 +4,7 @@ import { YRKESOMRADEN } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { clientIp } from "@/lib/requestIp";
+import { sendKontoansokanTillAdmins } from "@/lib/email";
 
 const VALID_AREAS = new Set(Object.keys(YRKESOMRADEN));
 const VALID_SERVICES = new Set(["Bemanning", "Rekrytering", "Interim", "Search"]);
@@ -95,6 +96,19 @@ export async function POST(request) {
     claimed_services: services,
     verified: false,
   });
+
+  if (!error) {
+    // Utan notis upptäcks en ansökan bara av den som råkar titta i databasen.
+    // Misslyckas utskicket ska ansökan ändå räknas som mottagen — den ligger
+    // kvar i kön oavsett.
+    sendKontoansokanTillAdmins({
+      companyName: companyName.trim(),
+      orgNumber: orgNumber.trim(),
+      address: `${gatuadress.trim()}, ${postnummer.trim()} ${postort.trim()}`,
+      email: email.trim(),
+      website: website.trim(),
+    }).catch((err) => console.error("Kunde inte skicka notis om kontoansökan:", err.message));
+  }
 
   if (error) {
     console.error("Kunde inte spara bolagsanspråk:", JSON.stringify(error));
