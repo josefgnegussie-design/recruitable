@@ -15,7 +15,11 @@ export default function PreviewCompanies({ bolag = [] }) {
               <div className="pc-city">{c.city.toUpperCase()} · GRUNDAT {c.founded}</div>
             </div>
           </div>
-          <p className="pc-vision">&ldquo;{c.vision}&rdquo;</p>
+          {c.vision ? (
+            <p className="pc-vision">&ldquo;{c.vision}&rdquo;</p>
+          ) : (
+            <p className="pc-vision plain">{c.desc}</p>
+          )}
           <div className="pc-tags">
             {c.focus.map((f) => (
               <span className="tag" key={f}>{f}</span>

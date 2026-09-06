@@ -796,3 +796,6 @@ a:hover{color:var(--color-accent)}
 .claim-banner strong{color:var(--color-ink);}
 .claim-banner .qs-btn{width:auto;flex-shrink:0;padding:11px 20px;font-size:13.5px;text-decoration:none;}
 @media (max-width:640px){ .claim-banner .qs-btn{width:100%;text-align:center;} }
+
+/* Beskrivning i stället för vision på kort utan citat att visa. */
+.card-vision.plain, .pc-vision.plain{font-style:normal;}

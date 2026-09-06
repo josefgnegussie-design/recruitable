@@ -28,7 +28,14 @@ export default function CompanyCard({ company: c }) {
           <span className="tag" key={b}>{b}</span>
         ))}
       </div>
-      <p className="card-vision">&ldquo;{c.vision}&rdquo;</p>
+      {/* Visionen står inom citattecken som bolagets egna ord, så den visas bara
+          när den finns. Saknas den duger beskrivningen — den är vår text om
+          bolaget, inte ett påstått citat. */}
+      {c.vision ? (
+        <p className="card-vision">&ldquo;{c.vision}&rdquo;</p>
+      ) : c.desc ? (
+        <p className="card-vision plain">{c.desc}</p>
+      ) : null}
       <div className="card-meta">
         <div><b>{c.revenue}</b>Omsättning {c.revenueYear}</div>
         <div><b>{c.employees}</b>Medarbetare {c.employeesYear}</div>
