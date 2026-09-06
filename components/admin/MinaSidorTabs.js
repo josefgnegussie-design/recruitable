@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ProfileEditor from "@/components/admin/ProfileEditor";
+import GrundprofilEditor from "@/components/admin/GrundprofilEditor";
 import InquiriesList from "@/components/admin/InquiriesList";
 import PremiumUpgrade from "@/components/admin/PremiumUpgrade";
 import PremiumManageButton from "@/components/admin/PremiumManageButton";
@@ -58,15 +59,22 @@ export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStat
 
       {tab === "forfragningar" && <InquiriesList inquiries={inquiries} initialHasMore={hasMore} />}
 
-      {tab === "profil" &&
-        (company?.is_premium ? (
-          <>
-            <PremiumManageButton />
-            <ProfileEditor company={company} />
-          </>
-        ) : (
-          <PremiumUpgrade />
-        ))}
+      {/* Grunduppgifterna redigeras av alla verifierade bolag, inte bara
+          betalande. Att kunna fylla i sin egen profil är hela poängen med att ta
+          över den — premium är ett tillägg ovanpå, inte inträdesbiljetten. */}
+      {tab === "profil" && (
+        <>
+          <GrundprofilEditor company={company} />
+          {company?.is_premium ? (
+            <>
+              <PremiumManageButton />
+              <ProfileEditor company={company} />
+            </>
+          ) : (
+            <PremiumUpgrade />
+          )}
+        </>
+      )}
 
       {tab === "kontor" && <OfficesManager offices={offices || []} />}
     </div>
