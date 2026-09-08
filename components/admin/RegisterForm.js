@@ -131,6 +131,20 @@ export default function RegisterForm() {
       return;
     }
 
+    // Med e-postbekräftelse påslagen svarar Supabase inte med ett fel när
+    // adressen redan är registrerad — det skulle avslöja vilka adresser som
+    // finns. I stället kommer ett attrappkonto tillbaka, utan identiteter.
+    // Utan den här kontrollen går registreringen vidare och skriver ett
+    // bolagsanspråk mot ett id som inte hör till någon, medan den riktiga
+    // kontoägaren aldrig får veta något.
+    if (data.user?.identities?.length === 0) {
+      setStatus("error");
+      setErrorMsg(
+        "Det finns redan ett konto med den e-postadressen. Logga in, eller begär ett nytt lösenord om ni glömt det."
+      );
+      return;
+    }
+
     const id = data.user?.id;
     if (!id) {
       setStatus("error");
