@@ -900,3 +900,23 @@ a:hover{color:var(--color-accent)}
 /* I den interna toppraden ärver knappen radens mono-stil, annars ser den
    inklistrad ut mitt i "Internt · adress ·". */
 .admin-topp .utloggning .link-btn{font-family:var(--font-mono);font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase;}
+
+/* ===== Utloggning i huvudmenyn ===== */
+/* Den är en knapp och inte en länk — den utför något i stället för att
+   navigera — men ska se ut och sitta precis som de andra menyvalen.
+   Wrappern nollas, eftersom nav.site-nav span redan ger den kant och
+   avstånd avsedda för ett menyval. */
+nav.site-nav .utloggning{display:inline-flex;align-items:baseline;gap:10px;padding-bottom:0;border-bottom:none;cursor:auto;}
+nav.site-nav .nav-utloggning{background:none;border:none;cursor:pointer;padding:0 0 3px;border-bottom:2px solid transparent;font-family:inherit;font-size:13px;letter-spacing:0.2px;font-weight:500;color:var(--color-on-dark-soft);}
+nav.site-nav .nav-utloggning:hover{color:var(--color-on-dark);}
+nav.site-nav .nav-utloggning:disabled{cursor:default;opacity:0.6;}
+/* Felfärgen är mörkröd och avsedd för ljus botten — här är bakgrunden mörk. */
+nav.site-nav .utloggning-fel{font-size:12px;color:var(--rust-400);}
+
+@media (max-width:640px){
+  /* I mobilmenyn ligger valen på rad under varandra, med samma höjd och
+     avdelare som länkarna ovanför. */
+  nav.site-nav .utloggning{display:flex;flex-direction:column;align-items:flex-start;gap:0;width:100%;}
+  nav.site-nav .nav-utloggning{padding:13px 0;border-bottom:none;text-align:left;width:100%;}
+  nav.site-nav .utloggning-fel{padding-bottom:13px;}
+}

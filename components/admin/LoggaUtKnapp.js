@@ -9,12 +9,15 @@ import { createClient } from "@/lib/supabase/client";
 //
 // Ligger i webbläsarklienten med flit: det är den som äger sessionskakan, och
 // signOut() river både den och den aktiva sessionen hos Supabase.
-export default function LoggaUtKnapp({ className = "link-btn" }) {
+export default function LoggaUtKnapp({ className = "link-btn", vidKlick }) {
   const router = useRouter();
   const [pagar, setPagar] = useState(false);
   const [fel, setFel] = useState("");
 
   async function loggaUt() {
+    // Används av mobilmenyn, som annars blir stående öppen över
+    // inloggningssidan man skickas till.
+    vidKlick?.();
     setPagar(true);
     setFel("");
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import LoggaUtKnapp from "@/components/admin/LoggaUtKnapp";
 
 export default function Header() {
   const pathname = usePathname();
@@ -74,7 +75,10 @@ export default function Header() {
           <Link href="/rekrytera" className={isRekrytera ? "active" : ""} onClick={closeMenu}>Rekrytera</Link>
           <Link href="/om-oss" className={isOmOss ? "active" : ""} onClick={closeMenu}>Om oss</Link>
           {inloggad ? (
-            <Link href="/mina-sidor" className={isMinaSidor ? "active" : ""} onClick={closeMenu}>Mina sidor</Link>
+            <>
+              <Link href="/mina-sidor" className={isMinaSidor ? "active" : ""} onClick={closeMenu}>Mina sidor</Link>
+              <LoggaUtKnapp className="nav-utloggning" vidKlick={closeMenu} />
+            </>
           ) : (
             <Link href="/logga-in" className={isLoggaIn ? "active" : ""} onClick={closeMenu}>Logga in</Link>
           )}
