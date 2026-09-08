@@ -35,7 +35,14 @@ igenom sökvägar på den egna sajten.
 ```html
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:560px;margin:0 auto;color:#16211f;">
   <div style="background:#0f2229;padding:22px 28px;border-radius:10px 10px 0 0;">
-    <span style="color:#f2efe9;font-size:19px;font-weight:600;letter-spacing:0.2px;">Recruitable</span>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td style="padding-right:11px;">
+        <div style="width:15px;height:15px;background:#d97b3f;border-radius:3px;transform:rotate(45deg);-ms-transform:rotate(45deg);"></div>
+      </td>
+      <td>
+        <span style="color:#f2efe9;font-size:19px;font-weight:600;letter-spacing:0.2px;">Recruitable</span>
+      </td>
+    </tr></table>
   </div>
   <div style="border:1px solid #ddd9d1;border-top:none;border-radius:0 0 10px 10px;padding:28px;">
     <p style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:#828b89;margin:0 0 10px;">Återställ lösenord</p>
@@ -61,7 +68,14 @@ igenom sökvägar på den egna sajten.
 ```html
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:560px;margin:0 auto;color:#16211f;">
   <div style="background:#0f2229;padding:22px 28px;border-radius:10px 10px 0 0;">
-    <span style="color:#f2efe9;font-size:19px;font-weight:600;letter-spacing:0.2px;">Recruitable</span>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td style="padding-right:11px;">
+        <div style="width:15px;height:15px;background:#d97b3f;border-radius:3px;transform:rotate(45deg);-ms-transform:rotate(45deg);"></div>
+      </td>
+      <td>
+        <span style="color:#f2efe9;font-size:19px;font-weight:600;letter-spacing:0.2px;">Recruitable</span>
+      </td>
+    </tr></table>
   </div>
   <div style="border:1px solid #ddd9d1;border-top:none;border-radius:0 0 10px 10px;padding:28px;">
     <p style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:#828b89;margin:0 0 10px;">Bekräfta e-postadressen</p>
@@ -86,7 +100,14 @@ Skickas till den nya adressen när ett konto byter e-post.
 ```html
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:560px;margin:0 auto;color:#16211f;">
   <div style="background:#0f2229;padding:22px 28px;border-radius:10px 10px 0 0;">
-    <span style="color:#f2efe9;font-size:19px;font-weight:600;letter-spacing:0.2px;">Recruitable</span>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td style="padding-right:11px;">
+        <div style="width:15px;height:15px;background:#d97b3f;border-radius:3px;transform:rotate(45deg);-ms-transform:rotate(45deg);"></div>
+      </td>
+      <td>
+        <span style="color:#f2efe9;font-size:19px;font-weight:600;letter-spacing:0.2px;">Recruitable</span>
+      </td>
+    </tr></table>
   </div>
   <div style="border:1px solid #ddd9d1;border-top:none;border-radius:0 0 10px 10px;padding:28px;">
     <p style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:#828b89;margin:0 0 10px;">Byte av e-postadress</p>
