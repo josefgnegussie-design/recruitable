@@ -21,6 +21,9 @@ const MAINTENANCE_ALLOW = [
   // eller granskningsköerna att nå medan läget var på — inte ens
   // återställningslänken i mejlet, eftersom den pekar tillbaka hit. Den som glömt
   // sitt lösenord var utelåst tills sajten öppnades för alla.
+  // Bekräftelselänkarna i Supabases auth-mejl landar här. Utan raden skrivs de
+  // om till /coming-soon och länken är förbrukad när sajten väl öppnar.
+  "/auth/confirm",
   "/logga-in",
   "/glomt-losenord",
   "/aterstall-losenord",

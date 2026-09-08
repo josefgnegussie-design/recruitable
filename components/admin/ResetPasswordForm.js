@@ -7,25 +7,47 @@ import PasswordField from "@/components/PasswordField";
 
 export default function ResetPasswordForm() {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
+  // "kontrollerar" tills vi vet om länken gav en session, sedan "ok" eller
+  // "ogiltig". Tidigare fanns bara ett ready-läge, vilket innebar att en
+  // förbrukad länk lämnade användaren kvar på "Kontrollerar länken..." för
+  // alltid, utan att säga vad som gått fel.
+  const [lankLage, setLankLage] = useState("kontrollerar");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
 
   useEffect(() => {
+    // /auth/confirm skickar hit med ?fel=lank när token-hashen inte gick att
+    // lösa in. Läses direkt ur adressen i stället för med useSearchParams, som
+    // hade krävt en Suspense-gräns runt formuläret.
+    if (new URLSearchParams(window.location.search).get("fel") === "lank") {
+      setLankLage("ogiltig");
+      return;
+    }
+
     const supabase = createClient();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setReady(true);
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setLankLage("ok");
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setReady(true);
+      if (session) setLankLage("ok");
     });
 
-    return () => subscription.unsubscribe();
+    // Normalfallet är att /auth/confirm redan lagt sessionen i cookies, så
+    // getSession svarar direkt. Fristen finns för länkar av den äldre sorten,
+    // där webbläsarklienten själv växlar in en ?code= i adressen först.
+    const timer = setTimeout(() => {
+      setLankLage((nuvarande) => (nuvarande === "kontrollerar" ? "ogiltig" : nuvarande));
+    }, 3000);
+
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function handleSubmit(e) {
@@ -51,10 +73,21 @@ export default function ResetPasswordForm() {
     );
   }
 
-  if (!ready) {
+  if (lankLage === "kontrollerar") {
     return (
       <div className="auth-panel">
         <p>Kontrollerar länken...</p>
+      </div>
+    );
+  }
+
+  if (lankLage === "ogiltig") {
+    return (
+      <div className="auth-panel">
+        <p>Länken är förbrukad eller har gått ut. Återställningslänkar gäller en kort stund och bara en gång.</p>
+        <p>
+          <a href="/glomt-losenord">Begär en ny länk</a>
+        </p>
       </div>
     );
   }
