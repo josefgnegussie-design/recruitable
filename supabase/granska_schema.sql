@@ -15,18 +15,23 @@ with forvantade_tabeller(tabell) as (
     ('company_admins'),
     ('inquiries'),
     ('inquiry_recipients'),
-    ('offices')
+    ('offices'),
+    ('site_events')
 ),
 forvantade_kolumner(tabell, kolumn) as (
   values
+    ('companies', 'claimed'),
     ('companies', 'cover_image'),
     ('companies', 'expertise'),
     ('companies', 'history'),
+    ('companies', 'klassificering_harledd'),
     ('companies', 'mission'),
+    ('companies', 'office_cities'),
     ('companies', 'org_number'),
     ('companies', 'premium_until'),
     ('companies', 'recruiting_focus_areas'),
     ('companies', 'recruiting_roles'),
+    ('companies', 'verksamhetsbeskrivning'),
     ('company_admins', 'claimed_address'),
     ('company_admins', 'claimed_company_name'),
     ('company_admins', 'claimed_focus_areas'),
@@ -34,6 +39,7 @@ forvantade_kolumner(tabell, kolumn) as (
     ('company_admins', 'claimed_services'),
     ('company_admins', 'claimed_website'),
     ('company_admins', 'office_id'),
+    ('inquiries', 'moderated_at'),
     ('inquiries', 'moderation_status'),
     ('inquiries', 'requester_phone'),
     ('inquiry_recipients', 'responded_at'),

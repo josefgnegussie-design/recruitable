@@ -804,3 +804,99 @@ a:hover{color:var(--color-accent)}
    för att ligga ensam bredvid ett tomt fält. */
 .profile-body.single{grid-template-columns:1fr;}
 .profile-body.single > div:first-child:empty{display:none;}
+
+/* ===== Intern dashboard (/admin) ===== */
+.admin-shell{max-width:1180px;margin:0 auto;padding:0 24px 80px;}
+.admin-topp{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;padding:28px 0 0;border-bottom:1px solid var(--color-hairline);}
+.admin-topp .eyebrow{font-family:var(--font-mono);font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--color-muted);}
+.admin-topp-titel{font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--color-ink);margin:4px 0 0;}
+.admin-nav{display:flex;flex-wrap:wrap;gap:0 24px;}
+.admin-nav a{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:12.5px;letter-spacing:0.4px;text-transform:uppercase;color:var(--color-muted);text-decoration:none;padding:12px 0;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.admin-nav a:hover{color:var(--color-body);}
+.admin-nav a.active{color:var(--color-ink);border-bottom-color:var(--color-accent);}
+.admin-nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:var(--radius-pill);background:var(--color-accent);color:var(--color-on-primary);font-size:11px;letter-spacing:0;}
+
+.admin-sida{padding-top:32px;}
+.admin-rubrikrad{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:28px;}
+.admin-h1{font-family:var(--font-display);font-size:28px;font-weight:600;letter-spacing:-0.01em;color:var(--color-ink);margin:0;}
+.admin-ingress{font-size:14px;color:var(--color-muted);margin:6px 0 0;max-width:60ch;}
+.admin-block{margin-bottom:44px;}
+.admin-h2{font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--color-ink);margin:0 0 16px;}
+.admin-h3{font-family:var(--font-mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--color-muted);margin:0 0 14px;}
+.admin-panel{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:20px;margin-top:16px;}
+.admin-panelrad{display:flex;align-items:baseline;justify-content:space-between;gap:16px;}
+.admin-tva{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.admin-not{font-size:12.5px;line-height:1.55;color:var(--color-muted);margin:14px 0 0;}
+.admin-not a{color:var(--color-accent);}
+.admin-varning{background:var(--color-surface-soft);border:1px solid var(--color-hairline);border-left:3px solid var(--color-accent);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:24px;}
+.admin-varning p{margin:0;font-size:13.5px;color:var(--color-body);}
+.admin-varning code{font-family:var(--font-mono);font-size:12.5px;background:var(--color-canvas);padding:2px 5px;border-radius:var(--radius-sm);}
+
+/* Periodvalet är länkar, inte knappar — en vald period ska gå att spara som bokmärke. */
+.periodval{display:flex;align-items:center;gap:4px;}
+.periodval a{font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.4px;text-transform:uppercase;color:var(--color-muted);text-decoration:none;padding:7px 11px;border:1px solid transparent;border-radius:var(--radius-pill);}
+.periodval a:hover{color:var(--color-body);background:var(--color-surface-soft);}
+.periodval a.aktiv{color:var(--color-ink);border-color:var(--color-hairline);background:var(--color-surface-card);}
+.periodval form{display:flex;gap:8px;}
+.manadsval{font-family:var(--font-body);font-size:13.5px;color:var(--color-ink);background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-md);padding:9px 12px;}
+
+/* Nyckeltal */
+.stat-rutnat{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.stat-kort{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:18px 18px 16px;}
+.stat-etikett{font-family:var(--font-mono);font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:var(--color-muted);margin:0 0 10px;}
+.stat-varde{font-family:var(--font-display);font-size:30px;font-weight:600;line-height:1.05;letter-spacing:-0.02em;color:var(--color-ink);margin:0;}
+.stat-suffix{font-size:15px;font-weight:500;color:var(--color-muted);margin-left:4px;letter-spacing:0;}
+.stat-forandring{font-size:12px;color:var(--color-success);margin:8px 0 0;}
+.stat-forandring.ned{color:var(--color-error);}
+.stat-hjalp{font-size:12px;line-height:1.45;color:var(--color-muted);margin:8px 0 0;}
+
+/* Diagram */
+.diagram{margin:0;}
+.diagram-not{font-size:12px;color:var(--color-muted);margin-top:10px;}
+.tomt{font-size:13.5px;color:var(--color-muted);margin:0;}
+.forklaring{list-style:none;display:flex;flex-wrap:wrap;gap:6px 20px;margin:14px 0 0;padding:0;font-size:13px;color:var(--color-body);}
+.forklaring li{display:flex;align-items:center;gap:7px;}
+.forklaring .prick{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.forklaring .andel{color:var(--color-muted);}
+.utfallsstapel{display:flex;gap:2px;height:26px;border-radius:var(--radius-sm);overflow:hidden;background:var(--color-surface-soft);}
+
+/* Topplista */
+.topplista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;}
+.topplista li{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;border-radius:var(--radius-sm);font-size:13.5px;overflow:hidden;}
+.topplista-fyllning{position:absolute;left:0;top:0;bottom:0;background:var(--color-surface-soft);border-radius:var(--radius-sm);}
+.topplista-namn{position:relative;color:var(--color-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.topplista-varde{position:relative;font-family:var(--font-mono);font-size:12.5px;color:var(--color-ink);flex-shrink:0;}
+.topplista-varde em{font-style:normal;color:var(--color-muted);margin-left:6px;}
+.sokfilter-grupp + .sokfilter-grupp{margin-top:18px;}
+.sokfilter-rubrik{font-size:12.5px;font-weight:600;color:var(--color-ink);margin:0 0 6px;}
+
+/* Tabell */
+.tabellrullning{overflow-x:auto;}
+.admin-tabell{width:100%;border-collapse:collapse;font-size:13.5px;}
+.admin-tabell th{font-family:var(--font-mono);font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--color-muted);font-weight:400;text-align:left;padding:0 12px 10px 0;border-bottom:1px solid var(--color-hairline);white-space:nowrap;}
+.admin-tabell td{padding:10px 12px 10px 0;border-bottom:1px solid var(--color-hairline-soft);color:var(--color-body);}
+.admin-tabell td a{color:var(--color-ink);text-decoration:none;}
+.admin-tabell td a:hover{color:var(--color-accent);}
+.admin-tabell .num{text-align:right;font-family:var(--font-mono);font-size:12.5px;padding-right:0;}
+.admin-tabell tfoot td{font-weight:600;color:var(--color-ink);border-bottom:none;border-top:1px solid var(--color-hairline);}
+.premiummarke{font-family:var(--font-mono);font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--color-accent);margin-left:8px;}
+
+@media (max-width:900px){
+  .stat-rutnat{grid-template-columns:repeat(2,1fr);}
+  .admin-tva{grid-template-columns:1fr;}
+}
+@media (max-width:560px){
+  .stat-rutnat{grid-template-columns:1fr;}
+  .admin-nav{gap:0 16px;}
+}
+
+/* ===== Utloggning ===== */
+.utloggning{display:inline-flex;align-items:center;gap:10px;}
+.utloggning .link-btn{font-family:var(--font-body);font-size:13px;}
+.utloggning .link-btn:disabled{color:var(--color-muted);cursor:default;text-decoration:none;}
+.utloggning-fel{font-size:12.5px;color:var(--color-error);}
+/* I flikraden på Mina sidor: längst ut till höger, i linje med flikarna. */
+.tab-row .utloggning{margin-left:auto;padding:12px 0;}
+/* I den interna toppraden ärver knappen radens mono-stil, annars ser den
+   inklistrad ut mitt i "Internt · adress ·". */
+.admin-topp .utloggning .link-btn{font-family:var(--font-mono);font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase;}

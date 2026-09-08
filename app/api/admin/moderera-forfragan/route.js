@@ -53,9 +53,13 @@ export async function POST(request) {
     return NextResponse.json({ error: "Förfrågan är redan hanterad." }, { status: 400 });
   }
 
+  // moderated_at är tidpunkten förfrågan blev synlig för bolagen, och därmed
+  // den som avgör vilken månad den hör till i faktureringsunderlaget.
+  // created_at duger inte: en förfrågan som kommer in sista dagen i månaden
+  // och godkänns dagen efter hade annars fakturerats fel månad.
   const { error } = await admin
     .from("inquiries")
-    .update({ moderation_status: decision })
+    .update({ moderation_status: decision, moderated_at: new Date().toISOString() })
     .eq("id", inquiryId);
 
   if (error) {

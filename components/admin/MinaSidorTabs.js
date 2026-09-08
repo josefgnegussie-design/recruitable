@@ -7,6 +7,7 @@ import InquiriesList from "@/components/admin/InquiriesList";
 import PremiumUpgrade from "@/components/admin/PremiumUpgrade";
 import PremiumManageButton from "@/components/admin/PremiumManageButton";
 import OfficesManager from "@/components/admin/OfficesManager";
+import LoggaUtKnapp from "@/components/admin/LoggaUtKnapp";
 
 export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStatus, offices, officeStatus }) {
   const [tab, setTab] = useState(premiumStatus ? "profil" : officeStatus ? "kontor" : "forfragningar");
@@ -55,6 +56,7 @@ export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStat
         >
           Kontor{offices?.length > 0 ? ` (${offices.length})` : ""}
         </button>
+        <LoggaUtKnapp />
       </div>
 
       {tab === "forfragningar" && <InquiriesList inquiries={inquiries} initialHasMore={hasMore} />}

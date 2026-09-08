@@ -32,6 +32,10 @@ const MAINTENANCE_ALLOW = [
   "/api/profil",
   "/api/admin",
   "/api/mina-sidor",
+
+  // Besöksmätningen ska fungera även i underhållsläge — annars saknas
+  // siffrorna just för den period då vi som mest vill veta om någon hittar hit.
+  "/api/statistik",
 ];
 
 export async function middleware(request) {
