@@ -87,6 +87,7 @@ export default async function AdminOversikt({ searchParams }) {
     forfragningarForr,
     manader,
     sokningar,
+    vantandeTotalt,
     bolag,
     premiumbolag,
     overtagna,
@@ -108,6 +109,8 @@ export default async function AdminOversikt({ searchParams }) {
       .eq("event_type", "sokning")
       .gte("occurred_at", period.fran)
       .lt("occurred_at", period.till),
+    // Kön i sin helhet, utan periodfilter — samma räkning som märket i menyn.
+    admin.from("inquiries").select("id", { count: "exact", head: true }).eq("moderation_status", "pending"),
     admin.from("companies").select("id", { count: "exact", head: true }),
     admin.from("companies").select("id", { count: "exact", head: true }).eq("is_premium", true),
     admin.from("companies").select("id", { count: "exact", head: true }).eq("claimed", true),
@@ -275,12 +278,17 @@ export default async function AdminOversikt({ searchParams }) {
             <Topplista
               rader={[
                 { etikett: "Godkända av dig", varde: Number(f.godkanda || 0) },
-                { etikett: "Väntar på granskning", varde: Number(f.vantar_granskning || 0) },
                 { etikett: "Nekade av dig", varde: Number(f.nekade_av_oss || 0) },
+                // Kön räknas alltid i sin helhet, aldrig inom perioden. En
+                // förfrågan som blivit liggande är just den som ska synas, och
+                // med periodfilter försvann den ur vyn ju längre den låg —
+                // medan siffran i menyn fortsatte visa att den fanns.
+                { etikett: "Väntar på granskning", varde: vantandeTotalt.count || 0, sekundar: "hela kön" },
               ]}
               tom="Inga förfrågningar i perioden."
             />
             <p className="admin-not">
+              De två första gäller perioden. Väntar-siffran gäller hela kön, oavsett hur gammal förfrågan är.{" "}
               <Link href="/admin/moderera-forfragningar">Till granskningskön</Link>
             </p>
           </div>
