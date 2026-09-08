@@ -2,6 +2,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/Header";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import Sidvisningar from "@/components/Sidvisningar";
 import CookieConsent from "@/components/CookieConsent";
 
 export const metadata = {
@@ -15,6 +16,7 @@ export default function RootLayout({ children }) {
     <html lang="sv">
       <body>
         <GoogleAnalytics />
+        <Sidvisningar />
         <Header />
         {children}
         <CookieConsent />

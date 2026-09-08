@@ -36,6 +36,17 @@ export default function IntegritetspolicyPage() {
             </p>
           </div>
           <div className="faq-item">
+            <p className="faq-q">Vår egen besöksräkning (utan cookies)</p>
+            <p className="faq-a">
+              Oberoende av Google Analytics räknar vi själva hur många gånger varje sida visas och vilka filter som
+              används i sökningen. Vi lagrar ingenting i din webbläsare och sparar varken din IP-adress eller vilken
+              webbläsare du har. För att kunna skilja en besökare som läser tio sidor från tio olika besökare
+              används en envägskod som räknas fram ur IP-adress och webbläsare tillsammans med ett hemligt värde
+              som byts varje dygn — koden går inte att räkna tillbaka till dig och kan inte följa dig mellan dagar.
+              Siffrorna används bara internt, för att förstå hur registret används.
+            </p>
+          </div>
+          <div className="faq-item">
             <p className="faq-q">Kontouppgifter (när inloggning för bolag införs)</p>
             <p className="faq-a">
               Namn, e-postadress och företagstillhörighet för den person som administrerar ett bolags profil.
@@ -63,9 +74,11 @@ export default function IntegritetspolicyPage() {
       <section className="l-section tight" style={{ maxWidth: 820 }}>
         <h2>Rättslig grund</h2>
         <p className="l-section-sub" style={{ margin: 0 }}>
-          Besöksstatistik behandlas med stöd av ditt samtycke, som du kan ge eller neka via cookie-bannern och när
-          som helst ändra genom att rensa dina cookies för recruitable.se. Kontouppgifter för betalande bolag
-          behandlas med stöd av det avtal som ingås när ett konto skapas.
+          Besöksstatistik via Google Analytics behandlas med stöd av ditt samtycke, som du kan ge eller neka via
+          cookie-bannern och när som helst ändra genom att rensa dina cookies för recruitable.se. Vår egen
+          cookielösa besöksräkning behandlas med stöd av berättigat intresse: den lagrar ingenting i din webbläsare,
+          sparar varken IP-adress eller webbläsare, och används enbart för aggregerad statistik om hur registret
+          används. Kontouppgifter för betalande bolag behandlas med stöd av det avtal som ingås när ett konto skapas.
         </p>
       </section>
 

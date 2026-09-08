@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rateLimit";
 import { hamtaBolag, SIDSTORLEK } from "@/lib/companiesRepo";
+import { arRobot, besokarHash, loggaHandelse } from "@/lib/statistik";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,13 +15,32 @@ export async function GET(request) {
 
   const params = request.nextUrl.searchParams;
 
-  const resultat = await hamtaBolag({
+  const filter = {
     omrade: (params.get("omrade") || "").slice(0, 100),
     tjanst: (params.get("tjanst") || "").slice(0, 100),
     ort: (params.get("ort") || "").slice(0, 100),
+  };
+
+  const resultat = await hamtaBolag({
+    ...filter,
     sida: params.get("sida") || 1,
     antal: params.get("antal") || SIDSTORLEK,
   });
+
+  // Bara första sidan av en sökning med minst ett filter räknas. Utan de två
+  // villkoren hade "bläddra vidare" och den tomma listningen sett ut som nya
+  // sökningar, och statistiken hade svarat på fel fråga.
+  const harFilter = Object.values(filter).some(Boolean);
+  const forstaSidan = Number(params.get("sida") || 1) === 1;
+
+  if (harFilter && forstaSidan && !arRobot(request.headers.get("user-agent"))) {
+    await loggaHandelse({
+      eventType: "sokning",
+      path: "/rekrytera",
+      visitorHash: besokarHash(request),
+      metadata: Object.fromEntries(Object.entries(filter).filter(([, v]) => v)),
+    });
+  }
 
   return NextResponse.json(resultat);
 }

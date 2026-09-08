@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MinaSidorTabs from "@/components/admin/MinaSidorTabs";
 import { INQUIRIES_PAGE_SIZE, mapInquiryRow } from "@/lib/inquiries";
+import { isPlatformAdmin } from "@/lib/platformAdmin";
 
 export default async function MinaSidorPage({ searchParams }) {
   const params = await searchParams;
@@ -13,6 +14,12 @@ export default async function MinaSidorPage({ searchParams }) {
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/logga-in");
+
+  // Recruitables egna konton har inget bolag att administrera och landade
+  // förut på "Vi hittar ingen bolagskoppling för det här kontot". Inloggningen
+  // skickar alla hit, så omdirigeringen hör hemma här och inte i formuläret —
+  // då gäller den oavsett vilken väg man kom in.
+  if (isPlatformAdmin(user.email)) redirect("/admin");
 
   const { data: adminRow } = await supabase
     .from("company_admins")
