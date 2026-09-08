@@ -907,7 +907,7 @@ a:hover{color:var(--color-accent)}
    Wrappern nollas, eftersom nav.site-nav span redan ger den kant och
    avstånd avsedda för ett menyval. */
 nav.site-nav .utloggning{display:inline-flex;align-items:baseline;gap:10px;padding-bottom:0;border-bottom:none;cursor:auto;}
-nav.site-nav .nav-utloggning{background:none;border:none;cursor:pointer;padding:0 0 3px;border-bottom:2px solid transparent;font-family:inherit;font-size:13px;letter-spacing:0.2px;font-weight:500;color:var(--color-on-dark-soft);}
+nav.site-nav .nav-utloggning{background:none;border:none;cursor:pointer;line-height:inherit;padding:0 0 3px;border-bottom:2px solid transparent;font-family:inherit;font-size:13px;letter-spacing:0.2px;font-weight:500;color:var(--color-on-dark-soft);}
 nav.site-nav .nav-utloggning:hover{color:var(--color-on-dark);}
 nav.site-nav .nav-utloggning:disabled{cursor:default;opacity:0.6;}
 /* Felfärgen är mörkröd och avsedd för ljus botten — här är bakgrunden mörk. */
