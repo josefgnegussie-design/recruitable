@@ -38,6 +38,19 @@ const MAINTENANCE_ALLOW = [
   "/api/statistik",
 ];
 
+// Sidor som kräver inloggning. Här uppdateras sessionen, och den som saknar
+// session skickas till inloggningen.
+const SKYDDADE_SIDOR = ["/mina-sidor", "/admin"];
+
+// API-rutter som läser sessionen. De ska få den uppdaterad på samma sätt, men
+// aldrig omdirigeras — en fetch som får en inloggningssida i retur blir
+// obegriplig för koden som anropade den. De svarar själva med 401/403.
+const SESSIONSRUTTER = ["/api/mina-sidor", "/api/admin", "/api/profil"];
+
+function matchar(pathname, prefix) {
+  return pathname === prefix || pathname.startsWith(prefix + "/");
+}
+
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
@@ -50,7 +63,18 @@ export async function middleware(request) {
     return NextResponse.rewrite(url);
   }
 
-  if (!pathname.startsWith("/mina-sidor")) {
+  // Sessionen måste uppdateras här, i middlewaren. En serverkomponent kan läsa
+  // kakan men inte skriva den — och när Supabase förnyar token får den en ny
+  // refresh-token medan den gamla blir ogiltig. Sker det någon annanstans än
+  // här går den nya förlorad, och kakan innehåller från och med då en
+  // återkallad token. Nästa sidladdning ser då ut som en utloggning.
+  //
+  // Villkoret gällde länge bara /mina-sidor, vilket loggade ut administratören
+  // ur /admin i tid och otid.
+  const arSkyddadSida = SKYDDADE_SIDOR.some((p) => matchar(pathname, p));
+  const arSessionsrutt = SESSIONSRUTTER.some((p) => matchar(pathname, p));
+
+  if (!arSkyddadSida && !arSessionsrutt) {
     return NextResponse.next();
   }
 
@@ -77,7 +101,7 @@ export async function middleware(request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && request.nextUrl.pathname.startsWith("/mina-sidor")) {
+  if (!user && arSkyddadSida) {
     const url = request.nextUrl.clone();
     url.pathname = "/logga-in";
     return NextResponse.redirect(url);
