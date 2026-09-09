@@ -16,27 +16,37 @@ const MAINTENANCE_ALLOW = [
   // annars tystnar larmet just när något är fel.
   "/api/cron",
 
-  // Underhållsläget ska dölja sajten för besökare, inte stänga ute den som
-  // driver den. Utan raderna nedan gick varken inloggning, lösenordsåterställning
-  // eller granskningsköerna att nå medan läget var på — inte ens
-  // återställningslänken i mejlet, eftersom den pekar tillbaka hit. Den som glömt
-  // sitt lösenord var utelåst tills sajten öppnades för alla.
   // Bekräftelselänkarna i Supabases auth-mejl landar här. Utan raden skrivs de
-  // om till /coming-soon och länken är förbrukad när sajten väl öppnar.
+  // om till /coming-soon och länken är förbrukad när sajten väl öppnar. Att
+  // lösa in länken skapar bara sessionen — inloggningssidan är ändå stängd, så
+  // den som klickar kommer inte längre än till /coming-soon.
   "/auth/confirm",
-  "/logga-in",
-  "/glomt-losenord",
-  "/aterstall-losenord",
-  "/admin",
-  "/mina-sidor",
-  "/api/profil",
-  "/api/admin",
-  "/api/mina-sidor",
 
   // Besöksmätningen ska fungera även i underhållsläge — annars saknas
   // siffrorna just för den period då vi som mest vill veta om någon hittar hit.
   "/api/statistik",
 ];
+
+// Inloggning, lösenordsåterställning och hela admindelen ligger medvetet INTE i
+// listan ovan: står sajten i underhållsläge ska ingen besökare kunna nå
+// /logga-in. Den som driver sajten tar sig in med bypass-nyckeln nedan.
+//
+// Nyckeln sätts som miljövariabeln MAINTENANCE_BYPASS. Besök vilken adress som
+// helst med ?nyckel=<värdet> — då sätts en kaka och resten av sajten öppnas som
+// vanligt för just den webbläsaren, i en vecka. Utan variabel finns ingen
+// bypass alls, och underhållsläget stänger då ute alla.
+const BYPASS_KAKA = "underhall_bypass";
+const BYPASS_PARAM = "nyckel";
+const BYPASS_LIVSLANGD = 60 * 60 * 24 * 7;
+
+// Jämförelsen tar lika lång tid oavsett hur många tecken som stämmer, så att
+// svarstiden inte kan användas för att gissa nyckeln tecken för tecken.
+function likaKonstantTid(a, b) {
+  if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length) return false;
+  let skillnad = 0;
+  for (let i = 0; i < a.length; i++) skillnad |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return skillnad === 0;
+}
 
 // Sidor som kräver inloggning. Här uppdateras sessionen, och den som saknar
 // session skickas till inloggningen.
@@ -54,13 +64,35 @@ function matchar(pathname, prefix) {
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  if (
-    process.env.MAINTENANCE_MODE === "1" &&
-    !MAINTENANCE_ALLOW.some((p) => pathname === p || pathname.startsWith(p + "/"))
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/coming-soon";
-    return NextResponse.rewrite(url);
+  if (process.env.MAINTENANCE_MODE === "1") {
+    const nyckel = process.env.MAINTENANCE_BYPASS;
+    const angivenNyckel = request.nextUrl.searchParams.get(BYPASS_PARAM);
+
+    // Rätt nyckel i adressen: sätt kakan och skicka vidare till samma sida utan
+    // nyckeln i adressfältet, så att den inte följer med i länkar, loggar eller
+    // referrer-headern till andra sajter.
+    if (nyckel && angivenNyckel && likaKonstantTid(angivenNyckel, nyckel)) {
+      const url = request.nextUrl.clone();
+      url.searchParams.delete(BYPASS_PARAM);
+      const svar = NextResponse.redirect(url);
+      svar.cookies.set(BYPASS_KAKA, nyckel, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: BYPASS_LIVSLANGD,
+      });
+      return svar;
+    }
+
+    const harBypass =
+      Boolean(nyckel) && likaKonstantTid(request.cookies.get(BYPASS_KAKA)?.value ?? "", nyckel);
+
+    if (!harBypass && !MAINTENANCE_ALLOW.some((p) => matchar(pathname, p))) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/coming-soon";
+      return NextResponse.rewrite(url);
+    }
   }
 
   // Sessionen måste uppdateras här, i middlewaren. En serverkomponent kan läsa
