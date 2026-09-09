@@ -48,6 +48,25 @@ function likaKonstantTid(a, b) {
   return skillnad === 0;
 }
 
+// Ett värde som klistrats in i Vercels formulär bär ofta med sig något som inte
+// hör till nyckeln: omgivande citattecken, ett mellanslag, en radbrytning.
+// Sådant syns inte i gränssnittet men får jämförelsen att missa, och felet blir
+// omöjligt att skilja från en felskriven nyckel.
+function skala(v) {
+  if (typeof v !== "string") return "";
+  return v.trim().replace(/^["']|["']$/g, "").trim();
+}
+
+// searchParams avkodar värdet, och i en adress betyder "+" mellanslag — en
+// nyckel med "+" i sig kommer alltså aldrig fram hel den vägen. Därför jämförs
+// även den råa strängen ur adressen, precis som den skrevs.
+function nyckelUrAdressen(nextUrl) {
+  const avkodad = nextUrl.searchParams.get(BYPASS_PARAM);
+  const rad = nextUrl.search.slice(1).split("&").find((r) => r.startsWith(BYPASS_PARAM + "="));
+  const raa = rad ? rad.slice(BYPASS_PARAM.length + 1) : null;
+  return { avkodad, raa, angiven: avkodad !== null || raa !== null };
+}
+
 // Sidor som kräver inloggning. Här uppdateras sessionen, och den som saknar
 // session skickas till inloggningen.
 const SKYDDADE_SIDOR = ["/mina-sidor", "/admin"];
@@ -65,13 +84,26 @@ export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
   if (process.env.MAINTENANCE_MODE === "1") {
-    const nyckel = process.env.MAINTENANCE_BYPASS;
-    const angivenNyckel = request.nextUrl.searchParams.get(BYPASS_PARAM);
+    const nyckel = skala(process.env.MAINTENANCE_BYPASS);
+    const { avkodad, raa, angiven } = nyckelUrAdressen(request.nextUrl);
+    const traff =
+      Boolean(nyckel) &&
+      (likaKonstantTid(skala(avkodad), nyckel) || likaKonstantTid(skala(raa), nyckel));
+
+    // Ett avvisat försök går inte att felsöka utifrån: en variabel som inte är
+    // satt och en felskriven nyckel ger samma svar, med flit. Raden nedan
+    // skiljer fallen åt i Vercels logg utan att röja något — bara huruvida
+    // variabeln finns och hur långa strängarna är, aldrig innehållet.
+    if (angiven && !traff) {
+      console.warn(
+        `[underhall] bypass avvisad: variabel_satt=${Boolean(nyckel)} langd_variabel=${nyckel.length} langd_angiven=${skala(avkodad ?? raa).length}`
+      );
+    }
 
     // Rätt nyckel i adressen: sätt kakan och skicka vidare till samma sida utan
     // nyckeln i adressfältet, så att den inte följer med i länkar, loggar eller
     // referrer-headern till andra sajter.
-    if (nyckel && angivenNyckel && likaKonstantTid(angivenNyckel, nyckel)) {
+    if (traff) {
       const url = request.nextUrl.clone();
       url.searchParams.delete(BYPASS_PARAM);
       const svar = NextResponse.redirect(url);
