@@ -47,8 +47,6 @@ export default function Header() {
     };
   }, []);
 
-  if (pathname === "/coming-soon") return null;
-
   function closeMenu() {
     setMenuOpen(false);
   }

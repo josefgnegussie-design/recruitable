@@ -1,0 +1,15 @@
+/* Underhållsläget skriver om adressen med rewrite: webbläsaren står kvar på
+   t.ex. /logga-in medan servern renderar den här sidan. usePathname() ser
+   därför den ursprungliga adressen, inte /coming-soon — menyraden och
+   cookiebannern i app/layout.js kunde alltså inte dölja sig själva, och låg
+   kvar ovanpå "Vi är strax tillbaka" med en Logga in-länk som ledde tillbaka
+   hit.
+
+   Reglerna nedan hänger på den renderade sidan i stället för på adressen, och
+   täcker därmed båda fallen: direkt besök på /coming-soon och varje omskriven
+   adress. De ligger här och inte i globals.css för att stilmallen bara ska
+   följa med den här sidan. */
+body:has(.coming-soon-page) header.site,
+body:has(.coming-soon-page) .cookie-banner {
+  display: none;
+}
