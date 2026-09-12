@@ -1,0 +1,322 @@
+[
+  {
+    "name": "Re:Con Finance AB",
+    "orgnr": "5590455274",
+    "website": "https://www.reconfinance.se/",
+    "email": null,
+    "focusNote": "Rekrytering och bemanning av ekonomer/finansprofiler (CFO, business controllers, redovisning).",
+    "confidence": "high"
+  },
+  {
+    "name": "Health Connect 365 AB",
+    "orgnr": "5594546888",
+    "website": "https://www.healthconnect365.se/",
+    "email": null,
+    "focusNote": "Vårdbemanning - sjuksköterskor, läkare och andra vårdkonsulter.",
+    "confidence": "high"
+  },
+  {
+    "name": "AdatoCare AB",
+    "orgnr": "5590231857",
+    "website": "https://adatocare.se/",
+    "email": "info@adatocare.se",
+    "focusNote": "Vårdbemanning - sjuksköterskor och undersköterskor till kommuner och regioner.",
+    "confidence": "high"
+  },
+  {
+    "name": "Devine Group AB",
+    "orgnr": "5594078585",
+    "website": null,
+    "email": null,
+    "focusNote": "Okänt. Bedriver konsultverksamhet inom affärsutveckling, rekrytering, försäljning och ledarskap enligt bolagsregister, men ingen egen hemsida kunde hittas.",
+    "confidence": "low"
+  },
+  {
+    "name": "Skicklig Service i Stockholm AB",
+    "orgnr": "5564990710",
+    "website": null,
+    "email": null,
+    "focusNote": "Personaluthyrning inom restaurang/catering (kockar m.m.), ingen egen hemsida hittad.",
+    "confidence": "low"
+  },
+  {
+    "name": "Inneklimat Jönköping AB",
+    "orgnr": "5568942600",
+    "website": null,
+    "email": null,
+    "focusNote": "Okänt. Dotterbolag till Inneklimat Svenska AB (ventilation/klimat), klassat som personaluthyrning, men flera olika 'Inneklimat'-bolag med separata hemsidor gjorde det osäkert vilken som tillhör detta specifika bolag.",
+    "confidence": "low"
+  },
+  {
+    "name": "Utbetalning Sverige AB",
+    "orgnr": "5594849407",
+    "website": "https://utbetalning.com/",
+    "email": null,
+    "focusNote": "Egenanställnings-/faktureringsföretag - administrerar lön, skatt och avgifter för frilansare/konsulter utan eget bolag.",
+    "confidence": "high"
+  },
+  {
+    "name": "KGT Trafik AB",
+    "orgnr": "5563351674",
+    "website": "https://www.kgtkristianstad.se/",
+    "email": null,
+    "focusNote": "Transport/logistik samt personaluthyrning inom godstrafik, omlastning och lagring. Obs: sökresultat nämnde ev. konkursförfarande för bolaget.",
+    "confidence": "medium"
+  },
+  {
+    "name": "Demox AB",
+    "orgnr": "5591104087",
+    "website": "https://www.demoxab.se/",
+    "email": null,
+    "focusNote": "Bemanning inom bygg - sanering och rivning (asbest- och PCB-sanering).",
+    "confidence": "high"
+  },
+  {
+    "name": "Coop Butiksservice i Sverige AB",
+    "orgnr": "5594056011",
+    "website": null,
+    "email": null,
+    "focusNote": "Okänt. Verkar vara ett internt bemannings-/servicebolag kopplat till Coop-butikskedjan (bl.a. inventeringstjänster); ingen egen hemsida hittad.",
+    "confidence": "low"
+  },
+  {
+    "name": "MR Logistik AB",
+    "orgnr": "5590389085",
+    "website": "https://mrlogistik.se/",
+    "email": "info@mrlogistik.se",
+    "focusNote": "Bemanning och förmedling inom transport, lager och logistik (chaufförer, 3PL).",
+    "confidence": "high"
+  },
+  {
+    "name": "Newr AB",
+    "orgnr": "5592302615",
+    "website": "https://www.newr.se/",
+    "email": "hej@newr.se",
+    "focusNote": "Rekrytering och interimslösningar inom ekonomi och finans.",
+    "confidence": "high"
+  },
+  {
+    "name": "Flipr AB",
+    "orgnr": "5593466757",
+    "website": "https://flipr.se/",
+    "email": null,
+    "focusNote": "Interimskonsulter inom HR, ekonomi, management samt supply chain/produktion.",
+    "confidence": "high"
+  },
+  {
+    "name": "Crowd Collective Stockholm AB",
+    "orgnr": "5591746028",
+    "website": "https://www.crowdcollective.com/",
+    "email": null,
+    "focusNote": "IT/tech-konsultbemanning - utvecklare, designers och analytiker.",
+    "confidence": "high"
+  },
+  {
+    "name": "Andcompany Sweden AB",
+    "orgnr": "5592212566",
+    "website": "https://www.andcompany.se/",
+    "email": null,
+    "focusNote": "Egenanställningsföretag - fakturering, bokföring och löneadministration för konsulter utan eget bolag.",
+    "confidence": "high"
+  },
+  {
+    "name": "Oirps AB",
+    "orgnr": "5590701800",
+    "website": "https://sprio.se/",
+    "email": null,
+    "focusNote": "Bemanning och rekrytering inom kundtjänst, sälj och support (bolaget drivs/marknadsförs under namnet Sprio - samma orgnr bekräftat via bolagsregister).",
+    "confidence": "high"
+  },
+  {
+    "name": "Curonova Consulting AB",
+    "orgnr": "5569807455",
+    "website": "https://www.curonova.se/",
+    "email": null,
+    "focusNote": "Omställning, karriärvägledning och outplacement (Rusta och Matcha, TSL-omställning) snarare än traditionell rekrytering/bemanning.",
+    "confidence": "high"
+  },
+  {
+    "name": "ShowPro TN AB",
+    "orgnr": "5567112791",
+    "website": "https://www.showpro.se/",
+    "email": null,
+    "focusNote": "Eventbemanning - scenpersonal, ljud/ljus/scenbygge och säkerhet för konserter och evenemang.",
+    "confidence": "high"
+  },
+  {
+    "name": "Agigo AB",
+    "orgnr": "5593295339",
+    "website": "https://agigo.se/",
+    "email": "info@agigo.se",
+    "focusNote": "Rekrytering inom ekonomi och redovisning (controller, redovisningsekonom, finanschef).",
+    "confidence": "high"
+  },
+  {
+    "name": "UngdomsKraft AB",
+    "orgnr": "5591713606",
+    "website": null,
+    "email": null,
+    "focusNote": "Okänt. Namnet antyder insatser/bemanning riktade mot ungdomar, men ingen hemsida kunde bekräftas.",
+    "confidence": "low"
+  },
+  {
+    "name": "DK lyft&transport AB",
+    "orgnr": "5567335665",
+    "website": null,
+    "email": null,
+    "focusNote": "Sannolikt bemanning/personal inom lyft och transport (kranbilar); ingen hemsida hittad.",
+    "confidence": "low"
+  },
+  {
+    "name": "Wheelwork Sweden AB",
+    "orgnr": "5592471386",
+    "website": null,
+    "email": null,
+    "focusNote": "Okänt - ingen hemsida kunde hittas eller nås.",
+    "confidence": "low"
+  },
+  {
+    "name": "Matchedin AB",
+    "orgnr": "5590137716",
+    "website": "https://www.matchedin.se/",
+    "email": null,
+    "focusNote": "Inkluderande rekrytering/bemanning - matchar personer som haft svårt att ta sig in på arbetsmarknaden (bl.a. Rusta och Matcha).",
+    "confidence": "high"
+  },
+  {
+    "name": "D&J Solutions AB",
+    "orgnr": "5593745697",
+    "website": null,
+    "email": null,
+    "focusNote": "Okänt - ingen hemsida kunde hittas.",
+    "confidence": "low"
+  },
+  {
+    "name": "Friday Syd AB",
+    "orgnr": "5594520750",
+    "website": "https://friday.se/",
+    "email": "info@friday.se",
+    "focusNote": "IT/tech-rekrytering (Malmö-kontor av det rikstäckande rekryteringsbolaget Friday).",
+    "confidence": "high"
+  },
+  {
+    "name": "HSA Söderqvist Service AB",
+    "orgnr": "5566380472",
+    "website": null,
+    "email": null,
+    "focusNote": "Okänt - ingen hemsida kunde hittas.",
+    "confidence": "low"
+  },
+  {
+    "name": "Procruitment Jönköping AB",
+    "orgnr": "5592185507",
+    "website": "https://www.procruitment.se/",
+    "email": "info@procruitment.se",
+    "focusNote": "Rekrytering inom IT, tech och engineering.",
+    "confidence": "high"
+  },
+  {
+    "name": "Academic Search International Aktiebolag",
+    "orgnr": "5564069879",
+    "website": "https://www.academicsearch.se/",
+    "email": "info@academicsearch.se",
+    "focusNote": "Executive search, interimskonsulter och ledarskapsutveckling på chefs-/specialistnivå.",
+    "confidence": "high"
+  },
+  {
+    "name": "Devoote AB",
+    "orgnr": "5569458333",
+    "website": "https://www.devoote.se/",
+    "email": null,
+    "focusNote": "Beskriver sig som ett specialiserat svenskt IT-bolag - sannolikt IT-konsultbemanning, men fokus inte fullt bekräftat.",
+    "confidence": "medium"
+  },
+  {
+    "name": "Entreprenad Partner i Stockholm AB",
+    "orgnr": "5593769242",
+    "website": "https://www.entreprenadpartner.se/",
+    "email": null,
+    "focusNote": "Byggentreprenad (totalentreprenad, finsnickeri, byggservice) - hemsidan beskriver inget rekryterings-/bemanningsfokus och anger Stockholm snarare än Rimbo, så matchningen är osäker.",
+    "confidence": "low"
+  },
+  {
+    "name": "BUILDBASE ÖREBRO AB",
+    "orgnr": "5590949961",
+    "website": null,
+    "email": null,
+    "focusNote": "Okänt - domänen buildbase.se är en parkerad/oanvänd domän och tillhör inte bolaget.",
+    "confidence": "low"
+  },
+  {
+    "name": "Svenska Storesupport Bemanning AB",
+    "orgnr": "5566559422",
+    "website": "https://www.storesupport.se/",
+    "email": null,
+    "focusNote": "Butiks-/handelsbemanning - butikspersonal, lager, logistik och e-handel (del av Job&Talent-koncernen).",
+    "confidence": "high"
+  },
+  {
+    "name": "Ikett Elektro AB",
+    "orgnr": "5567785901",
+    "website": "https://www.ikett.com/",
+    "email": null,
+    "focusNote": "Industribemanning - kvalificerad industripersonal och elektriker (dotterbolag till Ikett Personalpartner AB).",
+    "confidence": "high"
+  },
+  {
+    "name": "TWINDEJ AB",
+    "orgnr": "5567597272",
+    "website": "https://www.twindej.se/",
+    "email": "info@twindej.se",
+    "focusNote": "Bemanning/tjänster inom spårfordon (järnvägsfordon) - entreprenad, service och utbildning.",
+    "confidence": "high"
+  },
+  {
+    "name": "Real Competence Svenska AB",
+    "orgnr": "5565832564",
+    "website": "https://www.realcompetence.se/",
+    "email": "info@realcompetence.se",
+    "focusNote": "Rekrytering, bemanning och konsulting inom fastighetsbranschen.",
+    "confidence": "high"
+  },
+  {
+    "name": "Capio Bemanning och Rekrytering AB",
+    "orgnr": "5568994361",
+    "website": null,
+    "email": null,
+    "focusNote": "Sannolikt vårdbemanning/rekrytering kopplat till Capio-koncernen, men kunde inte bekräftas pga sökbegränsningar under research.",
+    "confidence": "low"
+  },
+  {
+    "name": "Nordisk Spårteknik AB",
+    "orgnr": "5591794721",
+    "website": null,
+    "email": null,
+    "focusNote": "Sannolikt bemanning/tjänster inom järnvägs-/spårteknik (liknande bransch som TWINDEJ AB), men kunde inte bekräftas.",
+    "confidence": "low"
+  },
+  {
+    "name": "Invoicery Europe AB",
+    "orgnr": "5595041681",
+    "website": "https://www.invoicery.com/",
+    "email": "info@invoicery.com",
+    "focusNote": "Egenanställnings-/faktureringstjänst för frilansare och konsulter. Obs: sidfoten på hemsidan anger enbart 'Invoicery AB', inte exakt 'Invoicery Europe AB' eller Uppsala som säte.",
+    "confidence": "medium"
+  },
+  {
+    "name": "Amrop AB",
+    "orgnr": "5562944032",
+    "website": "https://www.amrop.com/sweden",
+    "email": null,
+    "focusNote": "Executive search, leadership advisory och board services (del av internationellt nätverk).",
+    "confidence": "medium"
+  },
+  {
+    "name": "ANTS Akademiskt Nätverk av Tekniska Studenter AB",
+    "orgnr": "5566536230",
+    "website": "https://www.ants.se/",
+    "email": "rekrytering@ants.se",
+    "focusNote": "IT-rekrytering (Ants Tech Recruiters); namnet antyder koppling till nätverk av tekniska studenter, men exakt koppling till hemsidans varumärke inte fullt verifierad.",
+    "confidence": "medium"
+  }
+]
