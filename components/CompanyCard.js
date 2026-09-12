@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CompanySurveys, CompanyTags } from "@/components/CompanyFacts";
 import CompanyCities from "@/components/CompanyCities";
+import { bolagsUrl } from "@/lib/slug";
 import Bildspel from "@/components/Bildspel";
 
 export default function CompanyCard({ company: c }) {
@@ -41,7 +42,7 @@ export default function CompanyCard({ company: c }) {
         <div><b>{c.employees}</b>Medarbetare {c.employeesYear}</div>
       </div>
       <div className="card-actions">
-        <Link className="btn btn-primary" href={`/bolag/${c.id}`}>Se profil</Link>
+        <Link className="btn btn-primary" href={bolagsUrl(c)}>Se profil</Link>
         {c.link && (
           <a className="btn btn-ghost" href={c.link} target="_blank" rel="noopener noreferrer">Till webbplats</a>
         )}

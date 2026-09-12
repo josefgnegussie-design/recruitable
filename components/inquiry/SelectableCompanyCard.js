@@ -2,6 +2,7 @@
 
 import { CompanySurveys, CompanyTags } from "@/components/CompanyFacts";
 import CompanyCities from "@/components/CompanyCities";
+import { bolagsUrl } from "@/lib/slug";
 import Bildspel from "@/components/Bildspel";
 
 export default function SelectableCompanyCard({ company: c, selected, onToggle }) {
@@ -46,7 +47,7 @@ export default function SelectableCompanyCard({ company: c, selected, onToggle }
       <div className="card-actions">
         <a
           className="btn btn-ghost"
-          href={`/bolag/${c.id}`}
+          href={bolagsUrl(c)}
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}

@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { hamtaBolagMedId } from "@/lib/companiesRepo";
+import { notFound, permanentRedirect } from "next/navigation";
+import { hamtaBolagMedId, hamtaBolagMedSlug } from "@/lib/companiesRepo";
+import { arId } from "@/lib/slug";
 import { betyg } from "@/components/CompanyFacts";
 import Bildspel from "@/components/Bildspel";
 
@@ -17,8 +18,18 @@ export function generateStaticParams() {
 
 export default async function ProfilePage({ params }) {
   const { id } = await params;
-  const c = await hamtaBolagMedId(id);
+
+  // Parametern är antingen ett id eller en slug, och formen avgör vilket. Att
+  // prova det ena och sedan det andra hade gjort två databasfrågor av varje
+  // sidvisning.
+  const c = arId(id) ? await hamtaBolagMedId(id) : await hamtaBolagMedSlug(id);
   if (!c) notFound();
+
+  // Nås profilen via sitt id skickas besökaren vidare till slugen. Gamla länkar
+  // och bokmärken fortsätter fungera, men bara en adress är den riktiga — annars
+  // cachas varje profil i två versioner och sökmotorerna får två sidor med
+  // samma innehåll att välja mellan. Permanent, så att omdirigeringen ärvs.
+  if (arId(id) && c.slug) permanentRedirect(`/bolag/${c.slug}`);
 
   // Sidan gjorde tidigare en andra hämtning här för den utökade premiumprofilen
   // (omslagsbild, mission, historia, erfarenhet, medarbetare) med en Redis-kopia

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { COMPANIES } from "@/lib/companies";
 import { distanceKm } from "@/lib/helpers";
+import { bolagsUrl } from "@/lib/slug";
 
 function suggestionLabel(item) {
   const a = item.address || {};
@@ -170,7 +171,7 @@ export default function NearbyCompanies() {
                   {company.city.toUpperCase()} &middot; {d.toFixed(1)} KM BORT
                 </div>
               </div>
-              <Link className="btn btn-ghost" style={{ flex: "none" }} href={`/bolag/${company.id}`}>
+              <Link className="btn btn-ghost" style={{ flex: "none" }} href={bolagsUrl(company)}>
                 Se profil
               </Link>
             </div>

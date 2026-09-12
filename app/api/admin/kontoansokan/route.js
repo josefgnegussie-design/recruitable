@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformAdmin } from "@/lib/platformAdmin";
+import { unikSlug } from "@/lib/slug";
 import { sendKontoGodkantTillBolag } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -99,9 +100,19 @@ export async function POST(request) {
 
     bolagId = (hogsta?.id ?? 0) + 1;
 
+    // Slugen sätts direkt. Utan den vore det nya bolaget det enda i registret
+    // utan adressvänligt namn tills backfyllningen körts nästa gång.
+    const { data: tagna } = await admin.from("companies").select("slug").not("slug", "is", null);
+    const slug = unikSlug(
+      ansokan.claimed_company_name,
+      new Set((tagna ?? []).map((b) => b.slug)),
+      bolagId
+    );
+
     const { error: skapaFel } = await admin.from("companies").insert({
       id: bolagId,
       name: ansokan.claimed_company_name,
+      slug,
       org_number: ansokan.claimed_org_number,
       city: (ansokan.claimed_address || "").split(",").pop()?.trim().replace(/^\d{3}\s?\d{2}\s*/, "") || "Okänd",
       address: ansokan.claimed_address,
@@ -128,7 +139,12 @@ export async function POST(request) {
   }
 
   // Profilen är nu bolagets egen — inbjudan att ta över den ska bort.
-  await admin.from("companies").update({ claimed: true }).eq("id", bolagId);
+  const { data: bolaget } = await admin
+    .from("companies")
+    .update({ claimed: true })
+    .eq("id", bolagId)
+    .select("slug")
+    .maybeSingle();
 
   // Beskedet som registreringen lovar. Misslyckas det ska godkännandet ändå
   // stå fast; kontot fungerar oavsett om mejlet kom fram.
@@ -138,6 +154,7 @@ export async function POST(request) {
       to: konto.user.email,
       companyName: ansokan.claimed_company_name,
       companyId: bolagId,
+      slug: bolaget?.slug,
     }).catch((err) => console.error("Kunde inte skicka godkännandebesked:", err.message));
   }
 

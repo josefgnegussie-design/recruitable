@@ -1,4 +1,5 @@
 import { hamtaBolag } from "@/lib/companiesRepo";
+import { bolagsUrl } from "@/lib/slug";
 
 const SITE = "https://recruitable.se";
 
@@ -32,7 +33,7 @@ async function bolagssidor() {
     });
 
     if (!bolag?.length) break;
-    for (const c of bolag) adresser.push({ url: `${SITE}/bolag/${c.id}`, changeFrequency: "monthly", priority: 0.6 });
+    for (const c of bolag) adresser.push({ url: `${SITE}${bolagsUrl(c)}`, changeFrequency: "monthly", priority: 0.6 });
     if (adresser.length >= totalt) break;
   }
 

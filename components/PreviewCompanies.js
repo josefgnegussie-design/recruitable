@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { bolagsUrl } from "@/lib/slug";
 
 // Tre bolag som exempel på startsidan. Urvalet kommer färdigblandat från servern
 // och innehåller bara bolag med en skriven profil — registret rymmer tusentals
@@ -8,7 +9,7 @@ export default function PreviewCompanies({ bolag = [] }) {
   return (
     <div className="preview-grid">
       {bolag.map((c) => (
-        <Link className="preview-card" href={`/bolag/${c.id}`} key={c.id}>
+        <Link className="preview-card" href={bolagsUrl(c)} key={c.id}>
           <div className="pc-top">
             <div>
               <p className="pc-name">{c.name}</p>
