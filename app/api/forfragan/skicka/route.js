@@ -181,8 +181,9 @@ export async function POST(request) {
 
   // Bekräftelse till avsändaren och granskningsnotis till plattformsadmin
   // skickas alltid — best effort, misslyckas aldrig hela requesten.
-  // Mejl till BOLAGEN som fått förfrågan är medvetet pausat tills Josef
-  // säger till — se sendInquiryReceivedToCompany i lib/email.js.
+  // Bolagen som valts får inget mejl härifrån: det skickas när förfrågan
+  // godkänns i /api/admin/moderera-forfragan, annars hade granskningen varit
+  // meningslös.
   await Promise.allSettled([
     sendInquiryConfirmationToRequester(inquiryForEmail),
     sendModerationAlertToAdmins(inquiryForEmail),
