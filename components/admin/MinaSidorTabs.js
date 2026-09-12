@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import ProfileEditor from "@/components/admin/ProfileEditor";
-import GrundprofilEditor from "@/components/admin/GrundprofilEditor";
+import ProfilEditor from "@/components/admin/ProfilEditor";
 import InquiriesList from "@/components/admin/InquiriesList";
-import PremiumUpgrade from "@/components/admin/PremiumUpgrade";
 import PremiumManageButton from "@/components/admin/PremiumManageButton";
 import OfficesManager from "@/components/admin/OfficesManager";
 import LoggaUtKnapp from "@/components/admin/LoggaUtKnapp";
@@ -61,20 +59,15 @@ export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStat
 
       {tab === "forfragningar" && <InquiriesList inquiries={inquiries} initialHasMore={hasMore} />}
 
-      {/* Grunduppgifterna redigeras av alla verifierade bolag, inte bara
-          betalande. Att kunna fylla i sin egen profil är hela poängen med att ta
-          över den — premium är ett tillägg ovanpå, inte inträdesbiljetten. */}
+      {/* Hela profilen redigeras av alla verifierade bolag. Fälten är precis det
+          en kund väljer leverantör utifrån, så en betalvägg här gör registret
+          sämre för den sida som flödet börjar hos. Prenumerationen ska i stället
+          knytas till förfrågningarna — knappen nedan finns kvar så länge, så att
+          de som redan betalar kan se och avsluta sin prenumeration. */}
       {tab === "profil" && (
         <>
-          <GrundprofilEditor company={company} />
-          {company?.is_premium ? (
-            <>
-              <PremiumManageButton />
-              <ProfileEditor company={company} />
-            </>
-          ) : (
-            <PremiumUpgrade />
-          )}
+          <ProfilEditor company={company} />
+          {company?.is_premium && <PremiumManageButton />}
         </>
       )}
 

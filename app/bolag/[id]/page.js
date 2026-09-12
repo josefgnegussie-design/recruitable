@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { hamtaBolagMedId } from "@/lib/companiesRepo";
-import { createPublicClient } from "@/lib/supabase/public";
-import { readCachedPremium, writeCachedPremium } from "@/lib/premiumCache";
+import { betyg } from "@/components/CompanyFacts";
+import Bildspel from "@/components/Bildspel";
 
 export const revalidate = 300;
 
@@ -20,32 +20,14 @@ export default async function ProfilePage({ params }) {
   const c = await hamtaBolagMedId(id);
   if (!c) notFound();
 
-  // Premiumdata är ett tillägg till grundprofilen i lib/companies.js. Går den
-  // inte att hämta — saknad konfiguration, nere eller långsam — ska besökaren
-  // ändå få se bolaget, inte ett serverfel.
-  let premium = null;
-  try {
-    const supabase = createPublicClient();
-    const { data, error } = await supabase
-      .from("companies")
-      .select("is_premium, logo, cover_image, extended_vision, mission, history, expertise, team_members, surveys")
-      .eq("id", c.id)
-      .maybeSingle();
-    if (error) throw error;
-    premium = data;
-    await writeCachedPremium(c.id, data);
-  } catch (err) {
-    console.error(`Kunde inte hämta premiumdata för bolag ${c.id}:`, err.message);
-    // Faller tillbaka på senast lyckade hämtning så att en betalande kunds
-    // utökade profil inte försvinner under en störning.
-    premium = await readCachedPremium(c.id);
-    if (premium) console.warn(`Visar cachad premiumdata för bolag ${c.id}.`);
-  }
-
-  const isPremium = premium?.is_premium ?? false;
-  const logo = premium?.logo || c.logo;
-  // Har vänsterspalten något att visa alls?
-  const harText = Boolean(c.vision || c.desc || c.verksamhetsbeskrivning);
+  // Sidan gjorde tidigare en andra hämtning här för den utökade premiumprofilen
+  // (omslagsbild, mission, historia, erfarenhet, medarbetare) med en Redis-kopia
+  // som reservväg. De fälten finns inte längre, och allt sidan visar kommer nu
+  // ur hamtaBolagMedId ovan — en databasrundtur mindre per profilvisning.
+  // Har vänsterspalten något att visa alls? Bildspelet räknas — ett bolag som
+  // laddat upp bilder men inte skrivit något ska inte få dem hopklämda i en
+  // enspaltsvy avsedd för en tom vänsterspalt.
+  const harText = Boolean(c.vision || c.desc || c.verksamhetsbeskrivning || c.slideshow?.length);
 
   return (
     <div id="view-profile">
@@ -62,16 +44,9 @@ export default async function ProfilePage({ params }) {
         </div>
       )}
       <div className="profile-wrap">
-        {isPremium && premium?.cover_image && (
-          <div className="profile-cover">
-            <img src={premium.cover_image} alt="" />
-          </div>
-        )}
         <div className="profile-head">
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {logo && (
-              <img src={logo} alt="" className="profile-logo" />
-            )}
+            {c.logo && <img src={c.logo} alt="" className="profile-logo" />}
             <div>
               <h2>{c.name}</h2>
               <div className="sub">{(c.officeCities?.length > 1 ? "Flera orter" : c.city).toUpperCase()} · GRUNDAT {c.founded}</div>
@@ -110,11 +85,6 @@ export default async function ProfilePage({ params }) {
             <div className="k">Grundat</div>
             <div className="v">{c.founded}</div>
           </div>
-          <div className="spec-cell">
-            <div className="k">Google-betyg</div>
-            <div className="v">{c.rating ? `★ ${c.rating.toFixed(1)}` : "—"}</div>
-            <div className="y">{c.rating ? `${c.ratingCount} recensioner` : "Inga recensioner"}</div>
-          </div>
         </div>
 
         {/* Saknar bolaget både vision, beskrivning och verksamhetstext blir
@@ -134,6 +104,14 @@ export default async function ProfilePage({ params }) {
                 <p>{c.desc}</p>
               </div>
             )}
+            {/* Bilderna står efter texten och inte över den: den som jämför
+                leverantörer läser vad bolaget gör först, och tittar sedan. */}
+            {c.slideshow?.length > 0 && (
+              <div className="panel">
+                <h3>Bilder</h3>
+                <Bildspel bilder={c.slideshow} namn={c.name} />
+              </div>
+            )}
             {/* Bolagets egen formulering ur bolagsordningen. Formell, men sann och
                 hämtad från bolaget självt — till skillnad från en text vi skrivit
                 åt dem. Visas bara när ingen egen beskrivning finns. */}
@@ -151,6 +129,13 @@ export default async function ProfilePage({ params }) {
               <div className="side-fact"><span className="k">Orter</span><span className="v">{c.officeCities?.length ? c.officeCities.join(", ") : c.address}</span></div>
               <div className="side-fact"><span className="k">Fokusområden</span><span className="v">{c.focus.length ? c.focus.join(", ") : "Ej specificerat"}</span></div>
               <div className="side-fact"><span className="k">Tjänster</span><span className="v">{c.services.length ? c.services.join(", ") : "Ej specificerat"}</span></div>
+              {/* Rollerna anges av bolaget självt och finns bara på övertagna
+                  profiler — därför tyst utelämnade i stället för "Ej specificerat",
+                  som här skulle läsas som att bolaget svarat att de inte rekryterar
+                  något. */}
+              {c.recruitingRoles?.length > 0 && (
+                <div className="side-fact"><span className="k">Yrkesroller</span><span className="v">{c.recruitingRoles.join(", ")}</span></div>
+              )}
               {/* Notisen måste säga sanningen om just den här profilen. Den
                   ursprungliga texten lovade att bolagets webbplats kontrollerats,
                   vilket stämmer för de dryga femtio som gåtts igenom för hand —
@@ -173,85 +158,65 @@ export default async function ProfilePage({ params }) {
                 </div>
               )}
             </div>
+
+            {/* Adresserna bolaget självt lagt in. Den äldre fritextkolumnen
+                companies.address finns kvar för de tusentals profiler som
+                hämtats ur register — där ligger flera adresser hopklämda i en
+                sträng åtskilda med semikolon. Har bolaget tagit över profilen
+                och lagt in strukturerade adresser visas de i stället. */}
+            {c.addresses?.length > 0 && (
+              <div className="panel">
+                <h3>Adresser</h3>
+                {c.addresses.map((a, i) => (
+                  <div className="adress-post" key={`${a.city}-${i}`}>
+                    <span className="adress-ort">{a.city}</span>
+                    {a.street && <span className="adress-gata">{a.street}</span>}
+                    {a.postal_code && (
+                      <span className="adress-gata">
+                        {a.postal_code} {a.city}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Undersökningarna låg tidigare i premiumavsnittet, och dessutom
+                inuti villkoret för mission/historia/erfarenhet — ett bolag som
+                bara fyllt i sina mätvärden fick dem aldrig visade. De redigeras
+                numera av alla bolag och hör hemma bland de jämförbara fakta
+                kunden väljer leverantör utifrån. */}
+            {(c.surveys?.customer_satisfaction || c.surveys?.employee_satisfaction) && (
+              <div className="panel">
+                <h3>Undersökningar</h3>
+                {c.surveys.customer_satisfaction && (
+                  <>
+                    <div className="side-fact">
+                      <span className="k">Kundnöjdhet</span>
+                      <span className="v">{betyg(c.surveys.customer_satisfaction.score)} / 5</span>
+                    </div>
+                    {c.surveys.customer_satisfaction.source && (
+                      <div className="note">Källa: {c.surveys.customer_satisfaction.source}</div>
+                    )}
+                  </>
+                )}
+                {c.surveys.employee_satisfaction && (
+                  <>
+                    <div className="side-fact" style={{ marginTop: 10 }}>
+                      <span className="k">Medarbetarnöjdhet</span>
+                      <span className="v">{betyg(c.surveys.employee_satisfaction.score)} / 5</span>
+                    </div>
+                    {c.surveys.employee_satisfaction.source && (
+                      <div className="note">Källa: {c.surveys.employee_satisfaction.source}</div>
+                    )}
+                  </>
+                )}
+                <div className="note">Mätningarna är bolagets egna och redovisas med den källa de angett.</div>
+              </div>
+            )}
           </div>
         </div>
 
-        {isPremium && (
-          <div className="premium-section">
-            <div className="premium-label">Bolagets egen presentation</div>
-            <p className="premium-note">
-              Det här avsnittet skrivs och underhålls av {c.name} själva — till skillnad från uppgifterna ovan,
-              som är oberoende verifierade av Recruitable.
-            </p>
-
-            {(premium.mission || premium.history || premium.expertise) && (
-              <div className="profile-body" style={{ marginTop: 20 }}>
-                <div>
-                  {premium.mission && (
-                    <div className="panel">
-                      <h3>Mission</h3>
-                      <p>{premium.mission}</p>
-                    </div>
-                  )}
-                  {premium.history && (
-                    <div className="panel">
-                      <h3>Historia</h3>
-                      <p>{premium.history}</p>
-                    </div>
-                  )}
-                  {premium.expertise && (
-                    <div className="panel">
-                      <h3>Erfarenhet</h3>
-                      <p>{premium.expertise}</p>
-                    </div>
-                  )}
-                </div>
-                <div>
-                  {(premium.surveys?.customer_satisfaction || premium.surveys?.employee_satisfaction) && (
-                    <div className="panel">
-                      <h3>Undersökningar</h3>
-                      {premium.surveys?.customer_satisfaction && (
-                        <div className="side-fact">
-                          <span className="k">Kundnöjdhet</span>
-                          <span className="v">{premium.surveys.customer_satisfaction.score.toFixed(1)} / 5</span>
-                        </div>
-                      )}
-                      {premium.surveys?.customer_satisfaction?.source && (
-                        <div className="note">Källa: {premium.surveys.customer_satisfaction.source}</div>
-                      )}
-                      {premium.surveys?.employee_satisfaction && (
-                        <div className="side-fact" style={{ marginTop: 10 }}>
-                          <span className="k">Medarbetarnöjdhet</span>
-                          <span className="v">{premium.surveys.employee_satisfaction.score.toFixed(1)} / 5</span>
-                        </div>
-                      )}
-                      {premium.surveys?.employee_satisfaction?.source && (
-                        <div className="note">Källa: {premium.surveys.employee_satisfaction.source}</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {premium.team_members?.length > 0 && (
-              <div className="panel" style={{ marginTop: 20 }}>
-                <h3>Medarbetare</h3>
-                <div className="team-grid">
-                  {premium.team_members.map((m, i) => (
-                    <div className="team-member" key={i}>
-                      <div className="team-member-photo">
-                        {m.photo_url ? <img src={m.photo_url} alt="" /> : <span>{m.name?.[0]}</span>}
-                      </div>
-                      <div className="team-member-name">{m.name}</div>
-                      <div className="team-member-role">{m.role}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

@@ -20,6 +20,16 @@ const SUPABASE_DIR = new URL("../supabase/", import.meta.url);
 // listan underhålls för hand. Utan den rapporteras de som SAKNAS fast allt är rätt.
 const ERSATTA = new Map([
   ["company_admins|claimed_roles", "ersatt av claimed_services (migration_signup_services.sql)"],
+  // Borttagna av migration_ta_bort_utokad_profil.sql — den utökade
+  // premiumprofilen finns inte längre.
+  ["companies|cover_image", "borttagen (migration_ta_bort_utokad_profil.sql)"],
+  ["companies|mission", "borttagen (migration_ta_bort_utokad_profil.sql)"],
+  ["companies|history", "borttagen (migration_ta_bort_utokad_profil.sql)"],
+  ["companies|expertise", "borttagen (migration_ta_bort_utokad_profil.sql)"],
+  [
+    "companies|recruiting_focus_areas",
+    "aldrig körd; yrkesområdena bor i companies.focus, som både sökningen och profilsidan läser",
+  ],
 ]);
 
 function q(value) {

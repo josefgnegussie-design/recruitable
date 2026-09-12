@@ -5,26 +5,16 @@ import { sendPremiumAlertToAdmins } from "@/lib/email";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SITE = "https://recruitable.se";
-
-// Varje kontroll är en HTTP-hämtning av en publik sida. Taket finns för att
-// jobbet ska hålla sig inom Vercels tidsgräns även när registret växer.
-const MAX_PROFILE_CHECKS = 25;
-
-// Klassnamnet som bara renderas när isPremium är sant (se app/bolag/[id]/page.js).
-const PREMIUM_MARKER = "premium-section";
-
-const CONTENT_FIELDS = ["cover_image", "extended_vision", "mission", "history", "expertise"];
-
-function hasContent(company) {
-  const text = CONTENT_FIELDS.some((f) => typeof company[f] === "string" && company[f].trim());
-  const team = Array.isArray(company.team_members) && company.team_members.length > 0;
-  return text || team;
-}
-
-// Bevakar att bolag som betalar för premium faktiskt har sin utökade profil
-// synlig för besökare. Loggrader räcker inte — ingen läser dem förrän kunden
-// hör av sig. Körs av Vercel Cron, se vercel.json.
+// Bevakar att ingen står kvar som betalande efter att perioden löpt ut —
+// typiskt att ett avslutsevent från Stripe missats. Loggrader räcker inte,
+// ingen läser dem förrän kunden hör av sig. Körs av Vercel Cron, se vercel.json.
+//
+// Kontrollen gjorde tidigare två saker till: den varnade för premiumbolag utan
+// innehåll i den utökade profilen, och hämtade varje profilsida för att se att
+// avsnittet faktiskt renderades. Den utökade profilen finns inte längre —
+// omslagsbild, mission, historia, erfarenhet och medarbetare är borttagna — så
+// båda kontrollerna hade inget kvar att kontrollera. Kvar står den som handlar
+// om pengar.
 export async function GET(request) {
   const secret = process.env.CRON_SECRET;
   if (!secret) {
@@ -42,7 +32,7 @@ export async function GET(request) {
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("companies")
-      .select("id, name, premium_until, cover_image, extended_vision, mission, history, expertise, team_members")
+      .select("id, name, premium_until")
       .eq("is_premium", true);
     if (error) throw new Error(error.message);
     companies = data ?? [];
@@ -68,30 +58,6 @@ export async function GET(request) {
         issue: `Betald period gick ut ${company.premium_until.slice(0, 10)} men premium är kvar — ett avslutsevent från Stripe kan ha missats.`,
       });
     }
-
-    if (!hasContent(company)) {
-      problems.push({ company: label, issue: "Betalar för premium men har inget innehåll i den utökade profilen." });
-    }
-  }
-
-  // Det som faktiskt räknas: syns avsnittet för en besökare? Fångar fel som
-  // databasen inte känner till — trasig rendering, cachad nedgradering.
-  for (const company of companies.slice(0, MAX_PROFILE_CHECKS)) {
-    const label = `${company.name} (id ${company.id})`;
-    const url = `${SITE}/bolag/${company.id}`;
-    try {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) {
-        problems.push({ company: label, issue: `Profilsidan svarar ${res.status}.` });
-        continue;
-      }
-      const html = await res.text();
-      if (!html.includes(PREMIUM_MARKER)) {
-        problems.push({ company: label, issue: "Profilsidan visar inte det utökade avsnittet." });
-      }
-    } catch (err) {
-      problems.push({ company: label, issue: `Profilsidan gick inte att hämta: ${err.message}` });
-    }
   }
 
   if (problems.length) {
@@ -99,9 +65,5 @@ export async function GET(request) {
     await sendPremiumAlertToAdmins({ problems });
   }
 
-  return NextResponse.json({
-    kontrollerade: companies.length,
-    sidkontroller: Math.min(companies.length, MAX_PROFILE_CHECKS),
-    problem: problems,
-  });
+  return NextResponse.json({ kontrollerade: companies.length, problem: problems });
 }
