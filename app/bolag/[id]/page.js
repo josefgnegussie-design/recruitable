@@ -103,6 +103,17 @@ export default async function ProfilePage({ params }) {
             hål. Då används en spalt i stället för två. */}
         <div className={`profile-body${harText ? "" : " single"}`}>
           <div>
+            {/* Bilderna stod tidigare sist i spalten, efter all text, och syntes
+                först efter en rejäl skrollning — ett bolag som lagt tid på sina
+                bilder fick dem undanstoppade. Nu inleder de spalten: den som
+                klickat sig in på en profil vill se bolaget, och texten står kvar
+                direkt under. Panelen är avsiktligt utan rubrik — en bild
+                behöver ingen etikett som säger att den är en bild. */}
+            {c.slideshow?.length > 0 && (
+              <div className="panel panel-bilder">
+                <Bildspel bilder={c.slideshow} namn={c.name} />
+              </div>
+            )}
             {c.vision && (
               <div className="panel">
                 <h3>Vision</h3>
@@ -113,14 +124,6 @@ export default async function ProfilePage({ params }) {
               <div className="panel">
                 <h3>Om bolaget</h3>
                 <p>{c.desc}</p>
-              </div>
-            )}
-            {/* Bilderna står efter texten och inte över den: den som jämför
-                leverantörer läser vad bolaget gör först, och tittar sedan. */}
-            {c.slideshow?.length > 0 && (
-              <div className="panel">
-                <h3>Bilder</h3>
-                <Bildspel bilder={c.slideshow} namn={c.name} />
               </div>
             )}
             {/* Bolagets egen formulering ur bolagsordningen. Formell, men sann och
