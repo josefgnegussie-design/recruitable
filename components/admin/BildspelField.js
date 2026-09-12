@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { uploadCompanyImage } from "@/lib/uploadImage";
+import { kontrolleraBild, uploadCompanyImage } from "@/lib/uploadImage";
+import BildBeskarare from "@/components/admin/BildBeskarare";
 
 export const MAX_BILDER = 5;
 
@@ -12,37 +13,50 @@ export default function BildspelField({ companyId, value = [], onChange }) {
   const inputRef = useRef(null);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
+  // Filerna köas och placeras en i taget i beskäraren.
+  const [ko, setKo] = useState([]);
 
   const fullt = value.length >= MAX_BILDER;
 
-  async function handleFiles(e) {
+  function handleFiles(e) {
     const filer = [...(e.target.files || [])];
+    if (inputRef.current) inputRef.current.value = "";
     if (!filer.length) return;
 
-    setStatus("laddar");
     setError("");
 
     // Fler markerade än vad som får plats laddas inte upp alls — att tyst spara
-    // de tre första och slänga resten ser ut som att uppladdningen misslyckats.
+    // de första och slänga resten ser ut som att uppladdningen misslyckats.
     const plats = MAX_BILDER - value.length;
     if (filer.length > plats) {
       setError(`Det får plats ${plats} bild${plats === 1 ? "" : "er"} till.`);
-      setStatus("idle");
-      if (inputRef.current) inputRef.current.value = "";
       return;
     }
 
     try {
-      const nya = [];
-      for (const fil of filer) {
-        nya.push(await uploadCompanyImage(fil, companyId, "bildspel"));
-      }
-      onChange([...value, ...nya]);
+      filer.forEach(kontrolleraBild);
     } catch (err) {
       setError(err.message);
+      return;
+    }
+
+    // Köas i stället för att laddas upp direkt: varje bild ska placeras för sig
+    // i beskäraren innan den sparas.
+    setKo(filer);
+  }
+
+  async function sparaBeskuren(blob) {
+    const [fil, ...kvar] = ko;
+    setStatus("laddar");
+    try {
+      const url = await uploadCompanyImage(fil, companyId, "bildspel", blob);
+      onChange([...value, url]);
+      setKo(kvar);
+    } catch (err) {
+      setError(err.message);
+      setKo([]);
     } finally {
       setStatus("idle");
-      if (inputRef.current) inputRef.current.value = "";
     }
   }
 
@@ -116,6 +130,15 @@ export default function BildspelField({ companyId, value = [], onChange }) {
         profil i den ordning de ligger här. JPG, PNG eller WEBP, max 5 MB per bild.
       </p>
       {error && <p className="field-error">{error}</p>}
+
+      {ko.length > 0 && (
+        <BildBeskarare
+          fil={ko[0]}
+          typ="bildspel"
+          onKlar={sparaBeskuren}
+          onAvbryt={() => setKo([])}
+        />
+      )}
     </div>
   );
 }

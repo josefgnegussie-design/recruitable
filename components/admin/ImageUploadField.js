@@ -1,27 +1,42 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { uploadCompanyImage } from "@/lib/uploadImage";
+import { kontrolleraBild, uploadCompanyImage } from "@/lib/uploadImage";
+import BildBeskarare from "@/components/admin/BildBeskarare";
 
 export default function ImageUploadField({ label, companyId, folder, value, onChange, shape = "rect" }) {
   const inputRef = useRef(null);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
+  // Filen väntar här medan användaren placerar den i beskäraren.
+  const [valdFil, setValdFil] = useState(null);
 
-  async function handleFile(e) {
+  function handleFile(e) {
     const file = e.target.files?.[0];
+    if (inputRef.current) inputRef.current.value = "";
     if (!file) return;
-    setStatus("uploading");
+
     setError("");
     try {
-      const url = await uploadCompanyImage(file, companyId, folder);
-      onChange(url);
-      setStatus("idle");
+      kontrolleraBild(file);
     } catch (err) {
       setError(err.message);
-      setStatus("idle");
+      return;
+    }
+
+    setValdFil(file);
+  }
+
+  async function sparaBeskuren(blob) {
+    setStatus("uploading");
+    try {
+      const url = await uploadCompanyImage(valdFil, companyId, folder, blob);
+      onChange(url);
+    } catch (err) {
+      setError(err.message);
     } finally {
-      if (inputRef.current) inputRef.current.value = "";
+      setValdFil(null);
+      setStatus("idle");
     }
   }
 
@@ -45,6 +60,15 @@ export default function ImageUploadField({ label, companyId, folder, value, onCh
         <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFile} hidden />
       </div>
       {error && <p className="field-error">{error}</p>}
+
+      {valdFil && (
+        <BildBeskarare
+          fil={valdFil}
+          typ="logo"
+          onKlar={sparaBeskuren}
+          onAvbryt={() => setValdFil(null)}
+        />
+      )}
     </div>
   );
 }
