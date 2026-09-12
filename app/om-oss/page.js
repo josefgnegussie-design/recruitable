@@ -3,7 +3,7 @@ import Link from "next/link";
 const FAQ = [
   {
     q: "Varifrån kommer uppgifterna om bolagen?",
-    a: "Från offentlig bolagsdata (Bolagsverket, via bland annat Allabolag, Ratsit och Bolagsfakta) samt respektive bolags egna webbplatser. Varje bolagsprofil visar när informationen senast kontrollerades.",
+    a: "Från offentlig bolagsdata (Bolagsverket, via bland annat Allabolag, Ratsit och Bolagsfakta) samt respektive bolags egna webbplatser. Orter och koordinater bygger på GeoNames postnummerregister (CC BY 4.0). Varje bolagsprofil visar när informationen senast kontrollerades.",
   },
   {
     q: "Rangordnar eller rekommenderar ni bolag?",

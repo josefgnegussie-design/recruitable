@@ -5,6 +5,11 @@
 -- migrationer tillkommit.
 --
 -- Medvetet utelämnade ur kontrollen:
+--   companies.cover_image — tas bort av en senare migration
+--   companies.expertise — tas bort av en senare migration
+--   companies.history — tas bort av en senare migration
+--   companies.mission — tas bort av en senare migration
+--   companies.recruiting_focus_areas — aldrig körd; yrkesområdena bor i companies.focus, som både sökningen och profilsidan läser
 --   company_admins.claimed_roles — ersatt av claimed_services (migration_signup_services.sql)
 --   inquiry_recipients.released_at — tas bort av en senare migration
 
@@ -20,17 +25,14 @@ with forvantade_tabeller(tabell) as (
 ),
 forvantade_kolumner(tabell, kolumn) as (
   values
+    ('companies', 'addresses'),
     ('companies', 'claimed'),
-    ('companies', 'cover_image'),
-    ('companies', 'expertise'),
-    ('companies', 'history'),
     ('companies', 'klassificering_harledd'),
-    ('companies', 'mission'),
     ('companies', 'office_cities'),
     ('companies', 'org_number'),
     ('companies', 'premium_until'),
-    ('companies', 'recruiting_focus_areas'),
     ('companies', 'recruiting_roles'),
+    ('companies', 'slideshow'),
     ('companies', 'verksamhetsbeskrivning'),
     ('company_admins', 'claimed_address'),
     ('company_admins', 'claimed_company_name'),

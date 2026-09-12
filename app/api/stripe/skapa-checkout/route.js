@@ -26,12 +26,21 @@ export async function POST(request) {
 
   const { data: adminRow } = await supabase
     .from("company_admins")
-    .select("company_id, verified")
+    .select("company_id, verified, ar_agare")
     .eq("user_id", user.id)
     .maybeSingle();
 
   if (!adminRow?.verified || !adminRow.company_id) {
     return NextResponse.json({ error: "Inte behörig." }, { status: 403 });
+  }
+
+  // Betalningen är ägarens ansvar. Utan det här kunde vilken tillagd
+  // administratör som helst teckna eller säga upp bolagets abonnemang.
+  if (!adminRow.ar_agare) {
+    return NextResponse.json(
+      { error: "Bara kontots ägare kan hantera betalningar." },
+      { status: 403 }
+    );
   }
 
   if (!process.env.STRIPE_PREMIUM_PRICE_ID) {

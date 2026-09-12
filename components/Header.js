@@ -10,6 +10,11 @@ export default function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [inloggad, setInloggad] = useState(false);
+  // Ett inloggat bolag har ingen nytta av att söka leverantör åt sig självt.
+  // Läses ur den lokala sessionens metadata, som stämplas vid godkännandet —
+  // annars hade varje sidvisning behövt en databasfråga för att avgöra det.
+  // Styr bara vad som visas; åtkomsten avgörs alltid på servern.
+  const [arBolagsadmin, setArBolagsadmin] = useState(false);
   const isLanding = pathname === "/";
   const isRekrytera = pathname.startsWith("/rekrytera");
   const isOmOss = pathname.startsWith("/om-oss");
@@ -32,13 +37,16 @@ export default function Header() {
     let aktiv = true;
 
     supabase.auth.getSession().then(({ data }) => {
-      if (aktiv) setInloggad(Boolean(data.session));
+      if (!aktiv) return;
+      setInloggad(Boolean(data.session));
+      setArBolagsadmin(Boolean(data.session?.user?.user_metadata?.bolagsadmin));
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_handelse, session) => {
       setInloggad(Boolean(session));
+      setArBolagsadmin(Boolean(session?.user?.user_metadata?.bolagsadmin));
     });
 
     return () => {
@@ -54,7 +62,15 @@ export default function Header() {
   return (
     <header className="site">
       <div className="header-inner">
-        <Link className="logo" href="/" style={{ cursor: "pointer" }} onClick={closeMenu}>
+        {/* Logotypen leder hem, och hemma för ett inloggat bolag är Mina sidor —
+            inte startsidan, som säljer in registret till den som söker
+            leverantör. */}
+        <Link
+          className="logo"
+          href={arBolagsadmin ? "/mina-sidor" : "/"}
+          style={{ cursor: "pointer" }}
+          onClick={closeMenu}
+        >
           <span className="mark"></span>Recruitable
         </Link>
         <button
@@ -69,8 +85,15 @@ export default function Header() {
           <span></span>
         </button>
         <nav className={`site-nav${menuOpen ? " open" : ""}`}>
-          <Link href="/" className={isLanding ? "active" : ""} onClick={closeMenu}>Hem</Link>
-          <Link href="/rekrytera" className={isRekrytera ? "active" : ""} onClick={closeMenu}>Rekrytera</Link>
+          {/* Startsidan och Rekrytera vänder sig till den som söker leverantör.
+              För ett inloggat bolag är de bara förvirrande — de erbjuder att göra
+              det bolaget självt finns i registret för. */}
+          {!arBolagsadmin && (
+            <>
+              <Link href="/" className={isLanding ? "active" : ""} onClick={closeMenu}>Hem</Link>
+              <Link href="/rekrytera" className={isRekrytera ? "active" : ""} onClick={closeMenu}>Rekrytera</Link>
+            </>
+          )}
           <Link href="/om-oss" className={isOmOss ? "active" : ""} onClick={closeMenu}>Om oss</Link>
           {inloggad ? (
             <>

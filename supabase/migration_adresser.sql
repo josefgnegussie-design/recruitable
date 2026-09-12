@@ -1,0 +1,26 @@
+-- Bolagets adresser: gatuadress med nummer, postnummer och postort, en rad per
+-- plats bolaget finns på. Fria och obegränsade — att tala om var man finns är
+-- en uppgift kunden behöver för att välja leverantör, inte något att ta betalt
+-- för.
+--
+-- Avgränsning mot offices-tabellen, som också har ort och adress: offices är
+-- ett betalt tillägg som styr VEM som får en förfrågan från en viss ort (se
+-- resolveCompanyContact i lib/offices.js). Den här kolumnen svarar på en annan
+-- fråga — VAR bolaget finns — och kostar ingenting. Ett bolag kan alltså lista
+-- fem adresser gratis och betala för routing till en lokal kontaktperson bara
+-- på de orter där det är värt något.
+--
+-- jsonb och inte en egen tabell: listan är kort, hämtas alltid i sin helhet
+-- tillsammans med bolaget, och har ingen egen livslängd. Samma resonemang som
+-- companies.team_members.
+--
+-- Formen på varje post: { "street": "...", "postal_code": "123 45",
+-- "city": "Göteborg" }. Bara city är obligatorisk — ett bolag kan finnas på en
+-- ort utan att vilja skylta med gatuadressen.
+--
+-- companies.office_cities härleds ur postorterna vid varje sparning i
+-- /api/profil/grunduppgifter, så sökkorten visar orterna utan att uppgiften
+-- behöver fyllas i två gånger. Kolumnen behålls som den är eftersom sökningen
+-- och profilsidan redan läser den.
+
+alter table companies add column if not exists addresses jsonb not null default '[]'::jsonb;

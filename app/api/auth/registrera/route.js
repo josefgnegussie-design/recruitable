@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { YRKESOMRADEN } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
@@ -101,13 +101,27 @@ export async function POST(request) {
     // Utan notis upptäcks en ansökan bara av den som råkar titta i databasen.
     // Misslyckas utskicket ska ansökan ändå räknas som mottagen — den ligger
     // kvar i kön oavsett.
-    sendKontoansokanTillAdmins({
-      companyName: companyName.trim(),
-      orgNumber: orgNumber.trim(),
-      address: `${gatuadress.trim()}, ${postnummer.trim()} ${postort.trim()}`,
-      email: email.trim(),
-      website: website.trim(),
-    }).catch((err) => console.error("Kunde inte skicka notis om kontoansökan:", err.message));
+    //
+    // after() och inte ett löst löfte: utskicket startades tidigare utan await,
+    // och svaret hann gå iväg först. På Vercel kan funktionen frysas i samma
+    // ögonblick, och ett påbörjat men oavslutat anrop till Resend körs då aldrig
+    // klart — notisen uteblev utan att ens felraden hann loggas. Alla andra
+    // mejlroutes här inväntar sina utskick; den här var ensam om att inte göra
+    // det. after() ger garantin utan att lägga Resends svarstid i registreringens
+    // väg.
+    after(async () => {
+      try {
+        await sendKontoansokanTillAdmins({
+          companyName: companyName.trim(),
+          orgNumber: orgNumber.trim(),
+          address: `${gatuadress.trim()}, ${postnummer.trim()} ${postort.trim()}`,
+          email: email.trim(),
+          website: website.trim(),
+        });
+      } catch (err) {
+        console.error("Kunde inte skicka notis om kontoansökan:", err.message);
+      }
+    });
   }
 
   if (error) {

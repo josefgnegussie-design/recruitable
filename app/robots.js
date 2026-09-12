@@ -1,10 +1,9 @@
 const SITE = "https://recruitable.se";
 
 // Sidor som aldrig ska hamna i ett sökresultat: inloggning och konto, allt
-// bakom inloggningen, API:erna, underhållssidan och förhandsvisningen.
-// Sökträffsidan står med för att den kan varieras i oändlighet med parametrar
-// — profilsidorna /bolag/[id] är det som ska hittas, inte sökningen som leder
-// dit.
+// bakom inloggningen, API:erna och underhållssidan. Sökträffsidan står med för
+// att den kan varieras i oändlighet med parametrar — profilsidorna /bolag/[id]
+// är det som ska hittas, inte sökningen som leder dit.
 const STANGDA = [
   "/admin",
   "/mina-sidor",
@@ -14,7 +13,6 @@ const STANGDA = [
   "/auth/",
   "/api/",
   "/coming-soon",
-  "/forhandsvisning-minasidor",
   "/rekrytera/resultat",
 ];
 

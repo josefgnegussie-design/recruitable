@@ -14,8 +14,8 @@
 // Skriver SQL till supabase/satt_koordinater.sql
 
 import { readFile, writeFile } from "node:fs/promises";
+import { hamtaGeonames } from "./geonames.mjs";
 
-const GEONAMES = "https://download.geonames.org/export/zip/SE.zip";
 const KALLA_CSV = new URL("./data/import-granskning.csv", import.meta.url);
 const UT_SQL = new URL("../supabase/satt_koordinater.sql", import.meta.url);
 
@@ -49,36 +49,6 @@ function parseCSV(text) {
     rader.push(rad);
   }
   return rader;
-}
-
-// Zip-filen packas upp utan beroenden: posterna ligger deflate-komprimerade och
-// node:zlib klarar dem direkt.
-async function hamtaGeonames() {
-  const { inflateRawSync } = await import("node:zlib");
-  const svar = await fetch(GEONAMES);
-  if (!svar.ok) throw new Error(`Kunde inte hämta GeoNames (${svar.status})`);
-  const zip = Buffer.from(await svar.arrayBuffer());
-
-  // Arkivet innehåller både readme.txt och SE.txt, så posterna i den centrala
-  // katalogen (signatur PK\x01\x02) gås igenom tills rätt namn dyker upp.
-  // Storleken läses därifrån och inte ur det lokala filhuvudet, som står som
-  // noll när arkivet har en databeskrivare.
-  const SIGNATUR = Buffer.from([0x50, 0x4b, 0x01, 0x02]);
-
-  for (let post = zip.indexOf(SIGNATUR); post >= 0; post = zip.indexOf(SIGNATUR, post + 4)) {
-    const namnLangd = zip.readUInt16LE(post + 28);
-    const namn = zip.subarray(post + 46, post + 46 + namnLangd).toString("utf-8");
-    if (namn.toUpperCase() !== "SE.TXT") continue;
-
-    const komprimerad = zip.readUInt32LE(post + 20);
-    const lokaltHuvud = zip.readUInt32LE(post + 42);
-    const dataStart =
-      lokaltHuvud + 30 + zip.readUInt16LE(lokaltHuvud + 26) + zip.readUInt16LE(lokaltHuvud + 28);
-
-    return inflateRawSync(zip.subarray(dataStart, dataStart + komprimerad)).toString("utf-8");
-  }
-
-  throw new Error("Hittade ingen SE.txt i arkivet");
 }
 
 function byggUppslag(text) {

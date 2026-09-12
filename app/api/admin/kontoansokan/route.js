@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformAdmin } from "@/lib/platformAdmin";
+import { unikSlug } from "@/lib/slug";
+import { stamplaBolagsadmin } from "@/lib/bolagsadmin";
 import { sendKontoGodkantTillBolag } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -67,9 +69,25 @@ export async function POST(request) {
   let bolagId = Number.isInteger(companyId) ? companyId : null;
 
   if (bolagId) {
-    const { data: finns } = await admin.from("companies").select("id").eq("id", bolagId).maybeSingle();
+    const { data: finns } = await admin
+      .from("companies")
+      .select("id, org_number")
+      .eq("id", bolagId)
+      .maybeSingle();
     if (!finns) {
       return NextResponse.json({ error: "Det valda bolaget finns inte." }, { status: 400 });
+    }
+
+    // De importerade bolagen saknar ofta organisationsnummer, och då hittar
+    // matchningen i granskningskön ingenting nästa gång någon söker samma
+    // bolag. Numret kommer från bolaget självt i ansökan, så det fylls i här.
+    // Ett befintligt nummer skrivs aldrig över — skiljer de sig åt är det
+    // något att titta på, inte något att tysta.
+    if (!finns.org_number && ansokan.claimed_org_number) {
+      await admin
+        .from("companies")
+        .update({ org_number: ansokan.claimed_org_number })
+        .eq("id", bolagId);
     }
   } else {
     // Nytt bolag ur ansökan. Id sätts explicit eftersom kolumnen saknar
@@ -83,9 +101,19 @@ export async function POST(request) {
 
     bolagId = (hogsta?.id ?? 0) + 1;
 
+    // Slugen sätts direkt. Utan den vore det nya bolaget det enda i registret
+    // utan adressvänligt namn tills backfyllningen körts nästa gång.
+    const { data: tagna } = await admin.from("companies").select("slug").not("slug", "is", null);
+    const slug = unikSlug(
+      ansokan.claimed_company_name,
+      new Set((tagna ?? []).map((b) => b.slug)),
+      bolagId
+    );
+
     const { error: skapaFel } = await admin.from("companies").insert({
       id: bolagId,
       name: ansokan.claimed_company_name,
+      slug,
       org_number: ansokan.claimed_org_number,
       city: (ansokan.claimed_address || "").split(",").pop()?.trim().replace(/^\d{3}\s?\d{2}\s*/, "") || "Okänd",
       address: ansokan.claimed_address,
@@ -101,9 +129,19 @@ export async function POST(request) {
     }
   }
 
+  // Första godkända administratören för ett bolag blir ägare och svarar därmed
+  // för prenumerationen. Finns redan en ägare — bolaget har godkänts förut —
+  // läggs den nya till som vanlig administratör.
+  const { data: agare } = await admin
+    .from("company_admins")
+    .select("id")
+    .eq("company_id", bolagId)
+    .eq("ar_agare", true)
+    .maybeSingle();
+
   const { error: kopplaFel } = await admin
     .from("company_admins")
-    .update({ company_id: bolagId, verified: true })
+    .update({ company_id: bolagId, verified: true, ar_agare: !agare })
     .eq("id", ansokanId);
 
   if (kopplaFel) {
@@ -112,7 +150,14 @@ export async function POST(request) {
   }
 
   // Profilen är nu bolagets egen — inbjudan att ta över den ska bort.
-  await admin.from("companies").update({ claimed: true }).eq("id", bolagId);
+  const { data: bolaget } = await admin
+    .from("companies")
+    .update({ claimed: true })
+    .eq("id", bolagId)
+    .select("slug")
+    .maybeSingle();
+
+  await stamplaBolagsadmin(admin, ansokan.user_id);
 
   // Beskedet som registreringen lovar. Misslyckas det ska godkännandet ändå
   // stå fast; kontot fungerar oavsett om mejlet kom fram.
@@ -122,6 +167,7 @@ export async function POST(request) {
       to: konto.user.email,
       companyName: ansokan.claimed_company_name,
       companyId: bolagId,
+      slug: bolaget?.slug,
     }).catch((err) => console.error("Kunde inte skicka godkännandebesked:", err.message));
   }
 

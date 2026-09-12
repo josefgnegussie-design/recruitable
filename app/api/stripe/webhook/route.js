@@ -50,15 +50,22 @@ export async function POST(request) {
     if (premium) update.premium_since = new Date().toISOString();
     if (premiumUntil !== undefined) update.premium_until = premiumUntil;
 
-    const { error } = await admin.from("companies").update(update).eq("id", Number(companyId));
+    const { data: uppdaterad, error } = await admin
+      .from("companies")
+      .update(update)
+      .eq("id", Number(companyId))
+      .select("slug")
+      .maybeSingle();
     // Kastas vidare så att routen svarar med fel och Stripe gör om leveransen.
     // Sväljs felet här tror Stripe att allt gick bra och statusen blir
     // permanent fel — bolaget står kvar som obetalt trots betalning.
     if (error) throw new Error(`Kunde inte uppdatera premium-status för bolag ${companyId}: ${JSON.stringify(error)}`);
 
     // Profilsidan är ISR-cachad; utan detta syns köpet först efter
-    // omvalideringsfönstret.
-    revalidatePath(`/bolag/${companyId}`);
+    // omvalideringsfönstret. Sedan profilerna fick slugar ligger den cachade
+    // sidan under slugen — /bolag/<id> är numera bara en omdirigering, och att
+    // avcacha den hade lämnat den riktiga sidan orörd.
+    revalidatePath(`/bolag/${uppdaterad?.slug || companyId}`);
   }
 
   // Samma sak som setPremium, men för ett enskilt kontor (se
