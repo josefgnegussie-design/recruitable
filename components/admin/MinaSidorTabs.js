@@ -4,10 +4,11 @@ import { useState } from "react";
 import ProfilEditor from "@/components/admin/ProfilEditor";
 import InquiriesList from "@/components/admin/InquiriesList";
 import PremiumManageButton from "@/components/admin/PremiumManageButton";
+import Kontoflik from "@/components/admin/Kontoflik";
 import OfficesManager from "@/components/admin/OfficesManager";
 import LoggaUtKnapp from "@/components/admin/LoggaUtKnapp";
 
-export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStatus, offices, officeStatus }) {
+export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStatus, offices, officeStatus, arAgare, administratorer }) {
   const [tab, setTab] = useState(premiumStatus ? "profil" : officeStatus ? "kontor" : "forfragningar");
 
   return (
@@ -54,6 +55,13 @@ export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStat
         >
           Kontor{offices?.length > 0 ? ` (${offices.length})` : ""}
         </button>
+        <button
+          type="button"
+          className={`tab-btn${tab === "konto" ? " active" : ""}`}
+          onClick={() => setTab("konto")}
+        >
+          Konto
+        </button>
         <LoggaUtKnapp />
       </div>
 
@@ -67,11 +75,15 @@ export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStat
       {tab === "profil" && (
         <>
           <ProfilEditor company={company} />
-          {company?.is_premium && <PremiumManageButton />}
+          {/* Prenumerationen är ägarens ansvar — knappen leder till Stripes
+              portal, där den som kommer in kan säga upp abonnemanget. */}
+          {company?.is_premium && arAgare && <PremiumManageButton />}
         </>
       )}
 
       {tab === "kontor" && <OfficesManager offices={offices || []} />}
+
+      {tab === "konto" && <Kontoflik administratorer={administratorer} duArAgare={arAgare} />}
     </div>
   );
 }

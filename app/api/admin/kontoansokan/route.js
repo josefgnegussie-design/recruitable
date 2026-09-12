@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformAdmin } from "@/lib/platformAdmin";
 import { unikSlug } from "@/lib/slug";
+import { stamplaBolagsadmin } from "@/lib/bolagsadmin";
 import { sendKontoGodkantTillBolag } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -128,9 +129,19 @@ export async function POST(request) {
     }
   }
 
+  // Första godkända administratören för ett bolag blir ägare och svarar därmed
+  // för prenumerationen. Finns redan en ägare — bolaget har godkänts förut —
+  // läggs den nya till som vanlig administratör.
+  const { data: agare } = await admin
+    .from("company_admins")
+    .select("id")
+    .eq("company_id", bolagId)
+    .eq("ar_agare", true)
+    .maybeSingle();
+
   const { error: kopplaFel } = await admin
     .from("company_admins")
-    .update({ company_id: bolagId, verified: true })
+    .update({ company_id: bolagId, verified: true, ar_agare: !agare })
     .eq("id", ansokanId);
 
   if (kopplaFel) {
@@ -145,6 +156,8 @@ export async function POST(request) {
     .eq("id", bolagId)
     .select("slug")
     .maybeSingle();
+
+  await stamplaBolagsadmin(admin, ansokan.user_id);
 
   // Beskedet som registreringen lovar. Misslyckas det ska godkännandet ändå
   // stå fast; kontot fungerar oavsett om mejlet kom fram.

@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import MinaSidorTabs from "@/components/admin/MinaSidorTabs";
 import { INQUIRIES_PAGE_SIZE, mapInquiryRow } from "@/lib/inquiries";
 import { isPlatformAdmin } from "@/lib/platformAdmin";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { hamtaAdministratorer } from "@/lib/bolagsadmin";
 
 export default async function MinaSidorPage({ searchParams }) {
   const params = await searchParams;
@@ -23,7 +25,7 @@ export default async function MinaSidorPage({ searchParams }) {
 
   const { data: adminRow } = await supabase
     .from("company_admins")
-    .select("company_id, verified")
+    .select("company_id, verified, ar_agare")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -80,6 +82,11 @@ export default async function MinaSidorPage({ searchParams }) {
     .filter((row) => row.inquiries)
     .map(mapInquiryRow);
 
+  // Administratörerna hämtas här och inte i kontofliken: mejladresserna bor i
+  // auth.users och kräver servicerollen, och listan är färdig innan sidan
+  // renderas i stället för efter.
+  const administratorer = await hamtaAdministratorer(createAdminClient(), adminRow.company_id);
+
   return (
     <MinaSidorTabs
       company={company}
@@ -88,6 +95,8 @@ export default async function MinaSidorPage({ searchParams }) {
       premiumStatus={premiumStatus}
       offices={officeRows || []}
       officeStatus={officeStatus}
+      arAgare={Boolean(adminRow.ar_agare)}
+      administratorer={administratorer}
     />
   );
 }
