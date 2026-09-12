@@ -69,9 +69,31 @@ export default function KontoansokanKo({ ansokningar }) {
           <h3 style={{ marginTop: 0, marginBottom: 4 }}>{a.claimed_company_name}</h3>
           <p style={{ fontSize: 13, color: "var(--color-muted)", margin: "0 0 14px" }}>
             {a.claimed_org_number} · {a.claimed_address}
+            {a.created_at ? ` · ansökt ${new Date(a.created_at).toLocaleDateString("sv-SE")}` : ""}
           </p>
 
-          <div className="side-fact"><span className="k">Webbplats</span><span className="v">{a.claimed_website}</span></div>
+          {/* Identiteten först. Ett godkännande ger den här adressen kontrollen
+              över bolagets profil, så granskaren ska kunna ställa mejladress,
+              bolagsnamn och webbplatsdomän mot varandra innan beslutet — inte
+              lita på att kontrollen gjordes vid registreringen. */}
+          <div className="side-fact">
+            <span className="k">Ansökt av</span>
+            <span className="v">
+              {a.epost || <em style={{ color: "var(--color-error)" }}>kontot hittades inte</em>}
+              {a.epost && !a.epostBekraftad && (
+                <span className="ansokan-flagga varning">adressen inte bekräftad</span>
+              )}
+            </span>
+          </div>
+          <div className="side-fact">
+            <span className="k">Webbplats</span>
+            <span className="v">
+              {a.claimed_website}
+              <span className={`ansokan-flagga ${a.domanMatchar ? "ok" : "varning"}`}>
+                {a.domanMatchar ? "domänen matchar mejladressen" : "domänen matchar INTE mejladressen"}
+              </span>
+            </span>
+          </div>
           <div className="side-fact"><span className="k">Yrkesområden</span><span className="v">{a.claimed_focus_areas?.join(", ") || "—"}</span></div>
           <div className="side-fact"><span className="k">Tjänster</span><span className="v">{a.claimed_services?.join(", ") || "—"}</span></div>
 

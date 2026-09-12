@@ -45,10 +45,41 @@ export default async function KontoansokningarPage() {
 
   const perOrgnr = Object.fromEntries(traffar.map((b) => [b.org_number, b]));
 
+  // Vem som ansökt. Mejladressen bor i auth.users och inte i company_admins, så
+  // kön visade tidigare bara bolagsuppgifterna — granskaren kunde godkänna att
+  // någon får kontrollen över en profil utan att se vem det var. Kön är alltid
+  // kort, så ett uppslag per rad kostar ingenting.
+  const konton = await Promise.all(
+    (ansokningar ?? []).map(async (a) => {
+      const { data } = await admin.auth.admin.getUserById(a.user_id);
+      return [a.id, data?.user ?? null];
+    })
+  );
+  const perAnsokan = Object.fromEntries(konton);
+
   const berikade = (ansokningar ?? []).map((a) => {
     const siffror = (a.claimed_org_number || "").replace(/\D/g, "");
     const nyckel = siffror.length === 10 ? `${siffror.slice(0, 6)}-${siffror.slice(6)}` : null;
-    return { ...a, foreslaget: nyckel ? perOrgnr[nyckel] ?? null : null };
+    const konto = perAnsokan[a.id];
+    const epost = konto?.email ?? null;
+
+    // Registreringen kräver att mejldomänen matchar den uppgivna webbplatsen.
+    // Kontrollen görs om här och visas, så att granskaren ser grunden för
+    // beslutet i stället för att lita på att den gjordes vid registreringen.
+    const webbdoman = (a.claimed_website || "")
+      .replace(/^https?:\/\//i, "")
+      .replace(/^www\./i, "")
+      .split("/")[0]
+      .toLowerCase();
+    const epostdoman = (epost || "").split("@")[1]?.toLowerCase() || null;
+
+    return {
+      ...a,
+      foreslaget: nyckel ? perOrgnr[nyckel] ?? null : null,
+      epost,
+      epostBekraftad: Boolean(konto?.email_confirmed_at),
+      domanMatchar: Boolean(epostdoman && webbdoman && epostdoman === webbdoman),
+    };
   });
 
   return (
