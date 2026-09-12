@@ -1,7 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { kontrolleraBild, uploadCompanyImage } from "@/lib/uploadImage";
+import {
+  ersattBeskuren,
+  garAttRamaOm,
+  hamtaOriginalBlob,
+  kontrolleraBild,
+  uploadCompanyImage,
+} from "@/lib/uploadImage";
 import BildBeskarare from "@/components/admin/BildBeskarare";
 
 export const MAX_BILDER = 5;
@@ -15,6 +21,8 @@ export default function BildspelField({ companyId, value = [], onChange }) {
   const [error, setError] = useState("");
   // Filerna köas och placeras en i taget i beskäraren.
   const [ko, setKo] = useState([]);
+  // Bilden som ramas om: index i listan och originalet att beskära ur.
+  const [ramarOm, setRamarOm] = useState(null);
 
   const fullt = value.length >= MAX_BILDER;
 
@@ -60,6 +68,36 @@ export default function BildspelField({ companyId, value = [], onChange }) {
     }
   }
 
+  // Utgår från originalet när det finns, så en omframning inte beskär en redan
+  // beskuren bild. Saknas det duger den beskurna — man kan flytta sig inom den,
+  // bara inte zooma ut förbi det tidigare utsnittet.
+  async function borjaRamaOm(index) {
+    setError("");
+    setStatus("laddar");
+    try {
+      const blob = await hamtaOriginalBlob(value[index]);
+      setRamarOm({ index, blob });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setStatus("idle");
+    }
+  }
+
+  async function sparaOmframning(blob) {
+    const { index } = ramarOm;
+    setStatus("laddar");
+    try {
+      const url = await ersattBeskuren(value[index], blob);
+      onChange(value.map((u, i) => (i === index ? url : u)));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRamarOm(null);
+      setStatus("idle");
+    }
+  }
+
   function taBort(index) {
     onChange(value.filter((_, i) => i !== index));
   }
@@ -96,6 +134,15 @@ export default function BildspelField({ companyId, value = [], onChange }) {
                 aria-label="Flytta bilden bakåt i ordningen"
               >
                 →
+              </button>
+              <button
+                type="button"
+                onClick={() => borjaRamaOm(i)}
+                disabled={!garAttRamaOm(url) || status === "laddar"}
+                aria-label="Beskär om bilden"
+                title="Beskär om"
+              >
+                ⤢
               </button>
               <button type="button" onClick={() => taBort(i)} aria-label="Ta bort bilden">
                 ✕
@@ -137,6 +184,15 @@ export default function BildspelField({ companyId, value = [], onChange }) {
           typ="bildspel"
           onKlar={sparaBeskuren}
           onAvbryt={() => setKo([])}
+        />
+      )}
+
+      {ramarOm && (
+        <BildBeskarare
+          fil={ramarOm.blob}
+          typ="bildspel"
+          onKlar={sparaOmframning}
+          onAvbryt={() => setRamarOm(null)}
         />
       )}
     </div>
