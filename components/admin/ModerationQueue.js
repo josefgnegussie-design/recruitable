@@ -10,6 +10,26 @@ export default function ModerationQueue({ initialQueue }) {
   const [queue, setQueue] = useState(initialQueue);
   const [decidingId, setDecidingId] = useState(null);
   const [errorId, setErrorId] = useState(null);
+  const [kvitto, setKvitto] = useState("");
+
+  // Godkännandet mejlar bolagen, och kortet försvinner i samma ögonblick ur kön.
+  // Utan en kvittorad hade det inte gått att se att de flesta valda bolagen inte
+  // fick något mejl — de allra flesta i registret har ännu inte tagit över sin
+  // profil, och det är en uppgift om verkligheten, inte ett fel.
+  function kvittotext(decision, data) {
+    if (decision !== "approved") return "Förfrågan nekad. Inget bolag har informerats.";
+    const mejlade = data?.mejlade ?? 0;
+    const utan = data?.utanMottagare ?? 0;
+    if (!mejlade) {
+      return utan
+        ? `Godkänd och synlig på Mina sidor. Inget mejl gick ut — inget av de ${utan} valda bolagen har en registrerad profil med kontaktadress.`
+        : "Godkänd och synlig på Mina sidor.";
+    }
+    const bolag = `${mejlade} bolag`;
+    return utan
+      ? `Godkänd. Mejl gick till ${bolag}; ${utan} saknar registrerad profil eller kontaktadress och ser den bara på Mina sidor.`
+      : `Godkänd. Mejl gick till ${bolag}.`;
+  }
 
   async function decide(inquiryId, decision) {
     setDecidingId(inquiryId);
@@ -22,6 +42,8 @@ export default function ModerationQueue({ initialQueue }) {
     });
 
     if (res.ok) {
+      const data = await res.json().catch(() => null);
+      setKvitto(kvittotext(decision, data));
       setQueue((prev) => prev.filter((item) => item.inquiryId !== inquiryId));
     } else {
       setErrorId(inquiryId);
@@ -29,12 +51,22 @@ export default function ModerationQueue({ initialQueue }) {
     setDecidingId(null);
   }
 
+  const kvittoRad = kvitto ? (
+    <p style={{ fontSize: 13, color: "var(--color-body)", margin: "0 0 18px" }}>{kvitto}</p>
+  ) : null;
+
   if (queue.length === 0) {
-    return <p style={{ color: "var(--color-muted)" }}>Inget att granska just nu.</p>;
+    return (
+      <>
+        {kvittoRad}
+        <p style={{ color: "var(--color-muted)" }}>Inget att granska just nu.</p>
+      </>
+    );
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {kvittoRad}
       {queue.map((item) => (
         <div className="auth-panel" key={item.inquiryId}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>

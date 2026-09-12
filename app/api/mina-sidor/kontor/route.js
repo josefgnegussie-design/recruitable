@@ -15,7 +15,7 @@ function text(v, max) {
 // Kontor gick tidigare bara att lägga till, aldrig ändra eller ta bort —
 // OfficesManager höll dem i en useState utan setter. Ett felstavat
 // kontaktmejl gick alltså inte att rätta, trots att det är den adressen som
-// tar emot ortens förfrågningar (se resolveCompanyContact i lib/offices.js).
+// tar emot ortens förfrågningar (se resolveCompanyContacts i lib/offices.js).
 //
 // Skrivningen går via service role och inte via användarens session, trots att
 // /api/profil/grunduppgifter gör tvärtom. Skälet är att offices bär betalstatus:
