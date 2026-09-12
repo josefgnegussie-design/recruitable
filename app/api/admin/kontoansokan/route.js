@@ -67,9 +67,25 @@ export async function POST(request) {
   let bolagId = Number.isInteger(companyId) ? companyId : null;
 
   if (bolagId) {
-    const { data: finns } = await admin.from("companies").select("id").eq("id", bolagId).maybeSingle();
+    const { data: finns } = await admin
+      .from("companies")
+      .select("id, org_number")
+      .eq("id", bolagId)
+      .maybeSingle();
     if (!finns) {
       return NextResponse.json({ error: "Det valda bolaget finns inte." }, { status: 400 });
+    }
+
+    // De importerade bolagen saknar ofta organisationsnummer, och då hittar
+    // matchningen i granskningskön ingenting nästa gång någon söker samma
+    // bolag. Numret kommer från bolaget självt i ansökan, så det fylls i här.
+    // Ett befintligt nummer skrivs aldrig över — skiljer de sig åt är det
+    // något att titta på, inte något att tysta.
+    if (!finns.org_number && ansokan.claimed_org_number) {
+      await admin
+        .from("companies")
+        .update({ org_number: ansokan.claimed_org_number })
+        .eq("id", bolagId);
     }
   } else {
     // Nytt bolag ur ansökan. Id sätts explicit eftersom kolumnen saknar

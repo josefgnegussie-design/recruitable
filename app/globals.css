@@ -801,6 +801,15 @@ a:hover{color:var(--color-accent)}
 }
 
 
+/* ===== Koppla ansökan till befintligt bolag (intern granskning) ===== */
+.koppla-sok summary{font-size:13px;color:var(--color-accent);cursor:pointer;margin-bottom:8px;}
+.koppla-sok summary:hover{color:var(--color-accent-hover);}
+.koppla-sok input{width:100%;max-width:420px;}
+.koppla-traffar{list-style:none;margin:8px 0 0;padding:0;border:1px solid var(--color-hairline);border-radius:var(--radius-md);max-width:420px;overflow:hidden;}
+.koppla-traffar li + li{border-top:1px solid var(--color-hairline-soft);}
+.koppla-traffar button{display:block;width:100%;text-align:left;background:none;border:none;padding:9px 12px;cursor:pointer;}
+.koppla-traffar button:hover{background:var(--color-surface-soft);}
+
 /* ===== Kontorsfliken (Mina sidor) ===== */
 /* "Ta bort kontoret" ligger sist i knappraden och är avsiktligt en länk och
    inte en knapp — den ska gå att hitta men inte se ut som ett jämbördigt val

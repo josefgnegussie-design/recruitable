@@ -10,6 +10,31 @@ export default function KontoansokanKo({ ansokningar }) {
   const [arbetar, setArbetar] = useState(null);
   const [fel, setFel] = useState("");
 
+  // Manuellt valt bolag per ansökan, för när matchningen på organisationsnummer
+  // inte gav något. Tusentals importerade bolag saknar numret, och utan den här
+  // vägen skapar ett godkännande ett dubblettbolag bredvid den profil som redan
+  // finns — med vision, beskrivning och orter — som då blir kvar oövertagen.
+  const [valt, setValt] = useState({});
+  const [traffar, setTraffar] = useState({});
+  const [soker, setSoker] = useState(null);
+
+  async function sok(ansokanId, fraga) {
+    if (fraga.trim().length < 2) {
+      setTraffar((t) => ({ ...t, [ansokanId]: null }));
+      return;
+    }
+    setSoker(ansokanId);
+    try {
+      const res = await fetch(`/api/admin/bolag-sok?q=${encodeURIComponent(fraga)}`);
+      const body = await res.json();
+      setTraffar((t) => ({ ...t, [ansokanId]: res.ok ? body.traffar || [] : [] }));
+    } catch {
+      setTraffar((t) => ({ ...t, [ansokanId]: [] }));
+    } finally {
+      setSoker(null);
+    }
+  }
+
   async function besluta(ansokan, beslut, companyId) {
     setArbetar(ansokan.id);
     setFel("");
@@ -51,29 +76,85 @@ export default function KontoansokanKo({ ansokningar }) {
           <div className="side-fact"><span className="k">Tjänster</span><span className="v">{a.claimed_services?.join(", ") || "—"}</span></div>
 
           <div style={{ marginTop: 16 }}>
-            {a.foreslaget ? (
-              <p style={{ fontSize: 13.5, margin: "0 0 12px" }}>
-                Matchar <strong>{a.foreslaget.name}</strong> i registret ({a.foreslaget.city}, id{" "}
-                {a.foreslaget.id}) på organisationsnummer.
-              </p>
-            ) : (
-              <p style={{ fontSize: 13.5, margin: "0 0 12px", color: "var(--color-muted)" }}>
-                Inget bolag i registret har det här organisationsnumret. Godkänner du skapas bolaget
-                ur ansökans uppgifter.
-              </p>
-            )}
+            {(() => {
+              const bolag = valt[a.id] ?? a.foreslaget;
+              return (
+                <>
+                  {bolag ? (
+                    <p style={{ fontSize: 13.5, margin: "0 0 12px" }}>
+                      {valt[a.id] ? "Valt bolag: " : "Matchar "}
+                      <strong>{bolag.name}</strong> ({bolag.city}, id {bolag.id})
+                      {valt[a.id] ? "" : " på organisationsnummer"}.
+                      {valt[a.id] && (
+                        <>
+                          {" "}
+                          <button
+                            type="button"
+                            className="link-btn"
+                            onClick={() => setValt((v) => ({ ...v, [a.id]: undefined }))}
+                          >
+                            Ångra valet
+                          </button>
+                        </>
+                      )}
+                    </p>
+                  ) : (
+                    <p style={{ fontSize: 13.5, margin: "0 0 12px", color: "var(--color-muted)" }}>
+                      Inget bolag i registret har det här organisationsnumret. Godkänner du utan att
+                      välja nedan skapas bolaget ur ansökans uppgifter.
+                    </p>
+                  )}
 
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  {/* Sökningen står kvar även när org.numret matchat — matchningen
+                      kan peka på fel rad, och då ska den gå att styra om. */}
+                  <details className="koppla-sok" open={!bolag}>
+                    <summary>Bolaget finns redan — sök och koppla dit</summary>
+                    <input
+                      type="text"
+                      placeholder="Namn eller organisationsnummer"
+                      onChange={(e) => sok(a.id, e.target.value)}
+                      aria-label="Sök bolag i registret"
+                    />
+                    {soker === a.id && <p className="note">Söker…</p>}
+                    {traffar[a.id]?.length === 0 && soker !== a.id && (
+                      <p className="note">Inga träffar i registret.</p>
+                    )}
+                    {traffar[a.id]?.length > 0 && (
+                      <ul className="koppla-traffar">
+                        {traffar[a.id].map((b) => (
+                          <li key={b.id}>
+                            <button
+                              type="button"
+                              onClick={() => setValt((v) => ({ ...v, [a.id]: b }))}
+                            >
+                              <span className="lookup-name">{b.name}</span>
+                              <span className="lookup-meta">
+                                {[b.city, b.org_number || "utan org.nummer", `id ${b.id}`]
+                                  .filter(Boolean)
+                                  .join(" · ")}
+                                {b.claimed ? " · redan övertaget" : ""}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </details>
+                </>
+              );
+            })()}
+
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 14 }}>
               <button
                 className="qs-btn"
                 style={{ width: "auto", padding: "11px 20px" }}
                 disabled={arbetar === a.id}
-                onClick={() => besluta(a, "godkann", a.foreslaget?.id)}
+                onClick={() => besluta(a, "godkann", (valt[a.id] ?? a.foreslaget)?.id)}
               >
                 {arbetar === a.id
                   ? "Arbetar..."
-                  : a.foreslaget
-                    ? `Godkänn och koppla till ${a.foreslaget.name}`
+                  : (valt[a.id] ?? a.foreslaget)
+                    ? `Godkänn och koppla till ${(valt[a.id] ?? a.foreslaget).name}`
                     : "Godkänn och skapa bolaget"}
               </button>
               <button
