@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { beskarTillBlob, laddaBild, MALMATT } from "@/lib/bildbearbetning";
+import { beskarTillBlob, laddaBild, ritaUtsnitt, MALMATT } from "@/lib/bildbearbetning";
 
 // Beskärningsruta: dra för att placera, reglage för att zooma.
 //
@@ -13,7 +13,7 @@ import { beskarTillBlob, laddaBild, MALMATT } from "@/lib/bildbearbetning";
 //
 // Zoomen räknas som hur stor del av bilden som syns. Reglagets nedre ände är
 // den punkt där HELA bilden får plats i ramen — är bilden bredare än formatet
-// blir det tomma kanter ovanför och under, och det är avsiktligt. En logotyp
+// blir det vita kanter ovanför och under, och det är avsiktligt. En logotyp
 // måste kunna visas hel, och tvingande beskärning var just det som gjorde att
 // bolaget inte fick in sin bild som det ville.
 export default function BildBeskarare({ fil, typ = "bildspel", onKlar, onAvbryt }) {
@@ -87,17 +87,10 @@ export default function BildBeskarare({ fil, typ = "bildspel", onKlar, onAvbryt 
       utBredd >= bredd ? bredd / 2 : Math.min(Math.max(mitt.x * bredd, halvB), bredd - halvB);
     const cy = utHojd >= hojd ? hojd / 2 : Math.min(Math.max(mitt.y * hojd, halvH), hojd - halvH);
 
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(
+    ritaUtsnitt(
+      canvas.getContext("2d"),
       bild,
-      cx - halvB,
-      cy - halvH,
-      utBredd,
-      utHojd,
-      0,
-      0,
+      { x: cx - halvB, y: cy - halvH, bredd: utBredd, hojd: utHojd },
       canvas.width,
       canvas.height
     );
@@ -149,7 +142,7 @@ export default function BildBeskarare({ fil, typ = "bildspel", onKlar, onAvbryt 
         <p className="sub">
           Dra för att flytta och använd reglaget för att zooma. Det som syns i rutan är det som
           sparas — {typ === "logo" ? "kvadratiskt" : "i formatet 3:2"}. Zoomar du ut förbi bildens
-          kant blir kanterna tomma.
+          kant blir kanterna vita.
         </p>
 
         {fel && <p style={{ color: "var(--color-error)", fontSize: 13 }}>{fel}</p>}
