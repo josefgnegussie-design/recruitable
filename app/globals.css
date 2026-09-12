@@ -878,9 +878,15 @@ a:hover{color:var(--color-accent)}
 .confirm-modal.beskarare{max-width:520px;}
 /* Bilden ligger som bakgrund och positioneras med background-size/position, så
    att ramen alltid är helt fylld oavsett zoom. */
-.beskarare-ram{aspect-ratio:3/2;width:100%;border-radius:var(--radius-md);background-color:var(--color-hairline-soft);background-repeat:no-repeat;cursor:grab;user-select:none;touch-action:none;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.beskarare-ram.kvadrat{aspect-ratio:1;max-width:280px;margin:0 auto;border-radius:50%;}
-.beskarare-ram:active{cursor:grabbing;}
+/* Rutan innehåller en canvas som ritas med samma anrop som exporten — det
+   som syns är det som sparas. Rutig botten så att tomma kanter syns som
+   genomskinliga och inte som vit färg i bilden. */
+.beskarare-ram{position:relative;width:100%;border-radius:var(--radius-md);overflow:hidden;background-color:#fff;background-image:linear-gradient(45deg,#eceae5 25%,transparent 25%),linear-gradient(-45deg,#eceae5 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#eceae5 75%),linear-gradient(-45deg,transparent 75%,#eceae5 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;display:flex;align-items:center;justify-content:center;}
+.beskarare-ram canvas{display:block;width:100%;height:auto;user-select:none;touch-action:none;}
+.beskarare-ram canvas.dragbar{cursor:grab;}
+.beskarare-ram canvas.dragbar:active{cursor:grabbing;}
+.beskarare-ram.kvadrat{max-width:280px;margin:0 auto;border-radius:50%;}
+.beskarare-vantar{position:absolute;}
 .beskarare-zoom{display:flex;align-items:center;gap:12px;margin:16px 0 20px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--color-muted);}
 .beskarare-zoom input{flex:1;}
 
