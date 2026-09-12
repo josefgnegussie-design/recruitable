@@ -4,6 +4,7 @@ import { hamtaBolagMedId, hamtaBolagMedSlug } from "@/lib/companiesRepo";
 import { arId } from "@/lib/slug";
 import { betyg } from "@/components/CompanyFacts";
 import Bildspel from "@/components/Bildspel";
+import Faktalista from "@/components/Faktalista";
 
 export const revalidate = 300;
 
@@ -140,15 +141,35 @@ export default async function ProfilePage({ params }) {
           <div>
             <div className="panel">
               <h3>Snabbfakta</h3>
-              <div className="side-fact"><span className="k">Orter</span><span className="v">{c.officeCities?.length ? c.officeCities.join(", ") : c.address}</span></div>
-              <div className="side-fact"><span className="k">Fokusområden</span><span className="v">{c.focus.length ? c.focus.join(", ") : "Ej specificerat"}</span></div>
-              <div className="side-fact"><span className="k">Tjänster</span><span className="v">{c.services.length ? c.services.join(", ") : "Ej specificerat"}</span></div>
+              {/* Etiketten står ovanför värdet och inte bredvid det: högerställd
+                  text i en smal spalt bröt varje lista i en ojämn trappa, och
+                  panelen blev sidans längsta stycke i stället för dess snabbaste.
+                  Faktalista visar fem värden och lägger resten bakom en knapp. */}
+              <div className="side-fact staplad">
+                <span className="k">Orter</span>
+                {c.officeCities?.length ? (
+                  <Faktalista varden={c.officeCities} />
+                ) : (
+                  <span className="v">{c.address}</span>
+                )}
+              </div>
+              <div className="side-fact staplad">
+                <span className="k">Fokusområden</span>
+                {c.focus.length ? <Faktalista varden={c.focus} /> : <span className="v">Ej specificerat</span>}
+              </div>
+              <div className="side-fact staplad">
+                <span className="k">Tjänster</span>
+                {c.services.length ? <Faktalista varden={c.services} /> : <span className="v">Ej specificerat</span>}
+              </div>
               {/* Rollerna anges av bolaget självt och finns bara på övertagna
                   profiler — därför tyst utelämnade i stället för "Ej specificerat",
                   som här skulle läsas som att bolaget svarat att de inte rekryterar
                   något. */}
               {c.recruitingRoles?.length > 0 && (
-                <div className="side-fact"><span className="k">Yrkesroller</span><span className="v">{c.recruitingRoles.join(", ")}</span></div>
+                <div className="side-fact staplad">
+                  <span className="k">Yrkesroller</span>
+                  <Faktalista varden={c.recruitingRoles} />
+                </div>
               )}
               {/* Notisen måste säga sanningen om just den här profilen. Den
                   ursprungliga texten lovade att bolagets webbplats kontrollerats,
