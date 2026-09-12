@@ -418,8 +418,6 @@ a:hover{color:var(--color-accent)}
   .back-link{max-width:1180px;margin:20px auto 0;padding:0 24px;font-family:var(--font-mono);font-size:12px;color:var(--color-body);cursor:pointer;display:flex;align-items:center;gap:6px;}
   .back-link:hover{color:var(--color-ink);}
   .profile-wrap{max-width:1180px;margin:0 auto;padding:20px 24px 80px;}
-  /* contain och inte cover: en bred logotyp fick sina sidor bortklippta av
-     cirkeln, medan samma logotyp visades hel på sökkortet. */
   /* Rundad kvadrat och inte en cirkel: logotyperna sparas kvadratiska, och en
      cirkelmask åt av hörnen på just de märken som fyller sin ruta. Större än
      förut (56 px) — profilsidan är platsen där bolaget ska gå att känna igen,
@@ -427,26 +425,40 @@ a:hover{color:var(--color-accent)}
   .profile-logo{width:76px;height:76px;border-radius:var(--radius-md);object-fit:contain;background:var(--color-surface-card);padding:5px;flex-shrink:0;border:1px solid var(--color-hairline);}
 
 
-  .profile-head{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:32px;display:grid;grid-template-columns:1fr auto;gap:20px;margin-bottom:24px;}
+  /* Luften mellan blocken var tidigare 24 px hela vägen ner, ovanpå panelernas
+     egna 24 px i kantavstånd — sidan lästes som sex lösa rutor med hål emellan i
+     stället för som en profil. 18 px binder ihop dem utan att klämma. */
+  .profile-head{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:26px 28px;display:grid;grid-template-columns:1fr auto;gap:20px;margin-bottom:18px;}
+  .profile-ident{display:flex;align-items:center;gap:16px;min-width:0;}
   .profile-head h2{font-family:var(--font-display);font-size:var(--text-display-sm-size);margin:0 0 6px;font-weight:600;color:var(--color-ink);}
   .profile-head .sub{font-family:var(--font-mono);font-size:12.5px;color:var(--color-muted);}
   .profile-head .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
   .profile-actions{display:flex;flex-direction:column;gap:10px;justify-content:center;}
   .profile-actions .btn{padding:12px 26px;flex:none;}
-  .spec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--color-hairline);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px;}
+  .spec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--color-hairline);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:18px;}
   .spec-cell{background:var(--color-surface-card);padding:18px 20px;}
   .spec-cell .k{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--color-muted);margin-bottom:6px;}
   .spec-cell .v{font-size:15px;font-weight:600;color:var(--color-ink);}
   .spec-cell .y{font-family:var(--font-mono);font-size:10px;color:var(--color-muted);margin-top:3px;}
-  .profile-body{display:grid;grid-template-columns:2fr 1fr;gap:24px;}
-  .panel{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:24px;margin-bottom:20px;}
+  .profile-body{display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start;}
+  .panel{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:24px;margin-bottom:18px;}
+  .panel:last-child{margin-bottom:0;}
   /* Bildpanelen är en ram runt bilden, inte ett textstycke: knapp marginal, och
      prickarna får luft under sig utan att bilden krymper. Halva spaltbredden —
      i full bredd blev bilden en halv skärm hög och sköt ner texten under sig,
      vilket var precis det problem flytten uppåt skulle lösa. */
   .panel-bilder{padding:10px 10px 4px;max-width:370px;}
+  /* Bild och vision delar rad. Lika höga rutor, med citatet centrerat i sin —
+     en kort vision högst upp i en hög ruta ser ut som ett misstag, inte som en
+     komposition. Marginalen tas av raden, inte av rutorna, så att gapet under
+     blir detsamma som mellan panelerna nedanför. */
+  .profil-inledning.delad{display:grid;grid-template-columns:minmax(0,370px) minmax(0,1fr);gap:20px;align-items:stretch;}
+  .profil-inledning.delad > .panel{margin-bottom:18px;}
+  .profil-inledning.delad .panel-vision{display:flex;flex-direction:column;justify-content:center;}
   .panel h3{font-family:var(--font-display);font-size:var(--text-title-lg-size);margin:0 0 12px;font-weight:600;color:var(--color-ink);}
-  .panel p{color:var(--color-body);font-size:14px;}
+  /* Radlängd, inte spaltbredd, avgör om en text går att läsa: i full spalt blev
+     raderna närmare hundra tecken och ögat tappade bort radbytet. */
+  .panel p{color:var(--color-body);font-size:14.5px;line-height:1.65;max-width:72ch;}
   .panel .vision-quote{font-style:italic;border-left:3px solid var(--color-accent);padding-left:14px;font-size:15px;color:var(--color-ink);}
   .side-fact{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--color-hairline-soft);font-size:13.5px;gap:10px;}
   .side-fact:last-child{border-bottom:none;}
@@ -734,6 +746,13 @@ a:hover{color:var(--color-accent)}
     .spec-grid{grid-template-columns:repeat(2,1fr);}
     .profile-head{grid-template-columns:1fr;}
     .profile-body{grid-template-columns:1fr;}
+    /* En spalt: bild över vision, som förut. Sida vid sida skulle ge två
+       frimärken bredvid varandra. */
+    .profil-inledning.delad{display:block;}
+    /* Logotypen mot överkanten: på en smal skärm radar taggarna upp sig på
+       höjden, och en lodrätt centrerad logotyp hamnade svävande mitt i kortet
+       i stället för intill namnet den hör till. */
+    .profile-ident{align-items:flex-start;}
   }
 
 /* ===== Coming soon ===== */
@@ -895,9 +914,11 @@ a:hover{color:var(--color-accent)}
 }
 
 /* ===== Adresser på bolagsprofilen ===== */
-.adress-post{padding:10px 0;border-bottom:1px solid var(--color-hairline-soft);}
-.adress-post:last-child{border-bottom:none;padding-bottom:0;}
-.adress-post:first-child{padding-top:0;}
+/* Kontoren sida vid sida, så många som får plats på raden. Varje ruta bär sin
+   egen vänsterlinje i stället för en delande linje mellan raderna — i ett
+   rutnät hör en vågrät skiljelinje inte till någon av rutorna. */
+.adress-rutnat{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px 20px;}
+.adress-post{padding:2px 0 2px 12px;border-left:2px solid var(--color-hairline);}
 .adress-ort{display:block;font-weight:600;font-size:14px;color:var(--color-ink);}
 .adress-gata{display:block;font-size:13px;color:var(--color-muted);}
 

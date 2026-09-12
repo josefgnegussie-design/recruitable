@@ -57,7 +57,7 @@ export default async function ProfilePage({ params }) {
       )}
       <div className="profile-wrap">
         <div className="profile-head">
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div className="profile-ident">
             {c.logo && <img src={c.logo} alt="" className="profile-logo" />}
             <div>
               <h2>{c.name}</h2>
@@ -104,23 +104,26 @@ export default async function ProfilePage({ params }) {
             hål. Då används en spalt i stället för två. */}
         <div className={`profile-body${harText ? "" : " single"}`}>
           <div>
-            {/* Bilderna stod tidigare sist i spalten, efter all text, och syntes
-                först efter en rejäl skrollning — ett bolag som lagt tid på sina
-                bilder fick dem undanstoppade. Nu inleder de spalten: den som
-                klickat sig in på en profil vill se bolaget, och texten står kvar
-                direkt under. Panelen är avsiktligt utan rubrik — en bild
-                behöver ingen etikett som säger att den är en bild. */}
-            {c.slideshow?.length > 0 && (
-              <div className="panel panel-bilder">
-                <Bildspel bilder={c.slideshow} namn={c.name} />
-              </div>
-            )}
-            {c.vision && (
-              <div className="panel">
-                <h3>Vision</h3>
-                <p className="vision-quote">&ldquo;{c.vision}&rdquo;</p>
-              </div>
-            )}
+            {/* Bild och vision står bredvid varandra när båda finns. Bilden är
+                halv spaltbredd, och ensam på sin rad lämnade den ett lika stort
+                hål bredvid sig — visionen är kort nog att fylla det och hör
+                ändå ihop med bilden som bolagets egen presentation. Saknas den
+                ena faller den andra tillbaka på full bredd. Bildpanelen är
+                avsiktligt utan rubrik: en bild behöver ingen etikett som säger
+                att den är en bild. */}
+            <div className={`profil-inledning${c.slideshow?.length && c.vision ? " delad" : ""}`}>
+              {c.slideshow?.length > 0 && (
+                <div className="panel panel-bilder">
+                  <Bildspel bilder={c.slideshow} namn={c.name} />
+                </div>
+              )}
+              {c.vision && (
+                <div className="panel panel-vision">
+                  <h3>Vision</h3>
+                  <p className="vision-quote">&ldquo;{c.vision}&rdquo;</p>
+                </div>
+              )}
+            </div>
             {c.desc && (
               <div className="panel">
                 <h3>Om bolaget</h3>
@@ -135,6 +138,38 @@ export default async function ProfilePage({ params }) {
                 <h3>Verksamhet</h3>
                 <p>{c.verksamhetsbeskrivning}</p>
                 <p className="note">Enligt bolagsordningen, registrerad hos Bolagsverket.</p>
+              </div>
+            )}
+
+            {/* Adresserna bolaget självt lagt in. Den äldre fritextkolumnen
+                companies.address finns kvar för de tusentals profiler som
+                hämtats ur register — där ligger flera adresser hopklämda i en
+                sträng åtskilda med semikolon. Har bolaget tagit över profilen
+                och lagt in strukturerade adresser visas de i stället.
+
+                Kontoren står i den breda spalten och inte i sidokolumnen: som en
+                lodrät lista av fyra orter i en smal spalt blev de en trehundra
+                pixlar hög stapel, samtidigt som textspalten tog slut långt före
+                sidokolumnen och lämnade ett stort tomrum. Bredvid varandra fyller
+                de raden och väger upp sidan. */}
+            {c.addresses?.length > 0 && (
+              <div className="panel">
+                <h3>Kontor</h3>
+                <div className="adress-rutnat">
+                  {c.addresses.map((a, i) => (
+                    // Gata och postnummer på en rad. Orten stod tidigare två
+                    // gånger — som rubrik och en gång till efter postnumret —
+                    // och varje kontor tog tre rader av mest upprepning.
+                    <div className="adress-post" key={`${a.city}-${i}`}>
+                      <span className="adress-ort">{a.city}</span>
+                      {(a.street || a.postal_code) && (
+                        <span className="adress-gata">
+                          {[a.street, a.postal_code].filter(Boolean).join(" · ")}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -193,28 +228,6 @@ export default async function ProfilePage({ params }) {
                 </div>
               )}
             </div>
-
-            {/* Adresserna bolaget självt lagt in. Den äldre fritextkolumnen
-                companies.address finns kvar för de tusentals profiler som
-                hämtats ur register — där ligger flera adresser hopklämda i en
-                sträng åtskilda med semikolon. Har bolaget tagit över profilen
-                och lagt in strukturerade adresser visas de i stället. */}
-            {c.addresses?.length > 0 && (
-              <div className="panel">
-                <h3>Adresser</h3>
-                {c.addresses.map((a, i) => (
-                  <div className="adress-post" key={`${a.city}-${i}`}>
-                    <span className="adress-ort">{a.city}</span>
-                    {a.street && <span className="adress-gata">{a.street}</span>}
-                    {a.postal_code && (
-                      <span className="adress-gata">
-                        {a.postal_code} {a.city}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
 
             {/* Undersökningarna låg tidigare i premiumavsnittet, och dessutom
                 inuti villkoret för mission/historia/erfarenhet — ett bolag som
