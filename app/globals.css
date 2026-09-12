@@ -437,7 +437,10 @@ a:hover{color:var(--color-accent)}
   .side-fact{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--color-hairline-soft);font-size:13.5px;gap:10px;}
   .side-fact:last-child{border-bottom:none;}
   .side-fact .k{color:var(--color-muted);}
-  .side-fact .v{font-weight:600;font-family:var(--font-mono);font-size:13px;text-align:right;}
+  /* min-width:0 och overflow-wrap: värdet kan vara en mejladress eller en
+     lång adress utan mellanslag, och utan det här håller den uppe sin egen
+     bredd och trycker ut raden genom kanten — hela sidan får vågrät scroll. */
+  .side-fact .v{font-weight:600;font-family:var(--font-mono);font-size:13px;text-align:right;min-width:0;overflow-wrap:anywhere;}
   .note{font-family:var(--font-mono);font-size:11px;color:var(--color-muted);margin-top:6px;}
 
   .empty-note{font-size:13px;color:var(--color-muted);padding:60px 0;text-align:center;}

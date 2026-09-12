@@ -35,14 +35,45 @@ export default function KontoansokanKo({ ansokningar }) {
     }
   }
 
-  async function besluta(ansokan, beslut, companyId) {
+  // Inget beslut verkställs direkt. Ett godkännande ger någon kontrollen över en
+  // bolagsprofil, "skapa bolaget" lägger dessutom in en ny rad i registret, och
+  // ett avslag raderar ansökan — inget av det går att ångra med en knapp.
+  const [bekraftar, setBekraftar] = useState(null);
+  const [liknande, setLiknande] = useState(null);
+
+  async function oppnaBekraftelse(ansokan, beslut, bolag) {
+    setBekraftar({ ansokan, beslut, bolag: bolag ?? null });
+    setLiknande(null);
+    setFel("");
+
+    // Ska ett nytt bolag skapas är dubbletten den verkliga risken. Registret
+    // slås upp på namnet, så granskaren ser om det redan finns något som liknar
+    // innan raden läggs till.
+    if (beslut === "godkann" && !bolag) {
+      try {
+        const res = await fetch(
+          `/api/admin/bolag-sok?q=${encodeURIComponent(ansokan.claimed_company_name || "")}`
+        );
+        const body = await res.json();
+        // "misslyckades" och inte en tom lista: ett fel som visas som "inget
+        // liknande bolag finns" vore osant och skulle uppmuntra just den
+        // dubblett kontrollen finns för att förhindra.
+        setLiknande(res.ok ? body.traffar || [] : "misslyckades");
+      } catch {
+        setLiknande("misslyckades");
+      }
+    }
+  }
+
+  async function besluta() {
+    const { ansokan, beslut, bolag } = bekraftar;
     setArbetar(ansokan.id);
     setFel("");
 
     const res = await fetch("/api/admin/kontoansokan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ansokanId: ansokan.id, beslut, companyId: companyId ?? null }),
+      body: JSON.stringify({ ansokanId: ansokan.id, beslut, companyId: bolag?.id ?? null }),
     });
 
     setArbetar(null);
@@ -50,9 +81,11 @@ export default function KontoansokanKo({ ansokningar }) {
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       setFel(body.error || "Något gick fel. Försök igen.");
+      setBekraftar(null);
       return;
     }
 
+    setBekraftar(null);
     setKvar((prev) => prev.filter((a) => a.id !== ansokan.id));
   }
 
@@ -171,7 +204,7 @@ export default function KontoansokanKo({ ansokningar }) {
                 className="qs-btn"
                 style={{ width: "auto", padding: "11px 20px" }}
                 disabled={arbetar === a.id}
-                onClick={() => besluta(a, "godkann", (valt[a.id] ?? a.foreslaget)?.id)}
+                onClick={() => oppnaBekraftelse(a, "godkann", valt[a.id] ?? a.foreslaget)}
               >
                 {arbetar === a.id
                   ? "Arbetar..."
@@ -183,7 +216,7 @@ export default function KontoansokanKo({ ansokningar }) {
                 className="btn btn-ghost"
                 style={{ flex: "none", padding: "11px 20px" }}
                 disabled={arbetar === a.id}
-                onClick={() => besluta(a, "avsla")}
+                onClick={() => oppnaBekraftelse(a, "avsla")}
               >
                 Avslå
               </button>
@@ -191,6 +224,108 @@ export default function KontoansokanKo({ ansokningar }) {
           </div>
         </div>
       ))}
+
+      {bekraftar && (
+        <div
+          className="confirm-overlay"
+          onClick={() => arbetar === null && setBekraftar(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            {bekraftar.beslut === "avsla" ? (
+              <>
+                <h3>Avslå ansökan?</h3>
+                <p className="sub">
+                  Ansökan från <strong>{bekraftar.ansokan.epost}</strong> för{" "}
+                  {bekraftar.ansokan.claimed_company_name} tas bort ur kön. Kontot finns kvar men
+                  kommer inte in på Mina sidor, och vill de försöka igen får de ansöka på nytt.
+                </p>
+              </>
+            ) : bekraftar.bolag ? (
+              <>
+                <h3>Koppla till {bekraftar.bolag.name}?</h3>
+                <p className="sub">Det här händer när du bekräftar:</p>
+                <ul className="confirm-company-list">
+                  <li>
+                    <strong>{bekraftar.ansokan.epost}</strong> får redigera profilen för{" "}
+                    {bekraftar.bolag.name} (id {bekraftar.bolag.id})
+                  </li>
+                  <li>Profilen markeras som övertagen — &quot;Ta över profilen&quot; försvinner</li>
+                  {!bekraftar.bolag.org_number && bekraftar.ansokan.claimed_org_number && (
+                    <li>
+                      Organisationsnumret {bekraftar.ansokan.claimed_org_number} fylls i på bolaget,
+                      som saknar det i dag
+                    </li>
+                  )}
+                  <li>Ett besked om att kontot godkänts skickas till {bekraftar.ansokan.epost}</li>
+                </ul>
+                {bekraftar.bolag.claimed && (
+                  <p className="sub" style={{ color: "var(--color-error)" }}>
+                    Obs: bolaget är redan övertaget av någon annan. Kopplar du hit får båda kontona
+                    tillgång till samma profil.
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <h3>Skapa ett nytt bolag?</h3>
+                <p className="sub">
+                  Ingen koppling är vald, så <strong>{bekraftar.ansokan.claimed_company_name}</strong>{" "}
+                  läggs till som en ny rad i registret ur ansökans uppgifter.
+                </p>
+                {liknande === null ? (
+                  <p className="note">Söker efter liknande bolag i registret…</p>
+                ) : liknande === "misslyckades" ? (
+                  <p className="sub" style={{ color: "var(--color-error)" }}>
+                    Kunde inte söka efter liknande bolag. Kontrollera i registret för hand innan du
+                    skapar ett nytt — annars riskerar du en dubblett.
+                  </p>
+                ) : liknande.length > 0 ? (
+                  <>
+                    <p className="sub" style={{ color: "var(--color-error)" }}>
+                      Registret innehåller redan {liknande.length} bolag med liknande namn. Är något
+                      av dem samma bolag blir det här en dubblett — stäng och koppla dit i stället.
+                    </p>
+                    <ul className="confirm-company-list">
+                      {liknande.slice(0, 5).map((b) => (
+                        <li key={b.id}>
+                          {b.name} · {b.city} · id {b.id}
+                          {b.org_number ? ` · ${b.org_number}` : " · utan org.nummer"}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="note">Inget liknande bolag finns i registret.</p>
+                )}
+              </>
+            )}
+
+            {fel && <p style={{ color: "#c0392b", fontSize: 13, marginBottom: 12 }}>{fel}</p>}
+
+            <div className="confirm-actions">
+              <button
+                className="btn btn-ghost"
+                type="button"
+                disabled={arbetar !== null}
+                onClick={() => setBekraftar(null)}
+              >
+                Avbryt
+              </button>
+              <button className="qs-btn" type="button" disabled={arbetar !== null} onClick={besluta}>
+                {arbetar !== null
+                  ? "Arbetar..."
+                  : bekraftar.beslut === "avsla"
+                    ? "Bekräfta avslag"
+                    : bekraftar.bolag
+                      ? "Bekräfta koppling"
+                      : "Bekräfta och skapa"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
