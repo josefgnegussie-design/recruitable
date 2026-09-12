@@ -73,23 +73,43 @@ async function main() {
     return;
   }
 
-  // En rad i taget vore tusentals anrop. PostgREST kan uppdatera flera rader i
-  // ett anrop via upsert, så länge primärnyckeln följer med.
-  const STORLEK = 500;
+  // PATCH per rad, inte upsert. Ett tidigare försök skickade {id, slug} som en
+  // upsert med resolution=merge-duplicates — PostgREST behandlar det som ett
+  // INSERT, och alla kolumner som inte följde med hade satts till null. Det
+  // stoppades bara av not null-villkoret på companies.name. En upsert är rätt
+  // verktyg när hela raden skickas med; för att röra ett enda fält är det fel
+  // och farligt.
+  //
+  // Varje rad har sin egen slug, så det blir ett anrop per bolag. Några åt
+  // gången i stället för ett i taget, annars tar det minuter.
+  const SAMTIDIGT = 10;
   let skrivna = 0;
-  for (let i = 0; i < attSkriva.length; i += STORLEK) {
-    const grupp = attSkriva.slice(i, i + STORLEK).map((r) => ({ id: r.id, slug: r.slug }));
-    const res = await fetch(`${url}/rest/v1/companies?on_conflict=id`, {
-      method: "POST",
-      headers: { ...h, Prefer: "resolution=merge-duplicates,return=minimal" },
-      body: JSON.stringify(grupp),
-    });
-    if (!res.ok) throw new Error(`Skrivningen misslyckades vid rad ${i}: ${res.status} ${await res.text()}`);
-    skrivna += grupp.length;
-    console.log(`  skrivet ${skrivna}/${attSkriva.length}`);
+  let fel = 0;
+
+  for (let i = 0; i < attSkriva.length; i += SAMTIDIGT) {
+    const grupp = attSkriva.slice(i, i + SAMTIDIGT);
+    const svar = await Promise.all(
+      grupp.map((r) =>
+        fetch(`${url}/rest/v1/companies?id=eq.${r.id}`, {
+          method: "PATCH",
+          headers: { ...h, Prefer: "return=minimal" },
+          body: JSON.stringify({ slug: r.slug }),
+        }).then(async (res) => ({ r, ok: res.ok, text: res.ok ? "" : await res.text() }))
+      )
+    );
+
+    for (const s of svar) {
+      if (s.ok) skrivna++;
+      else {
+        fel++;
+        console.error(`  bolag ${s.r.id} (${s.r.slug}): ${s.text.slice(0, 120)}`);
+      }
+    }
+
+    if (skrivna % 500 < SAMTIDIGT) console.log(`  skrivet ${skrivna}/${attSkriva.length}`);
   }
 
-  console.log("Klart.");
+  console.log(`Klart. ${skrivna} skrivna, ${fel} fel.`);
 }
 
 main().catch((err) => {
