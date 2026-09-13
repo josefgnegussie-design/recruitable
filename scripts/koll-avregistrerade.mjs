@@ -171,25 +171,45 @@ async function sparaResultat(rader) {
   // BOM, annars öppnar Excel svenska tecken fel.
   await writeFile(UT_CSV, `﻿${csv}`, "utf-8");
 
-  const satser = Object.values(rader)
+  // EN sats och inte en per bolag. Ett svep över registret ger tusentals rader,
+  // och lika många separata update-satser blir en fil på nära en halv megabyte
+  // som ska klistras in i en webbeditor — långsam att köra och lätt att klippa
+  // av på mitten. Med en values-lista körs allt i en transaktion: antingen tog
+  // hela registerläget, eller ingenting.
+  const varden = Object.values(rader)
     .filter((r) => r.status === "ok")
     .map(
       (r) =>
-        `update companies set bolagsverket_checked_at = now(), deregistered_at = ${
-          r.avregistreringsdatum ? `'${r.avregistreringsdatum}'` : "null"
-        }, bolagsverket_active = ${r.aktiv === null ? "null" : r.aktiv} where id = ${r.id};`
+        `  (${r.id}, ${r.avregistreringsdatum ? `'${r.avregistreringsdatum}'` : "null"}, ${
+          r.aktiv === null ? "null" : r.aktiv
+        })`
     );
 
   const sql = `-- Registerläget hos Bolagsverket, hämtat av scripts/koll-avregistrerade.mjs.
 -- Genererad ${new Date().toISOString().slice(0, 10)}. Kör i Supabase SQL Editor.
 --
--- Skriver bara UPPGIFTER: när bolaget kontrollerades, och avregistreringsdatum
--- där det finns ett. Ingenting döljs — vad som ska hända med korten avgörs på
--- /admin/sammanslagningar, där varje avregistrerat bolag dyker upp som ett ärende.
+-- Skriver bara UPPGIFTER: när bolaget kontrollerades, om det är verksamt, och
+-- avregistreringsdatum där det finns ett. Ingenting döljs — vad som ska hända
+-- med korten avgörs på /admin/sammanslagningar, där varje avregistrerat bolag
+-- dyker upp som ett ärende.
 --
 -- ${avregistrerade.length} av ${Object.keys(rader).length} kontrollerade bolag är avregistrerade.
+-- Säker att köra om: samma uppgifter skrivs bara en gång till.
 
-${satser.join("\n")}
+update companies as c
+set bolagsverket_checked_at = now(),
+    deregistered_at = v.deregistered_at,
+    bolagsverket_active = v.active
+from (values
+${varden.join(",\n")}
+) as v(id, deregistered_at, active)
+where c.id = v.id;
+
+-- Kontroll: ska ge ${avregistrerade.length} rader.
+select id, name, org_number, deregistered_at
+from companies
+where deregistered_at is not null
+order by deregistered_at desc;
 `;
   await writeFile(UT_SQL, sql, "utf-8");
 }
