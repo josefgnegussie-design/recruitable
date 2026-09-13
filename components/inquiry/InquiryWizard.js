@@ -7,6 +7,7 @@ import { useSessionDraft } from "@/lib/useSessionDraft";
 import Stepper from "@/components/wizard/Stepper";
 import SelectableCompanyCard from "./SelectableCompanyCard";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
+import SkrappostPaminnelse from "@/components/SkrappostPaminnelse";
 
 function domainOf(url) {
   try {
@@ -377,6 +378,7 @@ export default function InquiryWizard({ filters, results, totalt }) {
               Till startsidan
             </Link>
           </div>
+          <SkrappostPaminnelse adress={draft.email} />
         </div>
       )}
     </div>

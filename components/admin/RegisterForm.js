@@ -8,6 +8,7 @@ import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
 import MultiSelectField from "@/components/MultiSelectField";
 import PasswordField from "@/components/PasswordField";
 import ForetagsSok from "@/components/admin/ForetagsSok";
+import SkrappostPaminnelse from "@/components/SkrappostPaminnelse";
 
 const EMPTY_FORM = {
   step: 1,
@@ -230,6 +231,7 @@ export default function RegisterForm() {
           Tack! Kolla din e-post för att bekräfta kontot. När det är gjort granskar vi din begäran manuellt
           — ni får besked så snart kontot är godkänt.
         </p>
+        <SkrappostPaminnelse adress={email} />
       </div>
     );
   }
