@@ -22,6 +22,10 @@ create table if not exists cancellation_feedback (
   created_at timestamptz not null default now()
 );
 
+-- Fritext, och bara för skälet "annat" — se lib/uppsagning.js. Egen sats så
+-- att den går att köra på en tabell som redan finns.
+alter table cancellation_feedback add column if not exists reason_text text;
+
 create index if not exists cancellation_feedback_company_idx
   on cancellation_feedback (company_id, created_at desc);
 

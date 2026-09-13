@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rateLimit";
-import { GILTIGA_SKAL } from "@/lib/uppsagning";
+import { FRITEXT_MAX, GILTIGA_SKAL, SKAL_MED_FRITEXT } from "@/lib/uppsagning";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -93,16 +93,34 @@ export async function POST(request) {
     return NextResponse.json({ error: "Välj ett skäl i listan." }, { status: 400 });
   }
 
+  // Fritexten hör till "annat" och sparas bara därifrån. Ett skäl ur listan
+  // med en avvikande text bredvid hade varit två svar på samma fråga.
+  const fritext =
+    body.reason === SKAL_MED_FRITEXT && typeof body.reasonText === "string"
+      ? body.reasonText.trim().slice(0, FRITEXT_MAX) || null
+      : null;
+
   const admin = createAdminClient();
   const utfall = await hamtaUtfall(admin, companyId);
 
-  const { error } = await admin.from("cancellation_feedback").insert({
+  const rad = {
     company_id: companyId,
     user_id: user.id,
     reason: body.reason,
+    reason_text: fritext,
     forfragningar_90d: utfall?.forfragningar ?? null,
     accepterade_90d: utfall?.accepterade ?? null,
-  });
+  };
+
+  let { error } = await admin.from("cancellation_feedback").insert(rad);
+
+  // Kolumnen kom i en senare migration än tabellen. Har den inte körts sparas
+  // raden utan fritexten i stället för att svaret går förlorat helt.
+  if (error && (error.code === "42703" || error.code === "PGRST204")) {
+    console.error("cancellation_feedback.reason_text saknas — kör migrationen. Sparar utan fritext.");
+    const { reason_text, ...utanFritext } = rad;
+    ({ error } = await admin.from("cancellation_feedback").insert(utanFritext));
+  }
 
   if (error) {
     if (error.code === "42P01") {

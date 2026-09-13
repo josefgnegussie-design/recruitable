@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UPPSAGNINGSSKAL } from "@/lib/uppsagning";
+import { FRITEXT_MAX, SKAL_MED_FRITEXT, UPPSAGNINGSSKAL } from "@/lib/uppsagning";
 
 // Prenumerationen hanteras i Stripes egen portal — vi bygger inget eget
 // gränssnitt för kort, kvitton och uppsägning.
@@ -17,6 +17,7 @@ export default function PremiumManageButton() {
   const [error, setError] = useState("");
   const [visarUppsagning, setVisarUppsagning] = useState(false);
   const [skal, setSkal] = useState("");
+  const [fritext, setFritext] = useState("");
   const [utfall, setUtfall] = useState(null);
 
   // Siffrorna hämtas när rutan öppnas och inte vid sidladdning: de angår bara
@@ -55,7 +56,7 @@ export default function PremiumManageButton() {
       await fetch("/api/mina-sidor/uppsagning", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: skal }),
+        body: JSON.stringify({ reason: skal, reasonText: fritext }),
       });
     } catch {
       /* vidare ändå */
@@ -120,6 +121,25 @@ export default function PremiumManageButton() {
                 laga.
               </p>
             </div>
+
+            {/* Fritext bara under "Något annat". Frivillig — att kräva en text
+                för att få säga upp vore precis den sortens hinder som gör att
+                folk ringer banken i stället. */}
+            {skal === SKAL_MED_FRITEXT && (
+              <div className="field">
+                <label htmlFor="uppsagning-fritext">Vad var det som inte stämde?</label>
+                <textarea
+                  id="uppsagning-fritext"
+                  rows={3}
+                  maxLength={FRITEXT_MAX}
+                  value={fritext}
+                  onChange={(e) => setFritext(e.target.value)}
+                  disabled={loading}
+                  placeholder="En rad räcker."
+                />
+                <p className="hint">Frivilligt. {FRITEXT_MAX - fritext.length} tecken kvar.</p>
+              </div>
+            )}
 
             {error && <p style={{ color: "#c0392b", fontSize: 13 }}>{error}</p>}
 
