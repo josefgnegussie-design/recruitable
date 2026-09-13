@@ -55,3 +55,9 @@ scripts/data/klassificering-forslag.json
 supabase/.temp/
 # Excels låsfiler
 ~$*
+
+# Registerkontrollen mot Bolagsverket — genererat underlag, byggs om av
+# scripts/koll-avregistrerade.mjs och granskas innan SQL:en körs.
+scripts/data/avregistrerade-lage.json
+scripts/data/avregistrerade.csv
+supabase/satt_avregistrering.sql

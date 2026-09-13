@@ -89,6 +89,7 @@ export default async function AdminOversikt({ searchParams }) {
     sokningar,
     vantandeTotalt,
     bolag,
+    sammanslagna,
     premiumbolag,
     overtagna,
     konton,
@@ -112,6 +113,11 @@ export default async function AdminOversikt({ searchParams }) {
     // Kön i sin helhet, utan periodfilter — samma räkning som märket i menyn.
     admin.from("inquiries").select("id", { count: "exact", head: true }).eq("moderation_status", "pending"),
     admin.from("companies").select("id", { count: "exact", head: true }),
+    // Bolag som upphört — sammanslagna eller avregistrerade. Raden finns kvar för
+    // att adressen ska fortsätta svara, men den räknas inte som ett bolag i
+    // registret. Saknas kolumnen blir count null och siffran noll — inte ett fel
+    // på hela sidan.
+    admin.from("companies").select("id", { count: "exact", head: true }).not("retired_at", "is", null),
     admin.from("companies").select("id", { count: "exact", head: true }).eq("is_premium", true),
     admin.from("companies").select("id", { count: "exact", head: true }).eq("claimed", true),
     admin.from("company_admins").select("id", { count: "exact", head: true }).eq("verified", true),
@@ -308,7 +314,13 @@ export default async function AdminOversikt({ searchParams }) {
         <h2 className="admin-h2">Registret</h2>
         <Nyckeltal
           poster={[
-            { etikett: "Bolag i registret", varde: tal(bolag.count || 0) },
+            {
+              etikett: "Bolag i registret",
+              varde: tal((bolag.count || 0) - (sammanslagna.count || 0)),
+              hjalp: sammanslagna.count
+                ? `${tal(sammanslagna.count)} upphörda räknas inte — sammanslagna eller avregistrerade.`
+                : undefined,
+            },
             {
               etikett: "Övertagna profiler",
               varde: tal(overtagna.count || 0),

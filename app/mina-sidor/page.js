@@ -5,6 +5,7 @@ import { INQUIRIES_PAGE_SIZE, mapInquiryRow } from "@/lib/inquiries";
 import { isPlatformAdmin } from "@/lib/platformAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hamtaAdministratorer } from "@/lib/bolagsadmin";
+import { hamtaArenden } from "@/lib/sammanslagning";
 
 export default async function MinaSidorPage({ searchParams }) {
   const params = await searchParams;
@@ -87,6 +88,11 @@ export default async function MinaSidorPage({ searchParams }) {
   // renderas i stället för efter.
   const administratorer = await hamtaAdministratorer(createAdminClient(), adminRow.company_id);
 
+  // Sammanslagningsärendena läses med besökarens egen session. RLS-policyn i
+  // migration_sammanslagning.sql släpper bara igenom ärenden där bolaget är den
+  // ena parten, så servicerollen behövs inte.
+  const arenden = await hamtaArenden(supabase, adminRow.company_id);
+
   return (
     <MinaSidorTabs
       company={company}
@@ -97,6 +103,7 @@ export default async function MinaSidorPage({ searchParams }) {
       officeStatus={officeStatus}
       arAgare={Boolean(adminRow.ar_agare)}
       administratorer={administratorer}
+      arenden={arenden}
     />
   );
 }

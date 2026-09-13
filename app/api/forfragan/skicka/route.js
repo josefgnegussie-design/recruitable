@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { clientIp } from "@/lib/requestIp";
 import { sendInquiryConfirmationToRequester, sendModerationAlertToAdmins } from "@/lib/email";
+import { upphordaAv } from "@/lib/sammanslagning";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -124,6 +125,17 @@ export async function POST(request) {
   if (!valdaBolag || valdaBolag.length !== companyIds.length) {
     return NextResponse.json(
       { error: "Ett eller flera av de valda bolagen finns inte längre i registret." },
+      { status: 400 }
+    );
+  }
+
+  // Ett bolag som slagits ihop eller avregistrerats försvinner ur sökningen, men
+  // en sida som stått öppen sedan före dess har kryssrutan kvar. Utan kontrollen
+  // landar förfrågan hos ett bolag som inte finns kvar, och blir aldrig besvarad.
+  const upphorda = await upphordaAv(supabase, companyIds);
+  if (upphorda.length) {
+    return NextResponse.json(
+      { error: "Ett eller flera av de valda bolagen finns inte längre i registret. Ladda om sidan och sök på nytt." },
       { status: 400 }
     );
   }

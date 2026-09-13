@@ -83,6 +83,11 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
     ? inquiries
     : inquiries.filter((inq) => inomDennaManad(inq.receivedAt) || inq.status === "pending");
   const doldaLaddade = inquiries.length - synliga.length;
+  // Räknas separat från synliga: de obesvarade från tidigare månader lyfts in i
+  // vyn men hör inte till månadens antal, och en etikett som säger "den här
+  // månaden" får inte räkna med dem.
+  const iManaden = synliga.filter((inq) => inomDennaManad(inq.receivedAt)).length;
+  const aldreObesvarade = synliga.length - iManaden;
   const finnsTidigare = doldaLaddade > 0 || hasMore;
 
   async function visaTidigare() {
@@ -105,7 +110,11 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
     <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
         <span style={{ fontSize: 13, color: "var(--color-muted)" }}>
-          {visaAllt ? "Hela historiken" : `Den här månaden (${MANAD})`} · {synliga.length} st
+          {visaAllt
+            ? `Hela historiken · ${synliga.length} st`
+            : `Den här månaden (${MANAD}) · ${iManaden} st`}
+          {!visaAllt && aldreObesvarade > 0 &&
+            ` · plus ${aldreObesvarade} obesvarad${aldreObesvarade === 1 ? "" : "e"} från tidigare`}
         </span>
         {visaAllt && (
           <button type="button" className="link-btn" onClick={() => setVisaAllt(false)}>

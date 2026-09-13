@@ -6,9 +6,10 @@ import InquiriesList from "@/components/admin/InquiriesList";
 import PremiumManageButton from "@/components/admin/PremiumManageButton";
 import Kontoflik from "@/components/admin/Kontoflik";
 import OfficesManager from "@/components/admin/OfficesManager";
+import Sammanslagning from "@/components/admin/Sammanslagning";
 import LoggaUtKnapp from "@/components/admin/LoggaUtKnapp";
 
-export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStatus, offices, officeStatus, arAgare, administratorer }) {
+export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStatus, offices, officeStatus, arAgare, administratorer, arenden }) {
   const [tab, setTab] = useState(premiumStatus ? "profil" : officeStatus ? "kontor" : "forfragningar");
 
   return (
@@ -83,7 +84,19 @@ export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStat
 
       {tab === "kontor" && <OfficesManager offices={offices || []} />}
 
-      {tab === "konto" && <Kontoflik administratorer={administratorer} duArAgare={arAgare} />}
+      {/* Sammanslagningen ligger i Konto-fliken och inte i Profil: den handlar
+          inte om vad profilen innehåller utan om huruvida bolaget ska finnas kvar
+          som ett eget kort — samma nivå som ägarskapet och administratörerna. */}
+      {tab === "konto" && (
+        <>
+          <Kontoflik administratorer={administratorer} duArAgare={arAgare} />
+          <Sammanslagning
+            arenden={arenden || []}
+            duArAgare={arAgare}
+            bolagsnamn={company?.name || ""}
+          />
+        </>
+      )}
     </div>
   );
 }
