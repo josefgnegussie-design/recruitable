@@ -1,13 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { YRKESOMRADEN } from "@/lib/taxonomy";
+import { YRKESOMRADEN, TJANSTER } from "@/lib/taxonomy";
 import MultiSelectField from "@/components/MultiSelectField";
 import ImageUploadField from "@/components/admin/ImageUploadField";
 import BildspelField from "@/components/admin/BildspelField";
 import AdressField from "@/components/admin/AdressField";
-
-const SERVICE_OPTIONS = ["Bemanning", "Rekrytering", "Interim", "Search"];
 
 // Bolagets hela profil i ett formulär. Låg tidigare i två: GrundprofilEditor i
 // 900 px-panelen och ProfileEditor i en egen 720 px-spalt med egen rubrik och
@@ -176,7 +174,7 @@ export default function ProfilEditor({ company }) {
           <label htmlFor="gp-services">Tjänster</label>
           <MultiSelectField
             id="gp-services"
-            options={SERVICE_OPTIONS}
+            options={TJANSTER}
             selected={services}
             onChange={setServices}
             placeholder="Välj tjänster..."

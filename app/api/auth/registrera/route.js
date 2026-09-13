@@ -1,13 +1,12 @@
 import { after, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { YRKESOMRADEN } from "@/lib/taxonomy";
+import { YRKESOMRADEN, GILTIGA_TJANSTER } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { clientIp } from "@/lib/requestIp";
 import { sendKontoansokanTillAdmins } from "@/lib/email";
 
 const VALID_AREAS = new Set(Object.keys(YRKESOMRADEN));
-const VALID_SERVICES = new Set(["Bemanning", "Rekrytering", "Interim", "Search"]);
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,7 +46,7 @@ export async function POST(request) {
     focusAreas.every((a) => VALID_AREAS.has(a));
   const servicesValid =
     Array.isArray(services) && services.length > 0 && services.length <= 4 &&
-    services.every((s) => VALID_SERVICES.has(s));
+    services.every((s) => GILTIGA_TJANSTER.has(s));
 
   if (
     typeof userId !== "string" ||
