@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { YRKESOMRADEN, FILTER_DEFS } from "@/lib/taxonomy";
 import { allRegionCities } from "@/lib/helpers";
 import CompanyCard from "@/components/CompanyCard";
+import TjanstInfo from "@/components/TjanstInfo";
 
 function SokContent({ antalBolag, urval }) {
   // urval kommer färdigblandat från servern — sex bolag, inget mer.
@@ -92,7 +93,10 @@ function SokContent({ antalBolag, urval }) {
             <div className="char-counter">{beskrivning.length}/350 tecken</div>
           </div>
           <div className="field">
-            <label htmlFor="pt-service">Tjänst</label>
+            <label htmlFor="pt-service" className="med-info">
+              Tjänst
+              <TjanstInfo />
+            </label>
             <select id="pt-service" value={service} onChange={(e) => setService(e.target.value)}>
               <option value="">Alla tjänster</option>
               {FILTER_DEFS.service.options.map((s) => (
