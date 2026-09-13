@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rateLimit";
 import { hamtaBolag, SIDSTORLEK } from "@/lib/companiesRepo";
+import { publikaBolag } from "@/lib/publikBolag";
 import { arRobot, besokarHash, loggaHandelse } from "@/lib/statistik";
 
 export const runtime = "nodejs";
@@ -44,5 +45,5 @@ export async function GET(request) {
     after(() => loggaHandelse({ eventType: "sokning", path: "/rekrytera", visitorHash, metadata }));
   }
 
-  return NextResponse.json(resultat);
+  return NextResponse.json({ ...resultat, bolag: publikaBolag(resultat.bolag) });
 }
