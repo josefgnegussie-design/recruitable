@@ -444,22 +444,38 @@ a:hover{color:var(--color-accent)}
   .panel{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:24px;margin-bottom:18px;}
   .panel:last-child{margin-bottom:0;}
   /* Bildpanelen är en ram runt bilden, inte ett textstycke: knapp marginal, och
-     prickarna får luft under sig utan att bilden krymper. Halva spaltbredden —
-     i full bredd blev bilden en halv skärm hög och sköt ner texten under sig,
-     vilket var precis det problem flytten uppåt skulle lösa. */
-  .panel-bilder{padding:10px 10px 4px;max-width:370px;}
-  /* Bild och vision delar rad. Lika höga rutor, med citatet centrerat i sin —
-     en kort vision högst upp i en hög ruta ser ut som ett misstag, inte som en
-     komposition. Marginalen tas av raden, inte av rutorna, så att gapet under
-     blir detsamma som mellan panelerna nedanför. */
-  .profil-inledning.delad{display:grid;grid-template-columns:minmax(0,370px) minmax(0,1fr);gap:20px;align-items:stretch;}
-  .profil-inledning.delad > .panel{margin-bottom:18px;}
-  .profil-inledning.delad .panel-vision{display:flex;flex-direction:column;justify-content:center;}
+     prickarna får luft under sig utan att bilden krymper. Bildspelet står sist
+     på sidan, ensamt på sin rad, och är därför centrerat i halva sidbredden — i
+     full bredd hade en 3:2-bild blivit 755 px hög och svalt hela skärmen. */
+  .panel-bilder{padding:10px 10px 4px;max-width:560px;margin-left:auto;margin-right:auto;}
+  /* Kartan: Sverige är smalt nog att rymmas i en sidokolumn, och den ska hålla
+     sig i mitten av panelen i stället för att klistra sig i vänsterkanten. */
+  /* Höjden är taket, inte bredden: ett bolag med en enda kontorsort har lite
+     text bredvid kartan, och i full höjd blev kartan dubbelt så hög som allt
+     annat på raden. Utsnittet behåller sina proportioner och centreras i rutan. */
+  .sverigekarta{display:block;width:100%;max-width:330px;height:auto;max-height:480px;margin:0 auto;}
+  .karta-land{fill:none;stroke:var(--warm-300);stroke-width:2.1;stroke-linecap:round;}
+  .karta-nal{fill:var(--color-accent);stroke:var(--color-surface-card);stroke-width:1.4;}
+  .karta-streck{stroke:var(--color-hairline);stroke-width:0.8;}
+  /* Ortnamnet hamnar ovanpå prickarna det pekar in i. Stroke i panelens egen
+     färg, ritad före texten (paint-order), ger en tunn ljus kant runt
+     bokstäverna så att namnet går att läsa utan att en ruta behöver läggas
+     under det. */
+  .karta-etikett{font-family:var(--font-mono);font-size:7px;fill:var(--color-ink);stroke:var(--color-surface-card);stroke-width:2.2;paint-order:stroke fill;}
   .panel h3{font-family:var(--font-display);font-size:var(--text-title-lg-size);margin:0 0 12px;font-weight:600;color:var(--color-ink);}
   /* Radlängd, inte spaltbredd, avgör om en text går att läsa: i full spalt blev
      raderna närmare hundra tecken och ögat tappade bort radbytet. */
   .panel p{color:var(--color-body);font-size:14.5px;line-height:1.65;max-width:72ch;}
-  .panel .vision-quote{font-style:italic;border-left:3px solid var(--color-accent);padding-left:14px;font-size:15px;color:var(--color-ink);}
+  /* Bolagets egen fritext. pre-line behåller de radbrytningar bolaget skrev i
+     formuläret men slår fortfarande ihop indrag och dubbla mellanslag, så en
+     inklistrad text med skev luft inte spränger stycket. Tomrader har redan
+     delats upp i egna stycken av Brodtext. 12 px mellan styckena i stället för
+     webbläsarens 1em, som blev för glest mot panelens övriga rytm. */
+  .panel p.brodtext{white-space:pre-line;margin:0 0 12px;}
+  .panel p.brodtext:last-child{margin-bottom:0;}
+  /* Visionen är ett citat och delas inte i stycken, men har bolaget skrivit den
+     på flera rader ska de raderna finnas kvar. */
+  .panel .vision-quote{font-style:italic;border-left:3px solid var(--color-accent);padding-left:14px;font-size:15px;color:var(--color-ink);white-space:pre-line;}
   .side-fact{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--color-hairline-soft);font-size:13.5px;gap:10px;}
   .side-fact:last-child{border-bottom:none;}
   .side-fact .k{color:var(--color-muted);}
@@ -506,6 +522,11 @@ a:hover{color:var(--color-accent)}
   .qs-select option{color:var(--color-ink);background:#fff;}
   .qs-btn{width:100%;background:var(--color-accent);color:#fff;border:none;border-radius:var(--radius-md);padding:13px 22px;font-weight:600;font-size:14px;cursor:pointer;}
   .qs-btn:hover{background:var(--color-accent-hover);}
+  /* En avstängd knapp såg likadan ut som en som gick att trycka på. Tydligast i
+     sammanslagningskön, där godkännandet är avstängt så länge det upphörande
+     bolaget har en löpande prenumeration — utan det här ser det ut som om
+     klicket inte gjorde något. Gäller varje knapp med disabled. */
+  .qs-btn:disabled{background:var(--color-hairline);color:var(--color-muted);cursor:not-allowed;}
 
   .l-section{max-width:1180px;margin:0 auto;padding:56px 24px;}
   .l-section.tight{padding-top:0;}
@@ -746,9 +767,6 @@ a:hover{color:var(--color-accent)}
     .spec-grid{grid-template-columns:repeat(2,1fr);}
     .profile-head{grid-template-columns:1fr;}
     .profile-body{grid-template-columns:1fr;}
-    /* En spalt: bild över vision, som förut. Sida vid sida skulle ge två
-       frimärken bredvid varandra. */
-    .profil-inledning.delad{display:block;}
     /* Logotypen mot överkanten: på en smal skärm radar taggarna upp sig på
        höjden, och en lodrätt centrerad logotyp hamnade svävande mitt i kortet
        i stället för intill namnet den hör till. */
@@ -1023,6 +1041,10 @@ a:hover{color:var(--color-accent)}
 .claim-banner strong{color:var(--color-ink);}
 .claim-banner .qs-btn{width:auto;flex-shrink:0;padding:11px 20px;font-size:13.5px;text-decoration:none;}
 @media (max-width:640px){ .claim-banner .qs-btn{width:100%;text-align:center;} }
+/* Bolaget har upphört. Profilen ligger kvar — den är svaret till den som söker
+   efter bolaget — men får inte kunna förväxlas med ett bolag man kan anlita, så
+   den markeras tydligare än den vanliga banderollen. */
+.claim-banner.upphort{background:rgba(184,67,58,0.07);border-color:rgba(184,67,58,0.3);}
 
 /* Beskrivning i stället för vision på kort utan citat att visa. */
 .card-vision.plain, .pc-vision.plain{font-style:normal;}
