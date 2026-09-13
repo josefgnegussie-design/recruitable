@@ -26,13 +26,24 @@ export default async function AdminLayout({ children }) {
   if (!isPlatformAdmin(user.email)) redirect("/");
 
   const admin = createAdminClient();
-  const [forfragningar, ansokningar] = await Promise.all([
+  const [forfragningar, ansokningar, sammanslagningar, avregistrerade] = await Promise.all([
     admin.from("inquiries").select("id", { count: "exact", head: true }).eq("moderation_status", "pending"),
     admin
       .from("company_admins")
       .select("id", { count: "exact", head: true })
       .eq("verified", false)
       .is("company_id", null),
+    // Saknas tabellen — koden driftsatt före migrationen — blir count null och
+    // menyn visar inget märke, i stället för att hela adminskalet slutar fungera.
+    admin.from("merge_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    // Avregistrerade bolag som ingen tagit ställning till. Samma kö, samma märke:
+    // båda avgörs på /admin/sammanslagningar.
+    admin
+      .from("companies")
+      .select("id", { count: "exact", head: true })
+      .not("deregistered_at", "is", null)
+      .is("retired_at", null)
+      .is("deregistration_handled_at", null),
   ]);
 
   return (
@@ -48,6 +59,7 @@ export default async function AdminLayout({ children }) {
           koer={{
             forfragningar: forfragningar.count ?? 0,
             ansokningar: ansokningar.count ?? 0,
+            sammanslagningar: (sammanslagningar.count ?? 0) + (avregistrerade.count ?? 0),
           }}
         />
       </div>
