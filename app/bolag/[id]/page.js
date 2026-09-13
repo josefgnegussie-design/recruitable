@@ -5,6 +5,9 @@ import { arId } from "@/lib/slug";
 import { betyg } from "@/components/CompanyFacts";
 import Bildspel from "@/components/Bildspel";
 import Faktalista from "@/components/Faktalista";
+import Brodtext from "@/components/Brodtext";
+import Sverigekarta from "@/components/Sverigekarta";
+import { koordinatForOrt, slaUppPostnummer } from "@/lib/postnummer";
 
 export const revalidate = 300;
 
@@ -36,10 +39,35 @@ export default async function ProfilePage({ params }) {
   // (omslagsbild, mission, historia, erfarenhet, medarbetare) med en Redis-kopia
   // som reservväg. De fälten finns inte längre, och allt sidan visar kommer nu
   // ur hamtaBolagMedId ovan — en databasrundtur mindre per profilvisning.
-  // Har vänsterspalten något att visa alls? Bildspelet räknas — ett bolag som
-  // laddat upp bilder men inte skrivit något ska inte få dem hopklämda i en
-  // enspaltsvy avsedd för en tom vänsterspalt.
-  const harText = Boolean(c.vision || c.desc || c.verksamhetsbeskrivning || c.slideshow?.length);
+  // Nålarna på kartan. Ett kontors postnummer ger en exakt punkt; saknas det får
+  // orten sitt medelvärde ur postnummerregistret. Orter registret inte känner —
+  // stavfel, utländska kontor — hoppas över: hellre en nål mindre än en nål på
+  // fel plats. Ett registerhämtat bolag utan egna kontor får åtminstone sin
+  // säteort, annars hade kartan bara funnits för de femtio handresearchade.
+  const pinnar = [];
+  const settaOrter = new Set();
+  const laggTillPin = (namn, koordinat) => {
+    const nyckel = typeof namn === "string" ? namn.trim().toLowerCase() : "";
+    if (!nyckel || !koordinat || settaOrter.has(nyckel)) return;
+    settaOrter.add(nyckel);
+    pinnar.push({ namn: namn.trim(), lat: koordinat.lat, lng: koordinat.lng });
+  };
+
+  for (const a of c.addresses || []) {
+    laggTillPin(a.city, slaUppPostnummer(a.postal_code) || koordinatForOrt(a.city));
+  }
+  for (const ort of c.officeCities || []) laggTillPin(ort, koordinatForOrt(ort));
+  if (!pinnar.length) {
+    laggTillPin(c.city, koordinatForOrt(c.city) || (c.lat && c.lng ? { lat: c.lat, lng: c.lng } : null));
+  }
+
+  // Sidan är tre segment, och varje segment faller tillbaka på en spalt när dess
+  // vänsterhalva är tom — annars står sidokolumnen ensam bredvid ett hål.
+  const harUndersokningar = Boolean(
+    c.surveys?.customer_satisfaction || c.surveys?.employee_satisfaction
+  );
+  const harVision = Boolean(c.vision || harUndersokningar);
+  const harVerksamhet = Boolean(c.desc || c.verksamhetsbeskrivning || c.addresses?.length);
 
   return (
     <div id="view-profile">
@@ -99,77 +127,49 @@ export default async function ProfilePage({ params }) {
           </div>
         </div>
 
-        {/* Saknar bolaget både vision, beskrivning och verksamhetstext blir
-            vänsterspalten tom, och Snabbfakta hamnar ensam bredvid ett stort
-            hål. Då används en spalt i stället för två. */}
-        <div className={`profile-body${harText ? "" : " single"}`}>
+        {/* FÖRSTA SEGMENTET — vad bolaget säger om sig självt, och de mätvärden
+            det går att jämföra med andra på. Vision och undersökningar i den
+            breda spalten, Snabbfakta bredvid. */}
+        <div className={`profile-body${harVision ? "" : " single"}`}>
           <div>
-            {/* Bild och vision står bredvid varandra när båda finns. Bilden är
-                halv spaltbredd, och ensam på sin rad lämnade den ett lika stort
-                hål bredvid sig — visionen är kort nog att fylla det och hör
-                ändå ihop med bilden som bolagets egen presentation. Saknas den
-                ena faller den andra tillbaka på full bredd. Bildpanelen är
-                avsiktligt utan rubrik: en bild behöver ingen etikett som säger
-                att den är en bild. */}
-            <div className={`profil-inledning${c.slideshow?.length && c.vision ? " delad" : ""}`}>
-              {c.slideshow?.length > 0 && (
-                <div className="panel panel-bilder">
-                  <Bildspel bilder={c.slideshow} namn={c.name} />
-                </div>
-              )}
-              {c.vision && (
-                <div className="panel panel-vision">
-                  <h3>Vision</h3>
-                  <p className="vision-quote">&ldquo;{c.vision}&rdquo;</p>
-                </div>
-              )}
-            </div>
-            {c.desc && (
+            {c.vision && (
               <div className="panel">
-                <h3>Om bolaget</h3>
-                <p>{c.desc}</p>
-              </div>
-            )}
-            {/* Bolagets egen formulering ur bolagsordningen. Formell, men sann och
-                hämtad från bolaget självt — till skillnad från en text vi skrivit
-                åt dem. Visas bara när ingen egen beskrivning finns. */}
-            {!c.desc && c.verksamhetsbeskrivning && (
-              <div className="panel">
-                <h3>Verksamhet</h3>
-                <p>{c.verksamhetsbeskrivning}</p>
-                <p className="note">Enligt bolagsordningen, registrerad hos Bolagsverket.</p>
+                <h3>Vision</h3>
+                <p className="vision-quote">&ldquo;{c.vision}&rdquo;</p>
               </div>
             )}
 
-            {/* Adresserna bolaget självt lagt in. Den äldre fritextkolumnen
-                companies.address finns kvar för de tusentals profiler som
-                hämtats ur register — där ligger flera adresser hopklämda i en
-                sträng åtskilda med semikolon. Har bolaget tagit över profilen
-                och lagt in strukturerade adresser visas de i stället.
-
-                Kontoren står i den breda spalten och inte i sidokolumnen: som en
-                lodrät lista av fyra orter i en smal spalt blev de en trehundra
-                pixlar hög stapel, samtidigt som textspalten tog slut långt före
-                sidokolumnen och lämnade ett stort tomrum. Bredvid varandra fyller
-                de raden och väger upp sidan. */}
-            {c.addresses?.length > 0 && (
+            {/* Undersökningarna låg tidigare i premiumavsnittet, och dessutom
+                inuti villkoret för mission/historia/erfarenhet — ett bolag som
+                bara fyllt i sina mätvärden fick dem aldrig visade. De redigeras
+                numera av alla bolag och hör hemma bland de jämförbara fakta
+                kunden väljer leverantör utifrån. */}
+            {harUndersokningar && (
               <div className="panel">
-                <h3>Kontor</h3>
-                <div className="adress-rutnat">
-                  {c.addresses.map((a, i) => (
-                    // Gata och postnummer på en rad. Orten stod tidigare två
-                    // gånger — som rubrik och en gång till efter postnumret —
-                    // och varje kontor tog tre rader av mest upprepning.
-                    <div className="adress-post" key={`${a.city}-${i}`}>
-                      <span className="adress-ort">{a.city}</span>
-                      {(a.street || a.postal_code) && (
-                        <span className="adress-gata">
-                          {[a.street, a.postal_code].filter(Boolean).join(" · ")}
-                        </span>
-                      )}
+                <h3>Undersökningar</h3>
+                {c.surveys.customer_satisfaction && (
+                  <>
+                    <div className="side-fact">
+                      <span className="k">Kundnöjdhet</span>
+                      <span className="v">{betyg(c.surveys.customer_satisfaction.score)} / 5</span>
                     </div>
-                  ))}
-                </div>
+                    {c.surveys.customer_satisfaction.source && (
+                      <div className="note">Källa: {c.surveys.customer_satisfaction.source}</div>
+                    )}
+                  </>
+                )}
+                {c.surveys.employee_satisfaction && (
+                  <>
+                    <div className="side-fact" style={{ marginTop: 10 }}>
+                      <span className="k">Medarbetarnöjdhet</span>
+                      <span className="v">{betyg(c.surveys.employee_satisfaction.score)} / 5</span>
+                    </div>
+                    {c.surveys.employee_satisfaction.source && (
+                      <div className="note">Källa: {c.surveys.employee_satisfaction.source}</div>
+                    )}
+                  </>
+                )}
+                <div className="note">Mätningarna är bolagets egna och redovisas med den källa de angett.</div>
               </div>
             )}
           </div>
@@ -179,7 +179,10 @@ export default async function ProfilePage({ params }) {
               {/* Etiketten står ovanför värdet och inte bredvid det: högerställd
                   text i en smal spalt bröt varje lista i en ojämn trappa, och
                   panelen blev sidans längsta stycke i stället för dess snabbaste.
-                  Faktalista visar fem värden och lägger resten bakom en knapp. */}
+                  Faktalista visar fem värden och lägger resten bakom en knapp.
+
+                  Yrkesområdena står inte här: de ligger redan som taggar överst
+                  på sidan, och samma uppgift två gånger gör ingen klokare. */}
               <div className="side-fact staplad">
                 <span className="k">Orter</span>
                 {c.officeCities?.length ? (
@@ -187,10 +190,6 @@ export default async function ProfilePage({ params }) {
                 ) : (
                   <span className="v">{c.address}</span>
                 )}
-              </div>
-              <div className="side-fact staplad">
-                <span className="k">Fokusområden</span>
-                {c.focus.length ? <Faktalista varden={c.focus} /> : <span className="v">Ej specificerat</span>}
               </div>
               <div className="side-fact staplad">
                 <span className="k">Tjänster</span>
@@ -228,42 +227,90 @@ export default async function ProfilePage({ params }) {
                 </div>
               )}
             </div>
+          </div>
+        </div>
 
-            {/* Undersökningarna låg tidigare i premiumavsnittet, och dessutom
-                inuti villkoret för mission/historia/erfarenhet — ett bolag som
-                bara fyllt i sina mätvärden fick dem aldrig visade. De redigeras
-                numera av alla bolag och hör hemma bland de jämförbara fakta
-                kunden väljer leverantör utifrån. */}
-            {(c.surveys?.customer_satisfaction || c.surveys?.employee_satisfaction) && (
+        {/* ANDRA SEGMENTET — vad bolaget gör och var det finns. Texten och
+            kontorslistan i den breda spalten, kartan bredvid: Sverige är högt och
+            smalt och passar en sidokolumn bättre än en liggande yta. */}
+        <div className={`profile-body${harVerksamhet && pinnar.length ? "" : " single"}`}>
+          <div>
+            {c.desc && (
               <div className="panel">
-                <h3>Undersökningar</h3>
-                {c.surveys.customer_satisfaction && (
-                  <>
-                    <div className="side-fact">
-                      <span className="k">Kundnöjdhet</span>
-                      <span className="v">{betyg(c.surveys.customer_satisfaction.score)} / 5</span>
+                <h3>Om bolaget</h3>
+                <Brodtext text={c.desc} />
+              </div>
+            )}
+            {/* Bolagets egen formulering ur bolagsordningen. Formell, men sann och
+                hämtad från bolaget självt — till skillnad från en text vi skrivit
+                åt dem. Visas bara när ingen egen beskrivning finns. */}
+            {!c.desc && c.verksamhetsbeskrivning && (
+              <div className="panel">
+                <h3>Verksamhet</h3>
+                <Brodtext text={c.verksamhetsbeskrivning} />
+                <p className="note">Enligt bolagsordningen, registrerad hos Bolagsverket.</p>
+              </div>
+            )}
+
+            {/* Adresserna bolaget självt lagt in. Den äldre fritextkolumnen
+                companies.address finns kvar för de tusentals profiler som
+                hämtats ur register — där ligger flera adresser hopklämda i en
+                sträng åtskilda med semikolon. Har bolaget tagit över profilen
+                och lagt in strukturerade adresser visas de i stället.
+
+                Kontoren står i den breda spalten och inte i sidokolumnen: som en
+                lodrät lista av fyra orter i en smal spalt blev de en trehundra
+                pixlar hög stapel, samtidigt som textspalten tog slut långt före
+                sidokolumnen och lämnade ett stort tomrum. Bredvid varandra fyller
+                de raden och väger upp sidan. */}
+            {c.addresses?.length > 0 && (
+              <div className="panel">
+                <h3>Kontor</h3>
+                <div className="adress-rutnat">
+                  {c.addresses.map((a, i) => (
+                    // Gata och postnummer på en rad. Orten stod tidigare två
+                    // gånger — som rubrik och en gång till efter postnumret —
+                    // och varje kontor tog tre rader av mest upprepning.
+                    <div className="adress-post" key={`${a.city}-${i}`}>
+                      <span className="adress-ort">{a.city}</span>
+                      {(a.street || a.postal_code) && (
+                        <span className="adress-gata">
+                          {[a.street, a.postal_code].filter(Boolean).join(" · ")}
+                        </span>
+                      )}
                     </div>
-                    {c.surveys.customer_satisfaction.source && (
-                      <div className="note">Källa: {c.surveys.customer_satisfaction.source}</div>
-                    )}
-                  </>
-                )}
-                {c.surveys.employee_satisfaction && (
-                  <>
-                    <div className="side-fact" style={{ marginTop: 10 }}>
-                      <span className="k">Medarbetarnöjdhet</span>
-                      <span className="v">{betyg(c.surveys.employee_satisfaction.score)} / 5</span>
-                    </div>
-                    {c.surveys.employee_satisfaction.source && (
-                      <div className="note">Källa: {c.surveys.employee_satisfaction.source}</div>
-                    )}
-                  </>
-                )}
-                <div className="note">Mätningarna är bolagets egna och redovisas med den källa de angett.</div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <div>
+            {/* Kartan är ritad ur postnummerregistret som redan ligger i
+                projektet: en prick per bebodd ruta ger en igenkännbar silhuett,
+                och kontoren sätts ut som nålar ovanpå. Ingen kartleverantör,
+                inga rutor att hämta och inget skript i webbläsaren — det här är
+                en orienteringsbild, inte ett verktyg att zooma i. */}
+            {pinnar.length > 0 && (
+              <div className="panel panel-karta">
+                <h3>Var bolaget finns</h3>
+                <Sverigekarta pinnar={pinnar} namn={c.name} />
+                {/* Attribution krävs av licensen. Adressen till datamängden står
+                    i POSTNUMMER_KALLA och i byggskriptet — här räcker namnet och
+                    licensen, en utskriven URL blir tre rader bruten text. */}
+                <div className="note">Orterna är utsatta efter postnummerregistret (GeoNames, CC BY 4.0).</div>
               </div>
             )}
           </div>
         </div>
+
+        {/* TREDJE SEGMENTET — bolagets egna bilder, sist. Den som scrollat hit
+            har läst färdigt och kan titta i lugn och ro, och den som bara ville
+            ha fakta har fått dem utan att först bläddra förbi ett bildspel. */}
+        {c.slideshow?.length > 0 && (
+          <div className="panel panel-bilder">
+            <Bildspel bilder={c.slideshow} namn={c.name} />
+          </div>
+        )}
 
       </div>
     </div>
