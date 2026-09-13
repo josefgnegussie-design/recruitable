@@ -15,7 +15,23 @@ function medFetstil(text) {
   return text.split("**").map((del, i) => (i % 2 ? <b key={i}>{del}</b> : del));
 }
 
-export default function TjanstInfo() {
+// Vad rutan säger beror på vem som läser den. Kunden ska förstå vilken tjänst
+// de ska filtrera på; bolaget ska förstå vad de lovar genom att kryssa i en.
+const TILLTAL = {
+  kund: {
+    ingress: "Tjänsterna avgör vilka bolag ni når. Så här skiljer de sig åt:",
+    etikett: "Passar när",
+    knapp: "Vad betyder de olika tjänsterna?",
+  },
+  bolag: {
+    ingress: "Välj om ni kan erbjuda tjänsten. Kunderna ser samma beskrivningar när de söker.",
+    etikett: "Välj om ni",
+    knapp: "Vad innebär de olika tjänsterna?",
+  },
+};
+
+export default function TjanstInfo({ malgrupp = "kund" }) {
+  const tilltal = TILLTAL[malgrupp] || TILLTAL.kund;
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const rutaRef = useRef(null);
@@ -89,7 +105,7 @@ export default function TjanstInfo() {
         type="button"
         className="tjanst-info-knapp"
         aria-expanded={open}
-        aria-label="Vad betyder de olika tjänsterna?"
+        aria-label={tilltal.knapp}
         onClick={() => setOpen((v) => !v)}
         onFocus={() => setOpen(true)}
       >
@@ -98,19 +114,20 @@ export default function TjanstInfo() {
 
       {open && (
         <div className="tjanst-info-ruta" ref={rutaRef} role="note">
-          <p className="tjanst-info-ingress">
-            Tjänsterna avgör vilka bolag ni når. Så här skiljer de sig åt:
-          </p>
+          <p className="tjanst-info-ingress">{tilltal.ingress}</p>
           <dl>
             {TJANSTER.map((tjanst) => {
-              const t = TJANSTBESKRIVNINGAR[tjanst];
+              const t = TJANSTBESKRIVNINGAR[tjanst]?.[malgrupp];
               if (!t) return null;
               return (
                 <div key={tjanst}>
                   <dt>{tjanst}</dt>
                   <dd>
-                    {medFetstil(t.betyder)}
-                    <span className="tjanst-info-nar">{medFetstil(t.nar)}</span>
+                    <span className="tjanst-info-betyder">{medFetstil(t.betyder)}</span>
+                    <span className="tjanst-info-nar">
+                      <span className="tjanst-info-etikett">{tilltal.etikett}</span>
+                      {medFetstil(t.nar)}
+                    </span>
                   </dd>
                 </div>
               );

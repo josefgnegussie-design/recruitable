@@ -6,6 +6,7 @@ import MultiSelectField from "@/components/MultiSelectField";
 import ImageUploadField from "@/components/admin/ImageUploadField";
 import BildspelField from "@/components/admin/BildspelField";
 import AdressField from "@/components/admin/AdressField";
+import TjanstInfo from "@/components/TjanstInfo";
 
 // Bolagets hela profil i ett formulär. Låg tidigare i två: GrundprofilEditor i
 // 900 px-panelen och ProfileEditor i en egen 720 px-spalt med egen rubrik och
@@ -171,7 +172,10 @@ export default function ProfilEditor({ company }) {
       <div className="auth-panel" style={{ marginTop: 20 }}>
         <div className="filter-title">Inriktning</div>
         <div className="field">
-          <label htmlFor="gp-services">Tjänster</label>
+          <label htmlFor="gp-services" className="med-info">
+            Tjänster
+            <TjanstInfo malgrupp="bolag" />
+          </label>
           <MultiSelectField
             id="gp-services"
             options={TJANSTER}

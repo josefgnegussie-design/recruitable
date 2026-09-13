@@ -1186,15 +1186,22 @@ nav.site-nav .utloggning-fel{font-size:12px;color:var(--rust-400);}
    Taket på höjden är säkerhetsnätet för de fall där ingen riktning räcker. */
 .tjanst-info-ruta.uppat{top:auto;bottom:24px;}
 .tjanst-info-ruta{max-height:min(70vh,560px);overflow-y:auto;}
-.tjanst-info-ingress{margin:0 0 10px;font-family:var(--font-body);font-size:12.5px;color:var(--color-muted);}
-.tjanst-info-ruta dl{margin:0;}
-.tjanst-info-ruta dl > div + div{margin-top:11px;padding-top:11px;border-top:1px solid var(--color-hairline-soft);}
-.tjanst-info-ruta dt{font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--color-ink);margin-bottom:2px;}
-.tjanst-info-ruta dd{margin:0;font-family:var(--font-body);font-size:12.5px;line-height:1.5;color:var(--color-body);}
+/* Ingressen är rutans enda mening i löpande text och står för sig själv,
+   avskild med samma hårfina linje som skiljer tjänsterna åt. */
+.tjanst-info-ingress{margin:0 0 12px;padding-bottom:11px;border-bottom:1px solid var(--color-hairline);font-family:var(--font-body);font-size:12.5px;line-height:1.5;color:var(--color-muted);}
+.tjanst-info-ruta dl{margin:0;display:flex;flex-direction:column;gap:13px;}
+.tjanst-info-ruta dl > div + div{padding-top:13px;border-top:1px solid var(--color-hairline-soft);}
+/* Namnet bär en liten accentstapel till vänster, samma grepp som visionscitatet
+   på profilsidan. Den gör listan läsbar som fem block i stället för tio rader. */
+.tjanst-info-ruta dt{font-family:var(--font-body);font-size:13.5px;font-weight:600;color:var(--color-ink);margin-bottom:4px;padding-left:9px;border-left:2px solid var(--color-accent);line-height:1.2;}
+.tjanst-info-ruta dd{margin:0;padding-left:11px;font-family:var(--font-body);font-size:12.5px;line-height:1.55;color:var(--color-body);}
 .tjanst-info-ruta dd b{font-weight:600;color:var(--color-ink);}
-/* Användningsområdet på egen rad: det är svaret på "gäller det här mig?" och
-   ska gå att hitta utan att läsa definitionen först. */
-.tjanst-info-nar{display:block;margin-top:3px;color:var(--color-muted);}
+.tjanst-info-betyder{display:block;}
+/* Andra raden svarar på "gäller det här mig?" och ska gå att hitta utan att
+   läsa definitionen först — egen rad, dämpad färg, och en versal etikett i
+   samma mono som formulärens fältnamn. */
+.tjanst-info-nar{display:block;margin-top:5px;color:var(--color-muted);}
+.tjanst-info-etikett{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:0.6px;color:var(--color-accent);margin-right:6px;}
 
 @media (max-width:640px){
   /* Fast placering i stället för hängande vid knappen: en 360 px bred ruta med
