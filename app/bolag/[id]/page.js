@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { hamtaBolagMedId, hamtaBolagMedSlug } from "@/lib/companiesRepo";
-import { arId } from "@/lib/slug";
+import { foljSammanslagning, hamtaBolagMedId, hamtaBolagMedSlug } from "@/lib/companiesRepo";
+import { arId, bolagsUrl } from "@/lib/slug";
 import { betyg } from "@/components/CompanyFacts";
 import Bildspel from "@/components/Bildspel";
 import Faktalista from "@/components/Faktalista";
@@ -28,6 +28,13 @@ export default async function ProfilePage({ params }) {
   // sidvisning.
   const c = arId(id) ? await hamtaBolagMedId(id) : await hamtaBolagMedSlug(id);
   if (!c) notFound();
+
+  // Bolaget har gått upp i ett annat — efter en fusion, en avregistrering, eller
+  // ett koncernbeslut om att uppträda under ett namn. Raden finns kvar just för
+  // det här: adressen ska fortsätta svara och leda till det bolag som lever, i
+  // stället för att varje länk och bokmärke blir en 404.
+  const overlevande = await foljSammanslagning(c);
+  if (overlevande) permanentRedirect(bolagsUrl(overlevande));
 
   // Nås profilen via sitt id skickas besökaren vidare till slugen. Gamla länkar
   // och bokmärken fortsätter fungera, men bara en adress är den riktiga — annars
@@ -72,7 +79,22 @@ export default async function ProfilePage({ params }) {
   return (
     <div id="view-profile">
       <Link className="back-link" href="/rekrytera">&larr; Tillbaka till sökningen</Link>
-      {!c.claimed && (
+      {/* Bolaget har upphört utan efterträdare — annars hade besökaren redan
+          skickats vidare ovan. Profilen ligger kvar med flit: den som söker efter
+          bolaget får veta vad som hänt i stället för att möta en 404. */}
+      {c.retiredAt && (
+        <div className="claim-banner upphort">
+          <p>
+            <strong>Bolaget finns inte längre i registret.</strong>{" "}
+            {c.deregisteredAt
+              ? `Det avregistrerades hos Bolagsverket ${c.deregisteredAt}.`
+              : "Verksamheten har upphört."}{" "}
+            Uppgifterna nedan står kvar som de var, men bolaget syns inte i sökningen och går inte
+            att skicka en förfrågan till.
+          </p>
+        </div>
+      )}
+      {!c.claimed && !c.retiredAt && (
         <div className="claim-banner">
           <p>
             <strong>Den här profilen är sammanställd ur offentliga register.</strong> Uppgifterna kommer
