@@ -8,11 +8,23 @@ function formatDate(iso) {
 
 const STATUS_LABEL = { accepted: "Accepterad", declined: "Nekad" };
 
+function inomDennaManad(iso) {
+  const d = new Date(iso);
+  const nu = new Date();
+  return d.getFullYear() === nu.getFullYear() && d.getMonth() === nu.getMonth();
+}
+
+const MANAD = new Date().toLocaleDateString("sv-SE", { month: "long" });
+
 export default function InquiriesList({ inquiries: initialInquiries, initialHasMore }) {
   const [inquiries, setInquiries] = useState(initialInquiries);
   const [updatingId, setUpdatingId] = useState(null);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loadingMore, setLoadingMore] = useState(false);
+  // Historiken växer month för månad och blir snabbt en vägg av kort där det
+  // som kräver ett svar i dag ligger längst upp och allt annat bara skymmer.
+  // Utgångsläget är därför innevarande månad, och resten hämtas på begäran.
+  const [visaAllt, setVisaAllt] = useState(false);
 
   async function loadMore() {
     const last = inquiries[inquiries.length - 1];
@@ -64,6 +76,22 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
     setUpdatingId(null);
   }
 
+  // En obesvarad förfrågan visas alltid, hur gammal den än är. Månadsfiltret
+  // finns för att städa undan det avklarade — döljer det något som väntar på
+  // ett svar har det gjort tvärtom mot sitt syfte.
+  const synliga = visaAllt
+    ? inquiries
+    : inquiries.filter((inq) => inomDennaManad(inq.receivedAt) || inq.status === "pending");
+  const doldaLaddade = inquiries.length - synliga.length;
+  const finnsTidigare = doldaLaddade > 0 || hasMore;
+
+  async function visaTidigare() {
+    setVisaAllt(true);
+    // Ligger allt som laddats inom månaden finns det inget dolt att fälla ut —
+    // då måste nästa sida hämtas för att knappen ska betyda något.
+    if (doldaLaddade === 0 && hasMore) await loadMore();
+  }
+
   if (inquiries.length === 0) {
     return (
       <p style={{ marginTop: 24, color: "var(--color-muted)" }}>
@@ -75,7 +103,24 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
 
   return (
     <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 16 }}>
-      {inquiries.map((inq) => {
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+        <span style={{ fontSize: 13, color: "var(--color-muted)" }}>
+          {visaAllt ? "Hela historiken" : `Den här månaden (${MANAD})`} · {synliga.length} st
+        </span>
+        {visaAllt && (
+          <button type="button" className="link-btn" onClick={() => setVisaAllt(false)}>
+            Visa bara den här månaden
+          </button>
+        )}
+      </div>
+
+      {synliga.length === 0 && (
+        <p style={{ margin: 0, color: "var(--color-muted)", fontSize: 14 }}>
+          Inga förfrågningar i {MANAD}. Allt äldre finns kvar under knappen nedan.
+        </p>
+      )}
+
+      {synliga.map((inq) => {
         const unlocked = inq.status === "accepted" && inq.requester_name;
         return (
           <div className="auth-panel" key={inq.recipientId}>
@@ -149,7 +194,19 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
         );
       })}
 
-      {hasMore && (
+      {!visaAllt && finnsTidigare && (
+        <button
+          type="button"
+          className="btn btn-ghost"
+          disabled={loadingMore}
+          onClick={visaTidigare}
+          style={{ alignSelf: "center" }}
+        >
+          {loadingMore ? "Laddar..." : "Visa tidigare förfrågningar"}
+        </button>
+      )}
+
+      {visaAllt && hasMore && (
         <button
           type="button"
           className="btn btn-ghost"
