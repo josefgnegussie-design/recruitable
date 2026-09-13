@@ -2,14 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { YRKESOMRADEN } from "@/lib/taxonomy";
+import { YRKESOMRADEN, TJANSTER } from "@/lib/taxonomy";
 import { useSessionDraft } from "@/lib/useSessionDraft";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
 import MultiSelectField from "@/components/MultiSelectField";
 import PasswordField from "@/components/PasswordField";
 import ForetagsSok from "@/components/admin/ForetagsSok";
-
-const SERVICE_OPTIONS = ["Bemanning", "Rekrytering", "Interim", "Search"];
 
 const EMPTY_FORM = {
   step: 1,
@@ -411,7 +409,7 @@ export default function RegisterForm() {
         <label htmlFor="reg-add-service">Tjänster</label>
         <MultiSelectField
           id="reg-add-service"
-          options={SERVICE_OPTIONS}
+          options={TJANSTER}
           selected={form.services}
           onChange={(services) => patch({ services })}
           placeholder="Välj tjänster..."

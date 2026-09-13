@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { YRKESOMRADEN } from "@/lib/taxonomy";
+import { YRKESOMRADEN, GILTIGA_TJANSTER } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { clientIp } from "@/lib/requestIp";
@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 // spegla hur många bolag registret råkar innehålla just nu.
 const MAX_MOTTAGARE = 200;
 const VALID_AREAS = new Set(Object.keys(YRKESOMRADEN));
-const VALID_SERVICES = new Set(["Bemanning", "Rekrytering", "Interim", "Search"]);
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function isValidText(v, maxLen) {
@@ -77,7 +77,7 @@ export async function POST(request) {
     !isValidText(description, 350) ||
     !isValidOptionalText(searchRole, 45) ||
     (focusArea && !VALID_AREAS.has(focusArea)) ||
-    (service && !VALID_SERVICES.has(service)) ||
+    (service && !GILTIGA_TJANSTER.has(service)) ||
     !isValidOptionalText(region, 100) ||
     !isValidOptionalText(city, 100) ||
     !isValidText(requesterName, 100) ||

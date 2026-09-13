@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { YRKESOMRADEN } from "@/lib/taxonomy";
+import { YRKESOMRADEN, GILTIGA_TJANSTER } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { giltigaAdresser, normaliseraAdress, orterUrAdresser } from "@/lib/adresser";
 
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 const VALID_AREAS = new Set(Object.keys(YRKESOMRADEN));
 const VALID_ROLES = new Set(Object.values(YRKESOMRADEN).flat());
-const VALID_SERVICES = new Set(["Bemanning", "Rekrytering", "Interim", "Search"]);
+
 const MAX_BILDSPEL = 5;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -86,7 +86,7 @@ export async function POST(request) {
     !text(vision, 500) ||
     !text(description, 2000) ||
     !lista(focus, VALID_AREAS, 21) ||
-    !lista(services, VALID_SERVICES, 4) ||
+    !lista(services, GILTIGA_TJANSTER, 4) ||
     // Taket är hela taxonomin: ett bolag som rekryterar brett ska kunna säga det.
     !lista(recruitingRoles, VALID_ROLES, VALID_ROLES.size) ||
     !webbplatsOk ||
