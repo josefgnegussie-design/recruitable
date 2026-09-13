@@ -1,5 +1,6 @@
 import InquiryWizard from "@/components/inquiry/InquiryWizard";
 import { hamtaBolag } from "@/lib/companiesRepo";
+import { publikaBolag } from "@/lib/publikBolag";
 
 export const dynamic = "force-dynamic";
 
@@ -27,5 +28,6 @@ export default async function PartnersResultPage({ searchParams }) {
     antal: MAX_TRAFFAR,
   });
 
-  return <InquiryWizard filters={filters} results={bolag} totalt={totalt} />;
+  // Korten hamnar i en klientkomponent, alltså i sidans egen källkod.
+  return <InquiryWizard filters={filters} results={publikaBolag(bolag)} totalt={totalt} />;
 }
