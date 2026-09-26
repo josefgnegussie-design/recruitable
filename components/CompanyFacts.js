@@ -4,6 +4,19 @@
 // lib/inquiries.js — tre kopior av samma villkor blir förr eller senare tre
 // olika svar på frågan vad ett bolag erbjuder.
 
+import { sorteradeIso } from "@/lib/iso";
+
+// En stämpel per ISO-certifiering, under kollektivavtalets. Till skillnad från
+// den finns ingen "EJ ISO"-stämpel: ett bolag som inte angett något och ett som
+// saknar certifiering går inte att skilja åt, så kortet tiger hellre.
+export function IsoStamplar({ iso }) {
+  return sorteradeIso(iso).map((c) => (
+    <div className="stamp" key={c.kod} title={`${c.kod} – ${c.namn}`}>
+      <span>{c.kod.toUpperCase()}</span>
+    </div>
+  ));
+}
+
 // Svensk decimalkomma. Number(v) eftersom poängen kommer ur jsonb och kan ligga
 // där som sträng om den skrivits av något annat än formuläret. Exporterad så att
 // profilsidan visar samma siffra på samma sätt som korten.

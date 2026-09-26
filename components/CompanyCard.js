@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CompanySurveys, CompanyTags } from "@/components/CompanyFacts";
+import { CompanySurveys, CompanyTags, IsoStamplar } from "@/components/CompanyFacts";
 import CompanyCities from "@/components/CompanyCities";
 import { bolagsUrl } from "@/lib/slug";
 import Bildspel from "@/components/Bildspel";
@@ -17,8 +17,11 @@ export default function CompanyCard({ company: c }) {
             </div>
           </div>
         </div>
-        <div className={`stamp ${c.ka ? "" : "no"}`}>
-          <span>{c.ka ? <>KOLLEKTIV-<br />AVTAL</> : <>EJ KA<br />&nbsp;</>}</span>
+        <div className="card-top-right">
+          <div className={`stamp ${c.ka ? "" : "no"}`}>
+            <span>{c.ka ? <>KOLLEKTIV-<br />AVTAL</> : <>EJ KA<br />&nbsp;</>}</span>
+          </div>
+          <IsoStamplar iso={c.iso} />
         </div>
       </div>
       <CompanyTags services={c.services} focus={c.focus} />
