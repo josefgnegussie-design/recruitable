@@ -115,7 +115,11 @@ export async function POST(request) {
       companyName: bolagsnamn,
       decision: status,
     }),
-    kundensEpost
+    // Bara accept skickas direkt. Ett nej väntar på dygnssammanställningen i
+    // /api/cron/nekanden — den som frågat tio bolag ska inte få tio besvikelser
+    // i rad, och ett samlat besked kan dessutom säga hur det gick för förfrågan
+    // i stort, vilket ett enskilt nej inte kan.
+    kundensEpost && status === "accepted"
       ? sendDecisionToRequester({
           to: kundensEpost,
           requesterName: fornamn(recipient.inquiries?.requester_name),
