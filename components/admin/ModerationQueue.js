@@ -25,7 +25,11 @@ export default function ModerationQueue({ initialQueue }) {
         ? `Godkänd och synlig på Mina sidor. Inget mejl gick ut — inget av de ${utan} valda bolagen har en registrerad profil med kontaktadress.`
         : "Godkänd och synlig på Mina sidor.";
     }
-    const bolag = `${mejlade} bolag`;
+    // Kontorsträffarna nämns för sig: det är dem bolagen betalar för, och
+    // raden är det enda stället där det syns i stunden. Hela kvittot finns
+    // kvar per mottagare i Loggboken.
+    const kontor = data?.viaKontor ?? 0;
+    const bolag = kontor ? `${mejlade} bolag, varav ${kontor} till ett betalt kontors egen adress` : `${mejlade} bolag`;
     return utan
       ? `Godkänd. Mejl gick till ${bolag}; ${utan} saknar registrerad profil eller kontaktadress och ser den bara på Mina sidor.`
       : `Godkänd. Mejl gick till ${bolag}.`;

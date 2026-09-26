@@ -31,13 +31,29 @@ export default async function LoggPage() {
   if (!isPlatformAdmin(user.email)) redirect("/");
 
   const admin = createAdminClient();
-  const { data: rows } = await admin
-    .from("inquiries")
-    .select(
-      "id, created_at, moderation_status, requester_name, requester_company, requester_city, description, inquiry_recipients(id, status, responded_at, companies(name))"
-    )
-    .order("created_at", { ascending: false })
-    .limit(100);
+
+  const GRUND =
+    "id, created_at, moderation_status, requester_name, requester_company, requester_city, description, ";
+  const MED_ROUTNING =
+    GRUND +
+    "inquiry_recipients(id, status, responded_at, notified_email, notified_at, office_id, offices(city), companies(name))";
+  const UTAN_ROUTNING = GRUND + "inquiry_recipients(id, status, responded_at, companies(name))";
+
+  const hamta = (kolumner) =>
+    admin.from("inquiries").select(kolumner).order("created_at", { ascending: false }).limit(100);
+
+  let { data: rows, error } = await hamta(MED_ROUTNING);
+
+  // Utan reservvägen hade en ej körd migration tömt hela loggboken i stället för
+  // att bara dölja routningsraden — och en tom loggbok ser ut som att inga
+  // förfrågningar finns, inte som att något saknas.
+  if (error) {
+    console.warn(
+      "Loggboken visas utan routningsuppgifter — kör supabase/migration_forfragan_routing.sql.",
+      error.message
+    );
+    ({ data: rows } = await hamta(UTAN_ROUTNING));
+  }
 
   const inquiries = rows || [];
 
@@ -75,12 +91,24 @@ export default async function LoggPage() {
 
             <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6 }}>
               {(inq.inquiry_recipients || []).map((r) => (
-                <div key={r.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                  <span>{r.companies?.name || "Okänt bolag"}</span>
-                  <span style={{ color: "var(--color-muted)" }}>
-                    {STATUS_LABEL[r.status] || r.status}
-                    {r.responded_at ? ` · ${formatDateTime(r.responded_at)}` : ""}
-                  </span>
+                <div key={r.id} style={{ fontSize: 13 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>{r.companies?.name || "Okänt bolag"}</span>
+                    <span style={{ color: "var(--color-muted)" }}>
+                      {STATUS_LABEL[r.status] || r.status}
+                      {r.responded_at ? ` · ${formatDateTime(r.responded_at)}` : ""}
+                    </span>
+                  </div>
+                  {r.notified_email && (
+                    // Kvittot på routningen: vilken adress som fick förfrågan,
+                    // om det var ett betalt kontors egen, och om mejlet gick
+                    // fram. Saknad tid betyder att utskicket misslyckades.
+                    <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--color-muted)" }}>
+                      → {r.notified_email}
+                      {r.office_id ? ` · kontoret i ${r.offices?.city || "okänd ort"}` : " · bolagets allmänna adress"}
+                      {r.notified_at ? ` · mejlat ${formatDateTime(r.notified_at)}` : " · mejlet gick INTE ut"}
+                    </p>
+                  )}
                 </div>
               ))}
               {(inq.inquiry_recipients || []).length === 0 && (

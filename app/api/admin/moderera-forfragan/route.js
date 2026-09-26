@@ -5,6 +5,7 @@ import { isPlatformAdmin } from "@/lib/platformAdmin";
 import { rateLimit } from "@/lib/rateLimit";
 import { resolveCompanyContacts } from "@/lib/offices";
 import { sendInquiryReceivedToCompany } from "@/lib/email";
+import { fornamn } from "@/lib/inquiries";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,7 +52,8 @@ export async function POST(request) {
   const { data: inquiry } = await admin
     .from("inquiries")
     .select(
-      "moderation_status, description, search_role, focus_area, service, requester_company, requester_city, " +
+      "moderation_status, description, search_role, focus_area, service, city, region, " +
+        "requester_name, requester_role, requester_company, requester_city, " +
         "inquiry_recipients(company_id, companies(id, name, contact, claimed))"
     )
     .eq("id", inquiryId)
@@ -86,25 +88,72 @@ export async function POST(request) {
   const valdaBolag = (inquiry.inquiry_recipients || []).map((r) => r.companies).filter(Boolean);
 
   // Bara bolag som kan göra något med mejlet får det: de har tagit över sin
-  // profil och har en kontaktadress. Ett bolag som inte registrerat sig kan
-  // varken logga in och acceptera eller förvänta sig mejl från oss — det hör
-  // till informationsutskicket till registret, inte hit.
-  const kanSvara = valdaBolag.filter((b) => b.claimed && b.contact);
-  const mottagare = await resolveCompanyContacts(kanSvara, inquiry.requester_city);
+  // profil. Ett bolag som inte registrerat sig kan varken logga in och
+  // acceptera eller förvänta sig mejl från oss — det hör till
+  // informationsutskicket till registret, inte hit.
+  //
+  // Kravet på companies.contact låg tidigare här, vilket sållade bort bolag
+  // innan kontoren ens slogs upp: ett betalt kontor med egen kontaktperson fick
+  // då inget mejl bara för att bolaget saknade generell adress. Adressfrågan
+  // hör hemma i resolveCompanyContacts, som faller tillbaka på bolagets adress
+  // och släpper den utan adress helt.
+  const kanSvara = valdaBolag.filter((b) => b.claimed);
 
+  // Förfrågans ort först, avsändarens egen bara som reserv. inquiries.city är
+  // orten besökaren filtrerade på — alltså den uppdraget gäller, och den som
+  // avgjorde vilka bolag som ens visades. requester_city är var avsändaren
+  // själv sitter, vilket inte behöver vara samma sak: en Stockholmsköpare kan
+  // söka bemanning till ett lager i Falkenberg. Fältet är frivilligt i
+  // formuläret, därför reserven.
+  const mottagare = await resolveCompanyContacts(kanSvara, [inquiry.city, inquiry.requester_city]);
+
+  // Mejlet går till bolagen INNAN de accepterat, så det får inte bära något som
+  // pekar ut kunden. Bolagsnamn och kundens ort lämnades tidigare ut här; nu
+  // skickas behovet, uppdragets plats, och vem som frågar till förnamn och roll.
+  // Samma gräns som mapInquiryRow drar i gränssnittet.
   const forMejl = {
     description: inquiry.description,
     searchRole: inquiry.search_role || "",
     focusArea: inquiry.focus_area || "",
     service: inquiry.service || "",
-    requesterCompany: inquiry.requester_company,
-    requesterCity: inquiry.requester_city,
+    city: inquiry.city || "",
+    region: inquiry.region || "",
+    requesterFirstName: fornamn(inquiry.requester_name),
+    requesterRole: inquiry.requester_role || "",
   };
 
   // Två bolag i samma koncern kan dela kontaktadress, och mejlet handlar om
   // förfrågan och inte om det enskilda bolaget — samma adress ska då ha ett mejl
   // och inte två identiska.
   const adresser = [...new Map(mottagare.map((m) => [m.email.toLowerCase(), m])).values()];
+
+  // Routningsbeslutet sparas innan mejlen går ut: vilket kontor förfrågan
+  // hamnade hos och på vilken adress. Uträkningen gjordes tidigare i minnet och
+  // kastades, så varken vi eller det betalande bolaget kunde i efterhand se om
+  // kontoret faktiskt fick sin förfrågan. Se migration_forfragan_routing.sql.
+  if (mottagare.length) {
+    const { error: routningsFel } = await admin.from("inquiry_recipients").upsert(
+      mottagare.map((m) => ({
+        inquiry_id: inquiryId,
+        company_id: m.companyId,
+        office_id: m.officeId,
+        notified_email: m.email,
+      })),
+      { onConflict: "inquiry_id,company_id" }
+    );
+
+    // Utskicket ska gå ut även om kvittot inte kan sparas, men tystnad vore
+    // fel väg: en saknad kolumn betyder att migrationen inte körts, och det
+    // har gått obemärkt förbi förr.
+    if (routningsFel) {
+      const saknadKolumn = routningsFel.code === "42703" || routningsFel.code === "PGRST204";
+      console.error(
+        saknadKolumn
+          ? "inquiry_recipients saknar routningskolumnerna — kör supabase/migration_forfragan_routing.sql."
+          : `Kunde inte spara routningen för förfrågan ${inquiryId}: ${JSON.stringify(routningsFel)}`
+      );
+    }
+  }
 
   // after() och inte fire-and-forget: registreringsnotisen försvann spårlöst i
   // produktion just för att utskicket startades utan await, och funktionen
@@ -114,6 +163,26 @@ export async function POST(request) {
       const utfall = await Promise.allSettled(
         adresser.map((m) => sendInquiryReceivedToCompany({ to: m.email, inquiry: forMejl }))
       );
+
+      // notified_at sätts först här, och bara för adresser som verkligen tog
+      // emot mejlet. En mottagare med adress men utan tid är alltså ett mejl
+      // som inte gick fram — förut syntes det bara som en rad i loggen.
+      const framme = new Set(
+        adresser.filter((_, i) => utfall[i].status === "fulfilled").map((m) => m.email.toLowerCase())
+      );
+      const bolagMedMejl = mottagare
+        .filter((m) => framme.has(m.email.toLowerCase()))
+        .map((m) => m.companyId);
+
+      if (bolagMedMejl.length) {
+        const { error: tidsFel } = await admin
+          .from("inquiry_recipients")
+          .update({ notified_at: new Date().toISOString() })
+          .eq("inquiry_id", inquiryId)
+          .in("company_id", bolagMedMejl);
+        if (tidsFel) console.error(`Kunde inte stämpla utskicket för ${inquiryId}:`, JSON.stringify(tidsFel));
+      }
+
       const fel = utfall.filter((u) => u.status === "rejected").length;
       if (fel) console.error(`Förfrågan ${inquiryId}: ${fel} av ${adresser.length} mejl gick inte ut.`);
     });
@@ -122,6 +191,7 @@ export async function POST(request) {
   return NextResponse.json({
     ok: true,
     mejlade: mottagare.length,
+    viaKontor: mottagare.filter((m) => m.viaKontor).length,
     utanMottagare: valdaBolag.length - mottagare.length,
   });
 }
