@@ -400,8 +400,10 @@ a:hover{color:var(--color-accent)}
   /* Samma format som filen sparas i (3:2). Kortet hade 16/9 och klippte därmed
      bort toppen och botten av just det utsnitt bolaget nyss valt i beskäraren —
      löftet "det som syns i rutan är det som sparas" höll inte här. */
-  /* Lägre än profilens 3:2 — på kortet är bilderna en försmak, inte huvudsaken. */
-  .card-bildspel .bildspel-scen{aspect-ratio:2/1;}
+  .card-bildspel .bildspel-scen{aspect-ratio:3/2;}
+  /* Mindre genom att bli smalare, inte lägre: ett annat format än 3:2 hade
+     återigen klippt bolagets utsnitt. På kortet är bilderna en försmak. */
+  .card-bildspel .bildspel{width:75%;margin:0 auto;}
   .card-bildspel .bildspel-pil{width:26px;height:26px;font-size:16px;}
   .card-bildspel .bildspel-forstora{width:24px;height:24px;font-size:12px;top:7px;right:7px;}
   .card-bildspel .bildspel-prickar{margin-top:7px;}
