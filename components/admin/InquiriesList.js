@@ -134,13 +134,24 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
         return (
           <div className="auth-panel" key={inq.recipientId}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+              {/* Rubriken var kundens bolagsnamn, vilket gav bort hela leaden
+                  innan den betalats. Nu är rubriken behovet: vad de söker och
+                  var uppdraget ligger. Bolagsnamnet blir rubrik igen när
+                  förfrågan accepterats. */}
               <div>
-                <p style={{ margin: 0, fontWeight: 600, fontSize: 16 }}>{inq.requester_company}</p>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: 16 }}>
+                  {unlocked
+                    ? inq.requester_company
+                    : [inq.search_role || inq.focus_area || "Förfrågan", inq.city || inq.region]
+                        .filter(Boolean)
+                        .join(" · ")}
+                </p>
                 <p style={{ margin: "2px 0 0", fontSize: 13, color: "var(--color-muted)" }}>
                   {unlocked
-                    ? `${inq.requester_name} · ${inq.requester_role}${inq.requester_phone ? ` · ${inq.requester_phone}` : ""} · `
-                    : ""}
-                  {inq.requester_city}
+                    ? [inq.requester_name, inq.requester_role, inq.requester_phone, inq.requester_city]
+                        .filter(Boolean)
+                        .join(" · ")
+                    : [inq.requester_first_name, inq.requester_role].filter(Boolean).join(" · ")}
                 </p>
               </div>
               <span style={{ fontSize: 12, color: "var(--color-muted)", whiteSpace: "nowrap" }}>

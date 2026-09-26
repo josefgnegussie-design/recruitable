@@ -69,7 +69,12 @@ export default async function MinaSidorPage({ searchParams }) {
   // Hämtar bara den första sidan (senaste INQUIRIES_PAGE_SIZE) — fler sidor
   // laddas vid behov via /api/mina-sidor/forfragan-lista. Annars skulle ett
   // bolag med många förfrågningar över tid göra sidan tyngre och tyngre.
-  const { data: inquiryRows } = await supabase
+  // Läses med service role och inte med besökarens session: bolagen har inte
+  // längre select på inquiries (migration_forfragan_sekretess.sql), eftersom den
+  // policyn gav dem hela raden — inklusive kundens namn och mejl — innan de
+  // accepterat och betalat för leaden. Behörigheten är redan avgjord ovan:
+  // adminRow är verifierad och company_id styr vilka rader som hämtas.
+  const { data: inquiryRows } = await createAdminClient()
     .from("inquiry_recipients")
     .select("id, created_at, status, inquiries(*)")
     .eq("company_id", adminRow.company_id)

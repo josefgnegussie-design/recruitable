@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rateLimit";
 import { sendRecipientDecisionToAdmin } from "@/lib/email";
 
@@ -37,7 +38,11 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { data: recipient } = await supabase
+  // Service role: bolagen har inte längre select på inquiries
+  // (migration_forfragan_sekretess.sql). requester_company läses bara för
+  // notismejlet till oss själva och lämnar aldrig servern — svaret härifrån är
+  // { ok: true }.
+  const { data: recipient } = await createAdminClient()
     .from("inquiry_recipients")
     .select("company_id, companies(name), inquiries(requester_company, description)")
     .eq("id", recipientId)

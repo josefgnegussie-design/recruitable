@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -34,9 +35,16 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { data: recipient } = await supabase
+  // Service role: bolagen har inte längre select på inquiries
+  // (migration_forfragan_sekretess.sql). Kontrollerna nedan — verifierad admin
+  // för mottagande bolag, och status = accepted — avgör fortfarande om något
+  // lämnas ut, och de körs innan svaret skickas.
+  const { data: recipient } = await createAdminClient()
     .from("inquiry_recipients")
-    .select("company_id, status, inquiries(requester_name, requester_email, requester_role, requester_phone)")
+    .select(
+      "company_id, status, inquiries(requester_name, requester_email, requester_role, requester_phone, " +
+        "requester_company, requester_city, requester_website)"
+    )
     .eq("id", recipientId)
     .maybeSingle();
 
