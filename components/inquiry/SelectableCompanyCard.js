@@ -1,6 +1,6 @@
 "use client";
 
-import { CompanySurveys, CompanyTags } from "@/components/CompanyFacts";
+import { CompanySurveys, CompanyTags, IsoStamplar } from "@/components/CompanyFacts";
 import CompanyCities from "@/components/CompanyCities";
 import { bolagsUrl } from "@/lib/slug";
 import Bildspel from "@/components/Bildspel";
@@ -25,6 +25,7 @@ export default function SelectableCompanyCard({ company: c, selected, onToggle }
           <div className={`stamp ${c.ka ? "" : "no"}`}>
             <span>{c.ka ? <>KOLLEKTIV-<br />AVTAL</> : <>EJ KA<br />&nbsp;</>}</span>
           </div>
+          <IsoStamplar iso={c.iso} />
         </div>
       </div>
       <CompanyTags services={c.services} focus={c.focus} />
