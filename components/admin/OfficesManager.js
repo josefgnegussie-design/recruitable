@@ -1,8 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { allRegionCities } from "@/lib/helpers";
 
 const TOMT = { city: "", address: "", contactName: "", contactEmail: "" };
+
+// Samma orter som besökarens sökfilter, och därmed de enda ett kontor kan få
+// förfrågningar från. Servern avvisar allt annat (se kanoniskOrt i
+// lib/helpers.js) — listan här är hjälpen som gör att det inte behöver hända.
+const ORTER = allRegionCities();
+const ORTLISTA = "kontor-ortlista";
 
 function franKontor(k) {
   return {
@@ -116,6 +123,12 @@ export default function OfficesManager({ offices: initialOffices }) {
         går direkt till kontorets egen kontaktperson istället för till er generella kontakt.
       </p>
 
+      <datalist id={ORTLISTA}>
+        {ORTER.map((o) => (
+          <option key={o} value={o} />
+        ))}
+      </datalist>
+
       {offices.length === 0 ? (
         <p style={{ color: "var(--color-muted)" }}>Inga kontor tillagda än.</p>
       ) : (
@@ -127,10 +140,12 @@ export default function OfficesManager({ offices: initialOffices }) {
                   <label htmlFor={`kontor-ort-${office.id}`}>Ort</label>
                   <input
                     id={`kontor-ort-${office.id}`}
+                    list={ORTLISTA}
                     value={utkast.city}
                     onChange={(e) => setUtkast({ ...utkast, city: e.target.value })}
                     required
                   />
+                  <p className="hint">Välj ur listan — förfrågningar routas på ortens namn i sökfiltret.</p>
                 </div>
                 <div className="field">
                   <label htmlFor={`kontor-adress-${office.id}`}>Adress (valfritt)</label>
@@ -219,10 +234,12 @@ export default function OfficesManager({ offices: initialOffices }) {
             <label htmlFor="office-city">Ort</label>
             <input
               id="office-city"
+              list={ORTLISTA}
               value={nytt.city}
               onChange={(e) => setNytt({ ...nytt, city: e.target.value })}
               required
             />
+            <p className="hint">Välj ur listan — förfrågningar routas på ortens namn i sökfiltret.</p>
           </div>
           <div className="field">
             <label htmlFor="office-address">Adress (valfritt)</label>

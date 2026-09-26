@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe";
 import { rateLimit } from "@/lib/rateLimit";
+import { kanoniskOrt } from "@/lib/helpers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -70,6 +71,18 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
   }
 
+  // Kontrolleras före betalningen och inte efter: det bolaget betalar för är
+  // att ortens förfrågningar hamnar hos kontorets egen kontaktperson, och en
+  // ort som inte finns i sökfiltret kan aldrig ge en enda träff.
+  // Se kanoniskOrt i lib/helpers.js.
+  const ort = kanoniskOrt(city);
+  if (!ort) {
+    return NextResponse.json(
+      { error: "Välj kontorets ort ur listan. Förfrågningar kan bara routas till en ort som finns i sökfiltret." },
+      { status: 400 }
+    );
+  }
+
   if (!process.env.STRIPE_OFFICE_PRICE_ID) {
     console.error("STRIPE_OFFICE_PRICE_ID saknas.");
     return NextResponse.json({ error: "Betalning för kontor är inte konfigurerad än." }, { status: 500 });
@@ -86,17 +99,37 @@ export async function POST(request) {
     return NextResponse.json({ error: "Hittades inte." }, { status: 404 });
   }
 
-  const { data: office, error: officeError } = await admin
+  // Ett kontor per ort och bolag (unikt index i migration_kontor_unik_ort.sql).
+  // En avbruten kassa lämnar kvar en obetald rad, och ett nytt försök på samma
+  // ort ska fortsätta på den — inte fälla insert:en mot det unika indexet, och
+  // inte lägga på ännu en föräldralös rad där indexet saknas.
+  const uppgifter = {
+    address: address?.trim() || null,
+    contact_name: contactName.trim(),
+    contact_email: contactEmail.trim(),
+  };
+
+  const { data: befintligt } = await admin
     .from("offices")
-    .insert({
-      company_id: company.id,
-      city: city.trim(),
-      address: address?.trim() || null,
-      contact_name: contactName.trim(),
-      contact_email: contactEmail.trim(),
-    })
-    .select("id")
-    .single();
+    .select("id, paid")
+    .eq("company_id", company.id)
+    .eq("city", ort)
+    .maybeSingle();
+
+  if (befintligt?.paid) {
+    return NextResponse.json(
+      { error: `Ni har redan ett kontor i ${ort}. Ändra dess kontaktuppgifter under Kontor i stället.` },
+      { status: 409 }
+    );
+  }
+
+  const { data: office, error: officeError } = befintligt
+    ? await admin.from("offices").update(uppgifter).eq("id", befintligt.id).select("id").single()
+    : await admin
+        .from("offices")
+        .insert({ company_id: company.id, city: ort, ...uppgifter })
+        .select("id")
+        .single();
 
   if (officeError || !office) {
     console.error("Kunde inte skapa kontor:", JSON.stringify(officeError));

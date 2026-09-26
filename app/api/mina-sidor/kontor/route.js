@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rateLimit";
+import { kanoniskOrt } from "@/lib/helpers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -83,13 +84,23 @@ export async function PATCH(request) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
   }
 
+  // Orten måste stavas som i sökfiltret för att kontoret ska kunna få ortens
+  // förfrågningar — se kanoniskOrt i lib/helpers.js.
+  const ort = kanoniskOrt(city);
+  if (!ort) {
+    return NextResponse.json(
+      { error: "Välj kontorets ort ur listan. Förfrågningar kan bara routas till en ort som finns i sökfiltret." },
+      { status: 400 }
+    );
+  }
+
   const { fel, admin } = await behorigFor(officeId);
   if (fel) return fel;
 
   const { data, error } = await admin
     .from("offices")
     .update({
-      city: city.trim(),
+      city: ort,
       address: address?.trim() || null,
       contact_name: contactName.trim(),
       contact_email: contactEmail.trim(),
@@ -99,6 +110,16 @@ export async function PATCH(request) {
     .maybeSingle();
 
   if (error) {
+    // 23505 = det unika indexet på (company_id, city) i
+    // migration_kontor_unik_ort.sql. Bolaget har redan ett kontor på orten det
+    // försöker flytta det här till, och det ska sägas rakt ut i stället för att
+    // se ut som ett tillfälligt fel.
+    if (error.code === "23505") {
+      return NextResponse.json(
+        { error: `Ni har redan ett kontor i ${ort}. Två kontor på samma ort går inte att skilja åt när en förfrågan ska routas.` },
+        { status: 409 }
+      );
+    }
     console.error("Kunde inte uppdatera kontoret:", JSON.stringify(error));
     return NextResponse.json({ error: "Kunde inte spara. Försök igen." }, { status: 500 });
   }
