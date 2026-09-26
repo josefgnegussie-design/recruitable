@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rateLimit";
 import { INQUIRIES_PAGE_SIZE, mapInquiryRow } from "@/lib/inquiries";
 
@@ -46,7 +47,10 @@ export async function POST(request) {
     return NextResponse.json({ error: "Inte behörig." }, { status: 403 });
   }
 
-  const { data: inquiryRows, error } = await supabase
+  // Service role och inte besökarens session: bolagen har inte längre select på
+  // inquiries (migration_forfragan_sekretess.sql). Behörigheten är avgjord ovan
+  // — verifierad admin, och company_id styr vilka rader som hämtas.
+  const { data: inquiryRows, error } = await createAdminClient()
     .from("inquiry_recipients")
     .select("id, created_at, status, inquiries(*)")
     .eq("company_id", adminRow.company_id)
