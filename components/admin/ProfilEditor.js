@@ -34,11 +34,17 @@ export default function ProfilEditor({ company }) {
   const [customerSource, setCustomerSource] = useState(
     company.surveys?.customer_satisfaction?.source ?? ""
   );
+  const [customerYear, setCustomerYear] = useState(
+    company.surveys?.customer_satisfaction?.year ?? ""
+  );
   const [employeeScore, setEmployeeScore] = useState(
     company.surveys?.employee_satisfaction?.score ?? ""
   );
   const [employeeSource, setEmployeeSource] = useState(
     company.surveys?.employee_satisfaction?.source ?? ""
+  );
+  const [employeeYear, setEmployeeYear] = useState(
+    company.surveys?.employee_satisfaction?.year ?? ""
   );
 
   const [status, setStatus] = useState("idle");
@@ -65,10 +71,12 @@ export default function ProfilEditor({ company }) {
     setRoles((prev) => prev.filter((r) => kvar.has(r)));
   }
 
-  function surveyEntry(score, source) {
+  function surveyEntry(score, year, source) {
     if (score === "" || score === null) return null;
-    return { score: Number(score), source: source.trim() };
+    return { score: Number(score), year: Number(year), source: source.trim() };
   }
+
+  const iAr = new Date().getFullYear();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -80,6 +88,19 @@ export default function ProfilEditor({ company }) {
     if (utanOrt >= 0) {
       setStatus("error");
       setError(`Adress ${utanOrt + 1} saknar postort. Fyll i den eller ta bort raden.`);
+      return;
+    }
+
+    // Samma skäl som för postorten: routen avvisar ett betyg utan giltigt år,
+    // men utan att säga vilket fält det gäller. Äldre mätningar sparades utan
+    // år och fångas här första gången bolaget sparar igen.
+    const utanAr = [
+      ["Kundnöjdhet", customerScore, customerYear],
+      ["Medarbetarnöjdhet", employeeScore, employeeYear],
+    ].find(([, betyg, ar]) => betyg !== "" && !(Number.isInteger(Number(ar)) && ar >= 2000 && ar <= iAr));
+    if (utanAr) {
+      setStatus("error");
+      setError(`${utanAr[0]} saknar årtal. Ange vilket år mätningen gjordes (2000–${iAr}).`);
       return;
     }
 
@@ -104,8 +125,8 @@ export default function ProfilEditor({ company }) {
         slideshow,
         addresses,
         surveys: {
-          customer_satisfaction: surveyEntry(customerScore, customerSource),
-          employee_satisfaction: surveyEntry(employeeScore, employeeSource),
+          customer_satisfaction: surveyEntry(customerScore, customerYear, customerSource),
+          employee_satisfaction: surveyEntry(employeeScore, employeeYear, employeeSource),
         },
       }),
     });
@@ -296,8 +317,8 @@ export default function ProfilEditor({ company }) {
       <div className="auth-panel">
         <div className="filter-title">Undersökningar</div>
         <p style={{ fontSize: 13, color: "var(--color-muted)", marginTop: 0 }}>
-          Egna mätningar visas med källa bredvid siffran, så att den som läser kan bedöma vad
-          betyget är värt. Lämna tomt om ni inte mäter.
+          Egna mätningar visas med årtal och källa bredvid siffran, så att den som läser kan
+          bedöma vad betyget är värt. Lämna tomt om ni inte mäter.
         </p>
         <div className="survey-row">
           <div>
@@ -313,11 +334,25 @@ export default function ProfilEditor({ company }) {
             />
           </div>
           <div>
+            <label htmlFor="gp-customer-year">År</label>
+            <input
+              id="gp-customer-year"
+              type="number"
+              min="2000"
+              max={iAr}
+              step="1"
+              placeholder={String(iAr)}
+              required={customerScore !== ""}
+              value={customerYear}
+              onChange={(e) => setCustomerYear(e.target.value)}
+            />
+          </div>
+          <div>
             <label htmlFor="gp-customer-source">Källa</label>
             <input
               id="gp-customer-source"
               type="text"
-              placeholder="T.ex. egen kundundersökning, hösten 2026"
+              placeholder="T.ex. egen kundundersökning"
               value={customerSource}
               onChange={(e) => setCustomerSource(e.target.value)}
             />
@@ -337,11 +372,25 @@ export default function ProfilEditor({ company }) {
             />
           </div>
           <div>
+            <label htmlFor="gp-employee-year">År</label>
+            <input
+              id="gp-employee-year"
+              type="number"
+              min="2000"
+              max={iAr}
+              step="1"
+              placeholder={String(iAr)}
+              required={employeeScore !== ""}
+              value={employeeYear}
+              onChange={(e) => setEmployeeYear(e.target.value)}
+            />
+          </div>
+          <div>
             <label htmlFor="gp-employee-source">Källa</label>
             <input
               id="gp-employee-source"
               type="text"
-              placeholder="T.ex. medarbetarundersökning, våren 2026"
+              placeholder="T.ex. medarbetarundersökning"
               value={employeeSource}
               onChange={(e) => setEmployeeSource(e.target.value)}
             />

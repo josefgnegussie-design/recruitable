@@ -94,6 +94,13 @@ export function CompanyTags({ services = [], focus = [] }) {
   );
 }
 
+// "Kundnöjdhet 2025" — samma form som "Medarbetare 2024" i faktarutan. Mätningar
+// sparade innan årtalet infördes saknar det och visas med bara namnet, tills
+// bolaget sparar profilen igen (formuläret kräver då ett år).
+export function undersokningsRubrik(namn, undersokning) {
+  return undersokning?.year ? `${namn} ${undersokning.year}` : namn;
+}
+
 // Undersökningarna visas bara med sin källa. En siffra utan källa säger inget om
 // vad som mätts eller när, och bolaget skriver in båda själv.
 export function CompanySurveys({ surveys, visaKalla = false }) {
@@ -105,7 +112,7 @@ export function CompanySurveys({ surveys, visaKalla = false }) {
     <div className="card-surveys">
       {kund && (
         <span>
-          Kundnöjdhet <b>{kund}</b> / 5
+          {undersokningsRubrik("Kundnöjdhet", surveys.customer_satisfaction)} <b>{kund}</b> / 5
           {visaKalla && surveys.customer_satisfaction.source
             ? ` — ${surveys.customer_satisfaction.source}`
             : ""}
@@ -113,7 +120,7 @@ export function CompanySurveys({ surveys, visaKalla = false }) {
       )}
       {medarbetare && (
         <span>
-          Medarbetarnöjdhet <b>{medarbetare}</b> / 5
+          {undersokningsRubrik("Medarbetarnöjdhet", surveys.employee_satisfaction)} <b>{medarbetare}</b> / 5
           {visaKalla && surveys.employee_satisfaction.source
             ? ` — ${surveys.employee_satisfaction.source}`
             : ""}

@@ -17,15 +17,21 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Enda vägen in för allt bolaget skriver om sig självt. Undersökningarna låg
 // tidigare i /api/profil/spara bakom premium — de flyttade hit när profilen
 // blev gratis, så att ett sparat formulär är en skrivning och inte två.
+//
+// Årtalet är obligatoriskt: ett betyg utan år går inte att värdera, och en
+// mätning från 2019 ska inte kunna läsas som färsk. Inga mätningar i framtiden.
 function giltigUndersokning(v) {
   if (v === null || v === undefined) return true;
   if (typeof v !== "object") return false;
-  const { score, source } = v;
+  const { score, source, year } = v;
   return (
     typeof score === "number" &&
     Number.isFinite(score) &&
     score >= 1 &&
     score <= 5 &&
+    Number.isInteger(year) &&
+    year >= 2000 &&
+    year <= new Date().getFullYear() &&
     typeof source === "string" &&
     source.length <= 200
   );

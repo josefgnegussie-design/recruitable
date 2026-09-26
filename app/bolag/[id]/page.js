@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { foljSammanslagning, hamtaBolagMedId, hamtaBolagMedSlug } from "@/lib/companiesRepo";
 import { arId, bolagsUrl } from "@/lib/slug";
-import { betyg } from "@/components/CompanyFacts";
+import { betyg, undersokningsRubrik } from "@/components/CompanyFacts";
 import Bildspel from "@/components/Bildspel";
 import Faktalista from "@/components/Faktalista";
 import Brodtext from "@/components/Brodtext";
@@ -189,7 +189,7 @@ export default async function ProfilePage({ params }) {
                 {c.surveys.customer_satisfaction && (
                   <>
                     <div className="side-fact">
-                      <span className="k">Kundnöjdhet</span>
+                      <span className="k">{undersokningsRubrik("Kundnöjdhet", c.surveys.customer_satisfaction)}</span>
                       <span className="v">{betyg(c.surveys.customer_satisfaction.score)} / 5</span>
                     </div>
                     {c.surveys.customer_satisfaction.source && (
@@ -200,7 +200,7 @@ export default async function ProfilePage({ params }) {
                 {c.surveys.employee_satisfaction && (
                   <>
                     <div className="side-fact" style={{ marginTop: 10 }}>
-                      <span className="k">Medarbetarnöjdhet</span>
+                      <span className="k">{undersokningsRubrik("Medarbetarnöjdhet", c.surveys.employee_satisfaction)}</span>
                       <span className="v">{betyg(c.surveys.employee_satisfaction.score)} / 5</span>
                     </div>
                     {c.surveys.employee_satisfaction.source && (
