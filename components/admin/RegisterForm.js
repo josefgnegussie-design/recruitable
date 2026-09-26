@@ -33,7 +33,7 @@ function domainFromEmail(email) {
   return domain ? domain.trim().toLowerCase() : "";
 }
 
-export default function RegisterForm() {
+export default function RegisterForm({ forifyllt = null }) {
   // Allt utom lösenordet sparas som utkast, så att stegen går att backa i och
   // rätta — även efter en omladdning eller webbläsarens bakåtknapp.
   const { state: form, patch, restored, clearDraft } = useSessionDraft("registrera", EMPTY_FORM);
@@ -54,6 +54,23 @@ export default function RegisterForm() {
 
   const { step, userId, accountEmail, email, website } = form;
 
+  // Bolagsuppgifterna från en inbjudan (/valkommen/[slug] → ?bolag=). Fylls i en
+  // gång, och bara i ett tomt utkast: har besökaren redan skrivit något — eller
+  // backat hit från ett senare steg — väger det tyngre än vad vi tror oss veta.
+  const forifyllningGjord = useRef(false);
+  useEffect(() => {
+    if (!forifyllt || forifyllningGjord.current) return;
+    // Vänta tills sessionsutkastet lästs in, annars hinner vi skriva över det.
+    if (!restored) return;
+    forifyllningGjord.current = true;
+    if (form.companyName || form.orgNumber) return;
+    patch({
+      companyName: forifyllt.companyName || "",
+      orgNumber: forifyllt.orgNumber || "",
+      website: forifyllt.website || "",
+    });
+  }, [restored, forifyllt, form.companyName, form.orgNumber, patch]);
+
   // Webbplatsen måste ändå matcha e-postens domän — fyll den åt användaren så fort
   // vi vet vilken domän det gäller, men rör aldrig något hen själv skrivit.
   useEffect(() => {
@@ -61,6 +78,16 @@ export default function RegisterForm() {
     const domain = domainFromEmail(email);
     if (domain) patch({ website: `www.${domain}` });
   }, [step, website, email, patch]);
+
+  // Ett förifyllt organisationsnummer slås upp när bolagssteget öppnas, så att
+  // adressfälten fylls av sig själva. Fältets onBlur gör det annars, men den som
+  // inte rör ett färdigifyllt fält utlöser aldrig någon blur.
+  useEffect(() => {
+    if (step !== 2 || !forifyllt?.orgNumber) return;
+    slaUpp(forifyllt.orgNumber);
+    // slaUpp skyddar sig själv mot upprepade uppslag av samma nummer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, forifyllt]);
 
   async function slaUpp(rawOrgnr) {
     const digits = String(rawOrgnr || "").replace(/\D/g, "");
