@@ -1028,6 +1028,16 @@ a:hover{color:var(--color-accent)}
 .status-pill.accepted{background:rgba(63,143,95,0.12);color:var(--color-success);}
 .status-pill.declined{background:rgba(184,67,58,0.1);color:var(--color-error);}
 
+/* Bolagets meddelande till kunden, som följer med beskedet om accept eller nej.
+   Ordräknaren blir röd över taket, och knapparna stängs av samtidigt — så det
+   aldrig går att skriva färdigt något servern ändå avvisar. */
+.svarsmeddelande{margin-top:14px;}
+.svarsmeddelande label{display:block;font-family:var(--font-mono);font-size:11px;letter-spacing:0.4px;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;}
+.svarsmeddelande textarea{width:100%;font-family:var(--font-body);font-size:14px;color:var(--color-ink);background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-md);padding:10px 12px;resize:vertical;min-height:58px;}
+.svarsmeddelande textarea:focus{outline:none;border-color:var(--color-accent);box-shadow:var(--shadow-focus-accent);}
+.ordrakning{display:block;margin-top:4px;font-family:var(--font-mono);font-size:11.5px;color:var(--color-muted);text-align:right;}
+.ordrakning.over{color:var(--color-error);font-weight:600;}
+
 /* ===== Företagssök med autofyll (registrering steg 2) ===== */
 .lookup-wrap{position:relative;}
 .lookup-spinner{position:absolute;right:14px;top:13px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.4px;color:var(--color-muted);pointer-events:none;}

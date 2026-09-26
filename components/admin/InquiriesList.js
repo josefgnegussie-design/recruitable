@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MAX_ORD_I_SVAR, raknaOrd } from "@/lib/inquiries";
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString("sv-SE", { year: "numeric", month: "short", day: "numeric" });
@@ -21,6 +22,9 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
   const [updatingId, setUpdatingId] = useState(null);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loadingMore, setLoadingMore] = useState(false);
+  // Bolagets egna ord till kunden, per förfrågan. Skickas med beslutet.
+  const [meddelanden, setMeddelanden] = useState({});
+  const [fel, setFel] = useState({});
   // Historiken växer month för månad och blir snabbt en vägg av kort där det
   // som kräver ett svar i dag ligger längst upp och allt annat bara skymmer.
   // Utgångsläget är därför innevarande månad, och resten hämtas på begäran.
@@ -48,17 +52,22 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
   async function setStatus(recipientId, status) {
     setUpdatingId(recipientId);
 
+    const meddelande = (meddelanden[recipientId] || "").trim();
+
     const res = await fetch("/api/mina-sidor/forfragan-status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ recipientId, status }),
+      body: JSON.stringify({ recipientId, status, meddelande: meddelande || null }),
     });
 
     if (!res.ok) {
-      console.error("Kunde inte uppdatera status");
+      const svar = await res.json().catch(() => ({}));
+      setFel((f) => ({ ...f, [recipientId]: svar.error || "Kunde inte spara beslutet." }));
       setUpdatingId(null);
       return;
     }
+
+    setFel((f) => ({ ...f, [recipientId]: null }));
 
     let extra = {};
     if (status === "accepted") {
@@ -193,7 +202,7 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
               <button
                 type="button"
                 className={`status-btn accept${inq.status === "accepted" ? " active" : ""}`}
-                disabled={updatingId === inq.recipientId}
+                disabled={updatingId === inq.recipientId || raknaOrd(meddelanden[inq.recipientId]) > MAX_ORD_I_SVAR}
                 onClick={() => setStatus(inq.recipientId, "accepted")}
               >
                 Acceptera
@@ -201,7 +210,7 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
               <button
                 type="button"
                 className={`status-btn decline${inq.status === "declined" ? " active" : ""}`}
-                disabled={updatingId === inq.recipientId}
+                disabled={updatingId === inq.recipientId || raknaOrd(meddelanden[inq.recipientId]) > MAX_ORD_I_SVAR}
                 onClick={() => setStatus(inq.recipientId, "declined")}
               >
                 Neka
@@ -210,6 +219,37 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
                 <span className={`status-pill ${inq.status}`}>{STATUS_LABEL[inq.status]}</span>
               )}
             </div>
+
+            {/* Kunden får ett besked per mejl när ni svarar. En rad från er gör
+                skillnad — särskilt vid ett nej, där skälet är värt mer för kunden
+                än beskedet självt. Taket är ord och inte tecken, för det är ord
+                man räknar när man skriver. */}
+            {inq.status === "pending" && (
+              <div className="svarsmeddelande">
+                <label htmlFor={`meddelande-${inq.recipientId}`}>
+                  Meddelande till kunden (frivilligt)
+                </label>
+                <textarea
+                  id={`meddelande-${inq.recipientId}`}
+                  rows={2}
+                  maxLength={400}
+                  value={meddelanden[inq.recipientId] || ""}
+                  placeholder="Skickas med i beskedet — t.ex. varför ni tackar nej, eller när ni hör av er."
+                  onChange={(e) =>
+                    setMeddelanden((m) => ({ ...m, [inq.recipientId]: e.target.value }))
+                  }
+                />
+                <span className={`ordrakning${raknaOrd(meddelanden[inq.recipientId]) > MAX_ORD_I_SVAR ? " over" : ""}`}>
+                  {raknaOrd(meddelanden[inq.recipientId])} / {MAX_ORD_I_SVAR} ord
+                </span>
+              </div>
+            )}
+
+            {fel[inq.recipientId] && (
+              <p style={{ color: "var(--color-error)", fontSize: 13, margin: "8px 0 0" }}>
+                {fel[inq.recipientId]}
+              </p>
+            )}
           </div>
         );
       })}

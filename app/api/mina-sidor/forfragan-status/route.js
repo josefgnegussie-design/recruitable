@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rateLimit";
-import { sendRecipientDecisionToAdmin } from "@/lib/email";
+import { sendDecisionToRequester, sendRecipientDecisionToAdmin } from "@/lib/email";
+import { MAX_ORD_I_SVAR, fornamn, giltigtSvarsmeddelande } from "@/lib/inquiries";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,10 +34,19 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { recipientId, status } = body;
+  const { recipientId, status, meddelande } = body;
   if (typeof recipientId !== "string" || !recipientId || !VALID_STATUSES.has(status)) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
+
+  if (!giltigtSvarsmeddelande(meddelande)) {
+    return NextResponse.json(
+      { error: `Meddelandet får vara högst ${MAX_ORD_I_SVAR} ord.` },
+      { status: 400 }
+    );
+  }
+
+  const svarsmeddelande = typeof meddelande === "string" ? meddelande.trim() || null : null;
 
   // Service role: bolagen har inte längre select på inquiries
   // (migration_forfragan_sekretess.sql). requester_company läses bara för
@@ -44,7 +54,11 @@ export async function POST(request) {
   // { ok: true }.
   const { data: recipient } = await createAdminClient()
     .from("inquiry_recipients")
-    .select("company_id, companies(name), inquiries(moderation_status, requester_company, description)")
+    .select(
+      "company_id, companies(name, slug), " +
+        "inquiries(moderation_status, requester_company, requester_name, requester_email, " +
+        "description, search_role, city)"
+    )
     .eq("id", recipientId)
     .maybeSingle();
 
@@ -74,7 +88,11 @@ export async function POST(request) {
   // Neka gjorde ingenting och inget fel syntes någonstans.
   const { error } = await createAdminClient()
     .from("inquiry_recipients")
-    .update({ status, responded_at: new Date().toISOString() })
+    .update({
+      status,
+      responded_at: new Date().toISOString(),
+      response_message: svarsmeddelande,
+    })
     .eq("id", recipientId);
 
   if (error) {
@@ -82,14 +100,34 @@ export async function POST(request) {
     return NextResponse.json({ error: "Kunde inte spara beslutet." }, { status: 500 });
   }
 
-  await sendRecipientDecisionToAdmin({
-    inquiry: {
-      requesterCompany: recipient.inquiries?.requester_company,
-      description: recipient.inquiries?.description,
-    },
-    companyName: recipient.companies?.name || "Ett bolag",
-    decision: status,
-  });
+  const bolagsnamn = recipient.companies?.name || "Bolaget";
+  const kundensEpost = recipient.inquiries?.requester_email;
+
+  // Två mottagare, olika syften: notisen till oss är driftinformation, beskedet
+  // till kunden är hela poängen med att bolaget svarar. Beslutet är redan sparat
+  // — ett mejl som inte går fram får inte göra om svaret.
+  await Promise.allSettled([
+    sendRecipientDecisionToAdmin({
+      inquiry: {
+        requesterCompany: recipient.inquiries?.requester_company,
+        description: recipient.inquiries?.description,
+      },
+      companyName: bolagsnamn,
+      decision: status,
+    }),
+    kundensEpost
+      ? sendDecisionToRequester({
+          to: kundensEpost,
+          requesterName: fornamn(recipient.inquiries?.requester_name),
+          companyName: bolagsnamn,
+          companySlug: recipient.companies?.slug,
+          accepted: status === "accepted",
+          message: svarsmeddelande,
+          searchRole: recipient.inquiries?.search_role,
+          city: recipient.inquiries?.city,
+        })
+      : Promise.resolve(),
+  ]);
 
   return NextResponse.json({ ok: true });
 }
