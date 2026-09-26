@@ -16,24 +16,37 @@
 
 with forvantade_tabeller(tabell) as (
   values
+    ('cancellation_feedback'),
     ('companies'),
     ('company_admins'),
     ('inquiries'),
     ('inquiry_recipients'),
+    ('merge_requests'),
     ('offices'),
     ('site_events')
 ),
 forvantade_kolumner(tabell, kolumn) as (
   values
+    ('cancellation_feedback', 'reason_text'),
     ('companies', 'addresses'),
+    ('companies', 'bolagsverket_active'),
+    ('companies', 'bolagsverket_checked_at'),
     ('companies', 'claimed'),
+    ('companies', 'deregistered_at'),
+    ('companies', 'deregistration_handled_at'),
+    ('companies', 'iso_certifications'),
     ('companies', 'klassificering_harledd'),
+    ('companies', 'merged_into'),
     ('companies', 'office_cities'),
     ('companies', 'org_number'),
     ('companies', 'premium_until'),
     ('companies', 'recruiting_roles'),
+    ('companies', 'retired_at'),
+    ('companies', 'retired_reason'),
     ('companies', 'slideshow'),
+    ('companies', 'slug'),
     ('companies', 'verksamhetsbeskrivning'),
+    ('company_admins', 'ar_agare'),
     ('company_admins', 'claimed_address'),
     ('company_admins', 'claimed_company_name'),
     ('company_admins', 'claimed_focus_areas'),

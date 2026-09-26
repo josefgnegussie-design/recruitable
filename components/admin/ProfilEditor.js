@@ -7,6 +7,7 @@ import ImageUploadField from "@/components/admin/ImageUploadField";
 import BildspelField from "@/components/admin/BildspelField";
 import AdressField from "@/components/admin/AdressField";
 import TjanstInfo from "@/components/TjanstInfo";
+import { ISO_CERTIFIERINGAR } from "@/lib/iso";
 
 // Bolagets hela profil i ett formulär. Låg tidigare i två: GrundprofilEditor i
 // 900 px-panelen och ProfileEditor i en egen 720 px-spalt med egen rubrik och
@@ -23,6 +24,7 @@ export default function ProfilEditor({ company }) {
   const [link, setLink] = useState(company.link || "");
   const [contact, setContact] = useState(company.contact || "");
   const [ka, setKa] = useState(Boolean(company.ka));
+  const [iso, setIso] = useState(company.iso_certifications || []);
   const [slideshow, setSlideshow] = useState(company.slideshow || []);
   const [addresses, setAddresses] = useState(company.addresses || []);
 
@@ -98,6 +100,7 @@ export default function ProfilEditor({ company }) {
         link,
         contact,
         ka,
+        iso,
         slideshow,
         addresses,
         surveys: {
@@ -257,6 +260,34 @@ export default function ProfilEditor({ company }) {
           <p className="hint">
             Visas som en faktauppgift på er profil. Kunder väljer leverantör bland annat utifrån
             det, så kryssa bara i om det stämmer.
+          </p>
+        </div>
+      </div>
+
+      <div className="auth-panel" style={{ marginTop: 20 }}>
+        <div className="filter-title">ISO-certifieringar</div>
+        <div className="field">
+          {ISO_CERTIFIERINGAR.map((c) => {
+            const id = `gp-iso-${c.kod.replace(/\D/g, "")}`;
+            return (
+              <label className="checkbox-row" htmlFor={id} key={c.kod}>
+                <input
+                  id={id}
+                  type="checkbox"
+                  checked={iso.includes(c.kod)}
+                  onChange={(e) =>
+                    setIso((nu) =>
+                      e.target.checked ? [...nu, c.kod] : nu.filter((k) => k !== c.kod)
+                    )
+                  }
+                />
+                {c.kod} – {c.namn}
+              </label>
+            );
+          })}
+          <p className="hint">
+            Visas på er profil bara om ni har minst en av dem. Kryssa bara i certifieringar ni
+            innehar i dag.
           </p>
         </div>
       </div>

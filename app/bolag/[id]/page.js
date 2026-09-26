@@ -8,6 +8,7 @@ import Faktalista from "@/components/Faktalista";
 import Brodtext from "@/components/Brodtext";
 import Sverigekarta from "@/components/Sverigekarta";
 import { koordinatForOrt, slaUppPostnummer } from "@/lib/postnummer";
+import { sorteradeIso } from "@/lib/iso";
 
 export const revalidate = 300;
 
@@ -74,6 +75,7 @@ export default async function ProfilePage({ params }) {
     c.surveys?.customer_satisfaction || c.surveys?.employee_satisfaction
   );
   const harVision = Boolean(c.vision || harUndersokningar);
+  const iso = sorteradeIso(c.iso);
   const harVerksamhet = Boolean(c.desc || c.verksamhetsbeskrivning || c.addresses?.length);
 
   return (
@@ -128,7 +130,7 @@ export default async function ProfilePage({ params }) {
           </div>
         </div>
 
-        <div className="spec-grid">
+        <div className={`spec-grid${iso.length ? " med-iso" : ""}`}>
           <div className="spec-cell">
             <div className="k">Omsättning</div>
             <div className="v">{c.revenue}</div>
@@ -147,6 +149,21 @@ export default async function ProfilePage({ params }) {
             <div className="k">Grundat</div>
             <div className="v">{c.founded}</div>
           </div>
+          {/* Till skillnad från kollektivavtalet står här inget "Nej": rutan
+              finns bara när bolaget självt angett en certifiering. Ett
+              otillfrågat bolag och ett bolag utan certifiering ser annars
+              likadana ut. */}
+          {iso.length > 0 && (
+            <div className="spec-cell iso">
+              <div className="k">ISO-certifiering</div>
+              {iso.map((cert) => (
+                <div key={cert.kod}>
+                  <div className="v">{cert.kod}</div>
+                  <div className="y">{cert.namn}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* FÖRSTA SEGMENTET — vad bolaget säger om sig självt, och de mätvärden
