@@ -6,15 +6,24 @@
 
 import { sorteradeIso } from "@/lib/iso";
 
-// En stämpel per ISO-certifiering, under kollektivavtalets. Till skillnad från
-// den finns ingen "EJ ISO"-stämpel: ett bolag som inte angett något och ett som
-// saknar certifiering går inte att skilja åt, så kortet tiger hellre.
+// En stämpel per ISO-certifiering, med titeln utskriven — "ISO 14001" säger
+// inget för den som inte kan standarderna utantill. Ingen "EJ ISO"-stämpel: ett
+// bolag som inte angett något och ett som saknar certifiering går inte att
+// skilja åt, så kortet tiger hellre.
 export function IsoStamplar({ iso }) {
-  return sorteradeIso(iso).map((c) => (
-    <div className="stamp" key={c.kod} title={`${c.kod} – ${c.namn}`}>
-      <span>{c.kod.toUpperCase()}</span>
+  const lista = sorteradeIso(iso);
+  if (!lista.length) return null;
+  return (
+    <div className="iso-stamplar">
+      {lista.map((c) => (
+        <div className="stamp" key={c.kod}>
+          <span>
+            {c.kod} · {c.namn}
+          </span>
+        </div>
+      ))}
     </div>
-  ));
+  );
 }
 
 // De jämförbara uppgifterna i en liten ruta högt upp på korten, i samma form
@@ -23,7 +32,9 @@ export function IsoStamplar({ iso }) {
 // bildspelet — och på urvalskortet inte alls. Nu ligger de på samma ställe i
 // varje kort, så att den som jämför bolag kan läsa rakt nedåt i listan.
 //
-// ISO-fältet finns bara när bolaget angett en certifiering; se IsoStamplar.
+// Nyckeltalen på en rad med tre fält. ISO får en egen rad under, i hela
+// bredden, så att varje certifiering kan stå med sin titel. Raden finns bara
+// när bolaget angett en certifiering; se IsoStamplar.
 export function Faktaruta({ company: c }) {
   const iso = sorteradeIso(c.iso);
   return (
@@ -41,9 +52,13 @@ export function Faktaruta({ company: c }) {
         <div className="v">{c.ka ? "Ja" : "Nej"}</div>
       </div>
       {iso.length > 0 && (
-        <div title={iso.map((i) => `${i.kod} – ${i.namn}`).join("\n")}>
-          <div className="k">ISO</div>
-          <div className="v">{iso.map((i) => i.kod.replace("ISO ", "")).join(" · ")}</div>
+        <div className="iso">
+          <div className="k">ISO-certifiering</div>
+          {iso.map((i) => (
+            <div className="iso-rad" key={i.kod}>
+              <span className="v">{i.kod}</span> {i.namn}
+            </div>
+          ))}
         </div>
       )}
     </div>
