@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { bolagsUrl } from "@/lib/slug";
+import { IsoStamplar } from "@/components/CompanyFacts";
 
 // Tre bolag som exempel på startsidan. Urvalet kommer färdigblandat från servern
 // och innehåller bara bolag med en skriven profil — registret rymmer tusentals
@@ -15,6 +16,11 @@ export default function PreviewCompanies({ bolag = [] }) {
               <p className="pc-name">{c.name}</p>
               <div className="pc-city">{c.city.toUpperCase()} · GRUNDAT {c.founded}</div>
             </div>
+            {c.iso?.length > 0 && (
+              <div className="card-top-right">
+                <IsoStamplar iso={c.iso} />
+              </div>
+            )}
           </div>
           {c.vision ? (
             <p className="pc-vision">&ldquo;{c.vision}&rdquo;</p>
