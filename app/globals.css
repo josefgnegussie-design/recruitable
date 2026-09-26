@@ -406,8 +406,13 @@ a:hover{color:var(--color-accent)}
   .card-bildspel .bildspel-prickar{margin-top:7px;}
   .card-surveys{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 12px;font-family:var(--font-mono);font-size:11px;color:var(--color-muted);}
   .card-surveys b{color:var(--color-ink);font-family:var(--font-body);font-size:12.5px;font-weight:600;}
-  .card-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:14px;font-family:var(--font-mono);font-size:11px;color:var(--color-muted);}
-  .card-meta div b{display:block;color:var(--color-ink);font-size:13px;font-family:var(--font-body);font-weight:600;}
+  /* Korten faktaruta — samma formspråk som profilsidans spec-grid, i mindre skala. */
+  .faktaruta{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--color-hairline);border:1px solid var(--color-hairline);border-radius:var(--radius-md);overflow:hidden;margin:4px 0 10px;}
+  .faktaruta > div{background:var(--color-surface-card);padding:8px 12px;min-width:0;}
+  /* Utan ISO-fält blir det tre rutor; den sista tar då hela raden i stället för att lämna ett hål. */
+  .faktaruta > div:last-child:nth-child(odd){grid-column:1 / -1;}
+  .faktaruta .k{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:var(--color-muted);margin-bottom:2px;}
+  .faktaruta .v{font-size:13.5px;font-weight:600;color:var(--color-ink);}
   .card-actions{display:flex;gap:8px;align-items:center;border-top:1px solid var(--color-hairline-soft);padding-top:12px;}
   .btn{display:inline-block;font-size:12.5px;font-weight:600;letter-spacing:0.2px;padding:9px 14px;border:none;border-radius:var(--radius-md);text-transform:none;flex:1;text-align:center;text-decoration:none;}
   .btn-primary{background:var(--color-primary);color:#fff;}

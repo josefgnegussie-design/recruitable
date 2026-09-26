@@ -17,6 +17,39 @@ export function IsoStamplar({ iso }) {
   ));
 }
 
+// De jämförbara uppgifterna i en liten ruta högt upp på korten, i samma form
+// som faktaraden på profilsidan. Stod förut utspridda: kollektivavtal och ISO
+// som en kolumn stämplar i hörnet, omsättning och medarbetare längst ner under
+// bildspelet — och på urvalskortet inte alls. Nu ligger de på samma ställe i
+// varje kort, så att den som jämför bolag kan läsa rakt nedåt i listan.
+//
+// ISO-fältet finns bara när bolaget angett en certifiering; se IsoStamplar.
+export function Faktaruta({ company: c }) {
+  const iso = sorteradeIso(c.iso);
+  return (
+    <div className="faktaruta">
+      <div>
+        <div className="k">Medarbetare{c.employeesYear ? ` ${c.employeesYear}` : ""}</div>
+        <div className="v">{c.employees || "—"}</div>
+      </div>
+      <div>
+        <div className="k">Omsättning{c.revenueYear ? ` ${c.revenueYear}` : ""}</div>
+        <div className="v">{c.revenue || "—"}</div>
+      </div>
+      <div>
+        <div className="k">Kollektivavtal</div>
+        <div className="v">{c.ka ? "Ja" : "Nej"}</div>
+      </div>
+      {iso.length > 0 && (
+        <div title={iso.map((i) => `${i.kod} – ${i.namn}`).join("\n")}>
+          <div className="k">ISO</div>
+          <div className="v">{iso.map((i) => i.kod.replace("ISO ", "")).join(" · ")}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Svensk decimalkomma. Number(v) eftersom poängen kommer ur jsonb och kan ligga
 // där som sträng om den skrivits av något annat än formuläret. Exporterad så att
 // profilsidan visar samma siffra på samma sätt som korten.

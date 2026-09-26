@@ -1,6 +1,6 @@
 "use client";
 
-import { CompanySurveys, CompanyTags, IsoStamplar } from "@/components/CompanyFacts";
+import { CompanySurveys, CompanyTags, Faktaruta } from "@/components/CompanyFacts";
 import CompanyCities from "@/components/CompanyCities";
 import { bolagsUrl } from "@/lib/slug";
 import Bildspel from "@/components/Bildspel";
@@ -22,12 +22,9 @@ export default function SelectableCompanyCard({ company: c, selected, onToggle }
           <label className="card-select" onClick={(e) => e.stopPropagation()}>
             <input type="checkbox" checked={selected} onChange={() => onToggle(c.id)} />
           </label>
-          <div className={`stamp ${c.ka ? "" : "no"}`}>
-            <span>{c.ka ? <>KOLLEKTIV-<br />AVTAL</> : <>EJ KA<br />&nbsp;</>}</span>
-          </div>
-          <IsoStamplar iso={c.iso} />
         </div>
       </div>
+      <Faktaruta company={c} />
       <CompanyTags services={c.services} focus={c.focus} />
       <CompanyCities cities={c.officeCities} city={c.city} />
       {c.slideshow?.length > 0 && (
