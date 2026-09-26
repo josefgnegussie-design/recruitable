@@ -16,12 +16,8 @@ export default function PreviewCompanies({ bolag = [] }) {
               <p className="pc-name">{c.name}</p>
               <div className="pc-city">{c.city.toUpperCase()} · GRUNDAT {c.founded}</div>
             </div>
-            {c.iso?.length > 0 && (
-              <div className="card-top-right">
-                <IsoStamplar iso={c.iso} />
-              </div>
-            )}
           </div>
+          <IsoStamplar iso={c.iso} />
           {c.vision ? (
             <p className="pc-vision">&ldquo;{c.vision}&rdquo;</p>
           ) : (

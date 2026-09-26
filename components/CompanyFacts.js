@@ -6,15 +6,63 @@
 
 import { sorteradeIso } from "@/lib/iso";
 
-// En stämpel per ISO-certifiering, under kollektivavtalets. Till skillnad från
-// den finns ingen "EJ ISO"-stämpel: ett bolag som inte angett något och ett som
-// saknar certifiering går inte att skilja åt, så kortet tiger hellre.
+// En stämpel per ISO-certifiering, med titeln utskriven — "ISO 14001" säger
+// inget för den som inte kan standarderna utantill. Ingen "EJ ISO"-stämpel: ett
+// bolag som inte angett något och ett som saknar certifiering går inte att
+// skilja åt, så kortet tiger hellre.
 export function IsoStamplar({ iso }) {
-  return sorteradeIso(iso).map((c) => (
-    <div className="stamp" key={c.kod} title={`${c.kod} – ${c.namn}`}>
-      <span>{c.kod.toUpperCase()}</span>
+  const lista = sorteradeIso(iso);
+  if (!lista.length) return null;
+  return (
+    <div className="iso-stamplar">
+      {lista.map((c) => (
+        <div className="stamp" key={c.kod}>
+          <span>
+            {c.kod} · {c.namn}
+          </span>
+        </div>
+      ))}
     </div>
-  ));
+  );
+}
+
+// De jämförbara uppgifterna i en liten ruta högt upp på korten, i samma form
+// som faktaraden på profilsidan. Stod förut utspridda: kollektivavtal och ISO
+// som en kolumn stämplar i hörnet, omsättning och medarbetare längst ner under
+// bildspelet — och på urvalskortet inte alls. Nu ligger de på samma ställe i
+// varje kort, så att den som jämför bolag kan läsa rakt nedåt i listan.
+//
+// Nyckeltalen på en rad med tre fält. ISO får en egen rad under, i hela
+// bredden, så att varje certifiering kan stå med sin titel. Raden finns bara
+// när bolaget angett en certifiering; se IsoStamplar.
+export function Faktaruta({ company: c }) {
+  const iso = sorteradeIso(c.iso);
+  return (
+    <div className="faktaruta">
+      <div>
+        <div className="k">Medarbetare{c.employeesYear ? ` ${c.employeesYear}` : ""}</div>
+        <div className="v">{c.employees || "—"}</div>
+      </div>
+      <div>
+        <div className="k">Omsättning{c.revenueYear ? ` ${c.revenueYear}` : ""}</div>
+        <div className="v">{c.revenue || "—"}</div>
+      </div>
+      <div>
+        <div className="k">Kollektivavtal</div>
+        <div className="v">{c.ka ? "Ja" : "Nej"}</div>
+      </div>
+      {iso.length > 0 && (
+        <div className="iso">
+          <div className="k">ISO-certifiering</div>
+          {iso.map((i) => (
+            <div className="iso-rad" key={i.kod}>
+              <span className="v">{i.kod}</span> {i.namn}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Svensk decimalkomma. Number(v) eftersom poängen kommer ur jsonb och kan ligga

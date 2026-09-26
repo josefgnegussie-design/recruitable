@@ -2,15 +2,26 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-// Bolagets egna bilder på profilsidan. Högst fem, så det behövs varken
-// automatisk växling eller bibliotek — en bild i taget med prickar under, och
-// pilarna syns bara när det finns något att bläddra till.
+// Hur länge varje bild står innan nästa visas.
+const INTERVALL_MS = 3000;
+
+// Bolagets egna bilder, på profilen och på korten. Högst fem, så det behövs
+// inget bibliotek — en bild i taget med prickar under, och pilarna syns bara
+// när det finns något att bläddra till.
 //
-// Ingen autospelning med flit: bilderna är innehåll att titta på i egen takt,
-// och en karusell som rör sig av sig själv drar blicken från texten bredvid.
+// Med fler än en bild växlar bildspelet av sig självt, så att besökaren ser
+// att det finns mer än den första bilden. Det stannar när det inte går att
+// titta på det i lugn och ro: medan muspekaren eller tangentbordsfokus ligger
+// på det, när det förstorats, när det inte syns på skärmen, och helt för den
+// som bett sitt system om minskade animationer. Pilarna och prickarna gäller
+// som förut, och ett klick räknar om tiden till nästa byte från början.
 export default function Bildspel({ bilder = [], namn }) {
   const [index, setIndex] = useState(0);
   const [forstorad, setForstorad] = useState(false);
+  const [pausad, setPausad] = useState(false);
+  const [synlig, setSynlig] = useState(false);
+  const [minskadRorelse, setMinskadRorelse] = useState(true);
+  const rotRef = useRef(null);
   // Fokus ska tillbaka dit besökaren var när det förstorade läget stängs,
   // annars hamnar tangentbordet överst på sidan igen.
   const oppnarenRef = useRef(null);
@@ -61,6 +72,36 @@ export default function Bildspel({ bilder = [], namn }) {
     };
   }, [forstorad, stang, stega]);
 
+  useEffect(() => {
+    const fraga = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const uppdatera = () => setMinskadRorelse(fraga.matches);
+    uppdatera();
+    fraga.addEventListener("change", uppdatera);
+    return () => fraga.removeEventListener("change", uppdatera);
+  }, []);
+
+  // Urvalslistan kan ha hundra kort. Bara de som syns ska byta bild, annars
+  // hämtas bilder ingen tittar på.
+  useEffect(() => {
+    const rot = rotRef.current;
+    if (!rot || typeof IntersectionObserver === "undefined") return;
+    const observator = new IntersectionObserver(([post]) => setSynlig(post.isIntersecting), {
+      threshold: 0.5,
+    });
+    observator.observe(rot);
+    return () => observator.disconnect();
+  }, []);
+
+  const spelar = bilder.length > 1 && synlig && !pausad && !forstorad && !minskadRorelse;
+
+  // Beror på index: varje byte — automatiskt eller för hand — startar en ny
+  // nedräkning, så att en bild man just bläddrat fram inte byts ut direkt.
+  useEffect(() => {
+    if (!spelar) return;
+    const timer = setTimeout(() => stega(1), INTERVALL_MS);
+    return () => clearTimeout(timer);
+  }, [spelar, index, stega]);
+
   if (!bilder.length) return null;
 
   const flera = bilder.length > 1;
@@ -68,7 +109,16 @@ export default function Bildspel({ bilder = [], namn }) {
 
   return (
     <>
-      <div className="bildspel">
+      <div
+        className="bildspel"
+        ref={rotRef}
+        onMouseEnter={() => setPausad(true)}
+        onMouseLeave={() => setPausad(false)}
+        onFocus={() => setPausad(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget)) setPausad(false);
+        }}
+      >
         <div className="bildspel-scen">
           {/* Knapp och inte bara en klickbar bild, så den går att nå med tabb
               och aktivera med mellanslag eller retur. */}

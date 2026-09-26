@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CompanySurveys, CompanyTags, IsoStamplar } from "@/components/CompanyFacts";
+import { CompanySurveys, CompanyTags, Faktaruta } from "@/components/CompanyFacts";
 import CompanyCities from "@/components/CompanyCities";
 import { bolagsUrl } from "@/lib/slug";
 import Bildspel from "@/components/Bildspel";
@@ -17,13 +17,8 @@ export default function CompanyCard({ company: c }) {
             </div>
           </div>
         </div>
-        <div className="card-top-right">
-          <div className={`stamp ${c.ka ? "" : "no"}`}>
-            <span>{c.ka ? <>KOLLEKTIV-<br />AVTAL</> : <>EJ KA<br />&nbsp;</>}</span>
-          </div>
-          <IsoStamplar iso={c.iso} />
-        </div>
       </div>
+      <Faktaruta company={c} />
       <CompanyTags services={c.services} focus={c.focus} />
       <CompanyCities cities={c.officeCities} city={c.city} />
       {c.slideshow?.length > 0 && (
@@ -40,10 +35,6 @@ export default function CompanyCard({ company: c }) {
         <p className="card-vision plain">{c.desc}</p>
       ) : null}
       <CompanySurveys surveys={c.surveys} />
-      <div className="card-meta">
-        <div><b>{c.revenue}</b>Omsättning {c.revenueYear}</div>
-        <div><b>{c.employees}</b>Medarbetare {c.employeesYear}</div>
-      </div>
       <div className="card-actions">
         <Link className="btn btn-primary" href={bolagsUrl(c)}>Se profil</Link>
         {c.link && (
