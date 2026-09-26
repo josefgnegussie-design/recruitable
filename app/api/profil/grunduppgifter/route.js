@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { YRKESOMRADEN, GILTIGA_TJANSTER } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { giltigaAdresser, normaliseraAdress, orterUrAdresser } from "@/lib/adresser";
+import { GILTIGA_ISO } from "@/lib/iso";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -55,7 +56,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { companyId, vision, description, focus, services, recruitingRoles, link, contact, ka, logo, slideshow, addresses, surveys } =
+  const { companyId, vision, description, focus, services, recruitingRoles, link, contact, ka, iso, logo, slideshow, addresses, surveys } =
     body;
 
   const text = (v, max) => typeof v === "string" && v.length <= max;
@@ -94,6 +95,7 @@ export async function POST(request) {
     !bildspelOk ||
     !adresserOk ||
     typeof ka !== "boolean" ||
+    !lista(iso, GILTIGA_ISO, GILTIGA_ISO.size) ||
     (contact && (typeof contact !== "string" || contact.length > 254 || !EMAIL_RE.test(contact))) ||
     typeof surveys !== "object" ||
     surveys === null ||
@@ -127,6 +129,8 @@ export async function POST(request) {
       link: link?.trim() || null,
       contact: contact?.trim() || null,
       ka,
+      // Dubbletter bort, så att samma certifiering inte kan stå två gånger.
+      iso_certifications: [...new Set(iso)],
       logo: logo?.trim() || null,
       slideshow,
       addresses: normaliserade,
