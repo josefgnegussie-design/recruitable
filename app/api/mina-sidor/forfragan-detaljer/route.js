@@ -42,13 +42,16 @@ export async function POST(request) {
   const { data: recipient } = await createAdminClient()
     .from("inquiry_recipients")
     .select(
-      "company_id, status, inquiries(requester_name, requester_email, requester_role, requester_phone, " +
-        "requester_company, requester_city, requester_website)"
+      "company_id, status, inquiries(moderation_status, requester_name, requester_email, " +
+        "requester_role, requester_phone, requester_company, requester_city, requester_website)"
     )
     .eq("id", recipientId)
     .maybeSingle();
 
-  if (!recipient) {
+  // Modereringsgrinden låg i RLS-policyn på inquiry_recipients och gäller inte
+  // servicerollen. En ogranskad förfrågan ska inte gå att låsa upp ens om någon
+  // gissar rätt mottagar-id.
+  if (!recipient || recipient.inquiries?.moderation_status !== "approved") {
     return NextResponse.json({ error: "Hittades inte." }, { status: 404 });
   }
 
@@ -67,5 +70,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "Kontaktuppgifterna låses upp först när förfrågan accepterats." }, { status: 403 });
   }
 
-  return NextResponse.json(recipient.inquiries);
+  // moderation_status hämtades bara för grinden ovan och hör inte hemma i svaret.
+  const { moderation_status, ...kontaktuppgifter } = recipient.inquiries;
+  return NextResponse.json(kontaktuppgifter);
 }

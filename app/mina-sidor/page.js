@@ -76,8 +76,13 @@ export default async function MinaSidorPage({ searchParams }) {
   // adminRow är verifierad och company_id styr vilka rader som hämtas.
   const { data: inquiryRows } = await createAdminClient()
     .from("inquiry_recipients")
-    .select("id, created_at, status, inquiries(*)")
+    .select("id, created_at, status, inquiries!inner(*)")
     .eq("company_id", adminRow.company_id)
+    // Modereringsgrinden. Den satt i RLS-policyn på inquiry_recipients, som slog
+    // upp inquiries.moderation_status — men servicerollen går förbi RLS, och
+    // mottagarraderna skapas redan när förfrågan skickas in. Utan filtret här
+    // skulle bolagen se förfrågningar du ännu inte granskat.
+    .eq("inquiries.moderation_status", "approved")
     .order("created_at", { ascending: false })
     .limit(INQUIRIES_PAGE_SIZE + 1);
 

@@ -44,11 +44,15 @@ export async function POST(request) {
   // { ok: true }.
   const { data: recipient } = await createAdminClient()
     .from("inquiry_recipients")
-    .select("company_id, companies(name), inquiries(requester_company, description)")
+    .select("company_id, companies(name), inquiries(moderation_status, requester_company, description)")
     .eq("id", recipientId)
     .maybeSingle();
 
-  if (!recipient) {
+  // Modereringsgrinden satt tidigare i RLS-policyn på inquiry_recipients, som
+  // slog upp inquiries.moderation_status. Den uppslagningen fungerar inte längre
+  // när bolagen saknar select på inquiries, och servicerollen går förbi RLS helt
+  // — så grinden måste stå här i koden i stället.
+  if (!recipient || recipient.inquiries?.moderation_status !== "approved") {
     return NextResponse.json({ error: "Hittades inte." }, { status: 404 });
   }
 
@@ -63,7 +67,12 @@ export async function POST(request) {
     return NextResponse.json({ error: "Inte behörig." }, { status: 403 });
   }
 
-  const { error } = await supabase
+  // Också skrivningen går via service role. Update-policyn på inquiry_recipients
+  // rör i sig inte inquiries, men Postgres tillämpar SELECT-policyn när en UPDATE
+  // ska hitta raden via WHERE — och den policyn slår upp inquiries. Med bolagets
+  // egen session träffade uppdateringen därför noll rader, helt tyst: knappen
+  // Neka gjorde ingenting och inget fel syntes någonstans.
+  const { error } = await createAdminClient()
     .from("inquiry_recipients")
     .update({ status, responded_at: new Date().toISOString() })
     .eq("id", recipientId);
