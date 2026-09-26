@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rateLimit";
-import { sendDecisionToRequester, sendRecipientDecisionToAdmin } from "@/lib/email";
+import { sendAcceptanceToRequester, sendRecipientDecisionToAdmin } from "@/lib/email";
 import { MAX_ORD_I_SVAR, fornamn, giltigtSvarsmeddelande } from "@/lib/inquiries";
 
 export const runtime = "nodejs";
@@ -120,12 +120,11 @@ export async function POST(request) {
     // i rad, och ett samlat besked kan dessutom säga hur det gick för förfrågan
     // i stort, vilket ett enskilt nej inte kan.
     kundensEpost && status === "accepted"
-      ? sendDecisionToRequester({
+      ? sendAcceptanceToRequester({
           to: kundensEpost,
           requesterName: fornamn(recipient.inquiries?.requester_name),
           companyName: bolagsnamn,
           companySlug: recipient.companies?.slug,
-          accepted: status === "accepted",
           message: svarsmeddelande,
           searchRole: recipient.inquiries?.search_role,
           city: recipient.inquiries?.city,
