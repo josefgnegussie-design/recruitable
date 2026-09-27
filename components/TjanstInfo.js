@@ -59,8 +59,18 @@ export default function TjanstInfo({ malgrupp = "kund" }) {
         return;
       }
 
+      // Cookiebannern ligger fast i nederkanten och skymmer 138 px av fönstret.
+      // Den visas för just den besökare som kommer hit första gången — alltså
+      // exakt den som öppnar förklaringen — och utan avdraget hamnade slutet av
+      // rutan bakom den.
+      const banner = document.querySelector(".cookie-banner");
+      const skymt =
+        banner && getComputedStyle(banner).position === "fixed"
+          ? banner.getBoundingClientRect().height
+          : 0;
+
       const knapp = wrapRef.current.getBoundingClientRect();
-      const under = window.innerHeight - knapp.bottom - 16;
+      const under = window.innerHeight - skymt - knapp.bottom - 16;
       const over = knapp.top - 16;
       const uppat = over > under;
 
