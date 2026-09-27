@@ -438,7 +438,11 @@ a:hover{color:var(--color-accent)}
      cirkelmask åt av hörnen på just de märken som fyller sin ruta. Större än
      förut (56 px) — profilsidan är platsen där bolaget ska gå att känna igen,
      och vit botten eftersom bilderna numera matteras med vitt. */
-  .profile-logo{width:76px;height:76px;border-radius:var(--radius-md);object-fit:contain;background:var(--color-surface-card);padding:5px;flex-shrink:0;border:1px solid var(--color-hairline);}
+  /* 76 → 95 px, en fjärdedel större. Logotypen är bolagets enda egna uttryck på
+     profilen och drunknade bredvid namnet i displayfonten. object-fit:contain
+     står kvar med flit — breda logotyper får inte beskäras för att fylla
+     kvadraten, det felet fanns här förut. */
+  .profile-logo{width:95px;height:95px;border-radius:var(--radius-md);object-fit:contain;background:var(--color-surface-card);padding:6px;flex-shrink:0;border:1px solid var(--color-hairline);}
 
 
   /* Luften mellan blocken var tidigare 24 px hela vägen ner, ovanpå panelernas
