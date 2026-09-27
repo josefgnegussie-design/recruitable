@@ -13,7 +13,7 @@ const KOLUMNER = [
   ["Premium", (r) => (r.premium ? "Ja" : "Nej")],
   ["Utskick", (r) => r.utskick],
   ["Accepterade", (r) => r.accepterade],
-  ["Nekade", (r) => r.nekade],
+  ["Tackat nej", (r) => r.nekade],
   ["Obesvarade", (r) => r.obesvarade],
   ["Median svarstid (h)", (r) => (r.median_svarstid_timmar != null ? r.median_svarstid_timmar : "")],
 ];

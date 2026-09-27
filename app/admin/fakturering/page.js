@@ -74,7 +74,7 @@ export default async function FaktureringPage({ searchParams }) {
           poster={[
             { etikett: "Utskick till bolag", varde: tal(totalt.utskick) },
             { etikett: "Accepterade", varde: tal(totalt.accepterade) },
-            { etikett: "Nekade", varde: tal(totalt.nekade) },
+            { etikett: "Tackat nej", varde: tal(totalt.nekade) },
             {
               etikett: "Obesvarade",
               varde: tal(totalt.obesvarade),
@@ -113,7 +113,7 @@ export default async function FaktureringPage({ searchParams }) {
                     <th>Ort</th>
                     <th className="num">Utskick</th>
                     <th className="num">Accepterade</th>
-                    <th className="num">Nekade</th>
+                    <th className="num">Tackat nej</th>
                     <th className="num">Obesvarade</th>
                     <th className="num">Median svarstid</th>
                   </tr>
