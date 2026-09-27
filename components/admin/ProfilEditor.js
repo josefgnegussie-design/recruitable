@@ -325,7 +325,7 @@ export default function ProfilEditor({ company }) {
               min="1800"
               max={new Date().getFullYear() + 1}
               value={revenueYear}
-              placeholder="2025"
+              placeholder="t.ex. 2025"
               onChange={(e) => setRevenueYear(e.target.value)}
             />
           </div>
@@ -355,7 +355,7 @@ export default function ProfilEditor({ company }) {
               min="1800"
               max={new Date().getFullYear() + 1}
               value={employeesYear}
-              placeholder="2025"
+              placeholder="t.ex. 2025"
               onChange={(e) => setEmployeesYear(e.target.value)}
             />
           </div>
@@ -368,7 +368,7 @@ export default function ProfilEditor({ company }) {
             min="1800"
             max={new Date().getFullYear() + 1}
             value={founded}
-            placeholder="2016"
+            placeholder="t.ex. 1998"
             onChange={(e) => setFounded(e.target.value)}
           />
           <p className="hint">
