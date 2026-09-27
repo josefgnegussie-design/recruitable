@@ -37,7 +37,6 @@ export default function ProfilEditor({ company }) {
   const [revenueYear, setRevenueYear] = useState(egna.revenue_year ?? "");
   const [employees, setEmployees] = useState(egna.employees || "");
   const [employeesYear, setEmployeesYear] = useState(egna.employees_year ?? "");
-  const [founded, setFounded] = useState(egna.founded ?? "");
 
   const [customerScore, setCustomerScore] = useState(
     company.surveys?.customer_satisfaction?.score ?? ""
@@ -142,7 +141,6 @@ export default function ProfilEditor({ company }) {
         revenueYear: revenueYear === "" ? null : Number(revenueYear),
         employees: employees.trim() || null,
         employeesYear: employeesYear === "" ? null : Number(employeesYear),
-        founded: founded === "" ? null : Number(founded),
         surveys: {
           customer_satisfaction: surveyEntry(customerScore, customerYear, customerSource),
           employee_satisfaction: surveyEntry(employeeScore, employeeYear, employeeSource),
@@ -360,23 +358,16 @@ export default function ProfilEditor({ company }) {
             />
           </div>
         </div>
-        <div className="field">
-          <label htmlFor="gp-founded">Grundat</label>
-          <input
-            id="gp-founded"
-            type="number"
-            min="1800"
-            max={new Date().getFullYear() + 1}
-            value={founded}
-            placeholder="t.ex. 1998"
-            onChange={(e) => setFounded(e.target.value)}
-          />
-          <p className="hint">
-            {company.founded ? `Registret: ${company.founded}. ` : ""}
-            Registreringsåret hos Bolagsverket. Har verksamheten äldre rötter än bolaget är det er
-            historia som är den riktiga — skriv den.
+        {/* Grundat går inte att ändra: det är en registreringsuppgift och inte
+            ett tal som åldras mellan boksluten. Har verksamheten äldre rötter än
+            den juridiska personen hör det hemma i beskrivningen, där det ryms
+            ett sammanhang. */}
+        {company.founded && (
+          <p className="hint" style={{ marginBottom: 0 }}>
+            Grundat {company.founded} enligt Bolagsverket. Det året ändras inte här — har
+            verksamheten äldre rötter än bolaget, berätta det under Om bolaget.
           </p>
-        </div>
+        )}
       </div>
 
       <div className="auth-panel" style={{ marginTop: 20 }}>

@@ -73,7 +73,8 @@ export async function POST(request) {
     revenue_year: body.revenueYear ?? null,
     employees: body.employees ?? null,
     employees_year: body.employeesYear ?? null,
-    founded: body.founded ?? null,
+    // Grundat tas inte emot: det är en registreringsuppgift, inte ett tal som
+    // åldras mellan boksluten. Skickar en klient ändå med det ignoreras det här.
   };
 
   const text = (v, max) => typeof v === "string" && v.length <= max;
@@ -121,8 +122,7 @@ export async function POST(request) {
     !giltigtNyckeltal(egnaIn.revenue) ||
     !giltigtNyckeltal(egnaIn.employees) ||
     !giltigtArtal(egnaIn.revenue_year) ||
-    !giltigtArtal(egnaIn.employees_year) ||
-    !giltigtArtal(egnaIn.founded)
+    !giltigtArtal(egnaIn.employees_year)
   ) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
   }

@@ -86,7 +86,8 @@ export default async function ProfilePage({ params }) {
   // ensamt, precis som förut.
   const omsattning = nyckeltal(c, "revenue");
   const medarbetare = nyckeltal(c, "employees");
-  const grundat = nyckeltal(c, "founded");
+  // Grundat har ingen egen variant — det är en registreringsuppgift och kan
+  // bara komma från registret. Se EGNA_NYCKELTAL i lib/nyckeltal.js.
 
   const manad = (datum) =>
     datum ? new Date(datum).toLocaleDateString("sv-SE", { year: "numeric", month: "long" }) : null;
@@ -170,7 +171,10 @@ export default async function ProfilePage({ params }) {
             <div className="k">Kollektivavtal</div>
             <div className="v">{c.ka ? "Ja" : "Nej"}</div>
           </div>
-          <Nyckeltalscell etikett="Grundat" t={grundat} />
+          <div className="spec-cell">
+            <div className="k">Grundat</div>
+            <div className="v">{c.founded}</div>
+          </div>
           {/* Till skillnad från kollektivavtalet står här inget "Nej": rutan
               finns bara när bolaget självt angett en certifiering. Ett
               otillfrågat bolag och ett bolag utan certifiering ser annars

@@ -23,10 +23,15 @@
 --
 -- Formen är platt, med ett datum per uppgift:
 --   { "revenue": "268 Mkr", "revenue_year": 2026, "revenue_updated": "2026-09-27",
---     "employees": "312", "employees_year": 2026, "employees_updated": "...",
---     "founded": 1998, "founded_updated": "..." }
+--     "employees": "312", "employees_year": 2026, "employees_updated": "..." }
+--
 -- En nyckel som saknas betyder att bolaget inte rört den uppgiften, och då är
 -- registrets tal det enda som visas.
+--
+-- TILLÄGG efter körningen: grundat togs bort ur de redigerbara fälten. Det är en
+-- registreringsuppgift och inte ett tal som åldras mellan boksluten, så det
+-- kommer bara ur registret. Kolumnen är oförändrad — se EGNA_NYCKELTAL i
+-- lib/nyckeltal.js för vad som faktiskt skrivs.
 --
 -- Vad bolaget INTE får ändra, och varför: organisationsnumret är identiteten
 -- hela registret matchar på — granskningskön, kohortlistan och kontrollen mot
