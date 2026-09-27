@@ -1293,3 +1293,9 @@ nav.site-nav .utloggning-fel{font-size:12px;color:var(--rust-400);}
    jämförelsetal, inte sidans besked — men det ska gå att läsa, för det är det
    som gör bolagets egen siffra trovärdig. */
 .jamforelsetal{font-family:var(--font-mono);font-size:10.5px;line-height:1.45;color:var(--color-muted);margin-top:4px;opacity:0.85;}
+/* Fält med fast enhet efter sig (omsättningen i Mkr). Enheten är vår och inte
+   bolagets — de skriver talet, vi sätter enheten — och då ska den synas i
+   fältet i stället för bara i hjälptexten. */
+.falt-med-enhet{display:flex;align-items:stretch;gap:0;}
+.falt-med-enhet input{flex:1;min-width:0;border-top-right-radius:0;border-bottom-right-radius:0;}
+.falt-med-enhet .enhet{display:flex;align-items:center;padding:0 14px;font-family:var(--font-mono);font-size:13px;color:var(--color-muted);background:var(--color-surface-soft);border:1px solid var(--color-hairline);border-left:none;border-radius:0 var(--radius-md) var(--radius-md) 0;white-space:nowrap;}

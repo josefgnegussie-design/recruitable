@@ -33,7 +33,14 @@ export default function ProfilEditor({ company }) {
   // den som tar över sin profil ska kunna skriva dit årets siffra och tala om
   // vilket år den gäller.
   const egna = company.company_key_figures || {};
-  const [revenue, setRevenue] = useState(egna.revenue || "");
+  // Fältet visar bara talet — enheten sitter i etiketten bredvid, och det
+  // sparade värdet bär den ("186,2 Mkr"). Utan det här skulle bolaget se sin
+  // egen siffra med enheten i rutan och tro att de ska skriva den själva.
+  const [revenue, setRevenue] = useState(
+    String(egna.revenue || "")
+      .replace(/\s*Mkr\.?$/i, "")
+      .trim()
+  );
   const [revenueYear, setRevenueYear] = useState(egna.revenue_year ?? "");
   const [employees, setEmployees] = useState(egna.employees || "");
   const [employeesYear, setEmployeesYear] = useState(egna.employees_year ?? "");
@@ -300,19 +307,28 @@ export default function ProfilEditor({ company }) {
         <div className="profil-rad">
           <div className="field">
             <label htmlFor="gp-revenue">Omsättning</label>
-            <input
-              id="gp-revenue"
-              type="text"
-              maxLength={60}
-              value={revenue}
-              placeholder="t.ex. 221,2 Mkr"
-              onChange={(e) => setRevenue(e.target.value)}
-            />
-            <p className="hint">
+            {/* Enheten är vår, inte bolagets. Registret är byggt för att jämföra
+                bolag, och en kolumn där det står "18,4 Mkr" på en rad och
+                "18 400 000" på nästa går inte att läsa som en jämförelse — den
+                ser bara ut som en. */}
+            <div className="falt-med-enhet">
+              <input
+                id="gp-revenue"
+                type="text"
+                inputMode="decimal"
+                maxLength={20}
+                value={revenue}
+                placeholder="t.ex. 18,4"
+                onChange={(e) => setRevenue(e.target.value)}
+                aria-describedby="gp-revenue-hjalp"
+              />
+              <span className="enhet">Mkr</span>
+            </div>
+            <p className="hint" id="gp-revenue-hjalp">
               {company.revenue
                 ? `Registret: ${company.revenue}${company.revenue_year ? ` (${company.revenue_year})` : ""}. `
                 : "Registret saknar omsättning för er. "}
-              Skriv som ni brukar — &quot;18,4 Mkr&quot; eller &quot;1 997 Mkr (koncern)&quot;.
+              Ange talet i miljoner kronor — 0,3 om ni omsatt 300 tkr.
             </p>
           </div>
           <div className="field">

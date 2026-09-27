@@ -4,7 +4,7 @@ import { YRKESOMRADEN, GILTIGA_TJANSTER } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { giltigaAdresser, normaliseraAdress, orterUrAdresser } from "@/lib/adresser";
 import { GILTIGA_ISO } from "@/lib/iso";
-import { byggEgnaNyckeltal, giltigtArtal, giltigtNyckeltal } from "@/lib/nyckeltal";
+import { byggEgnaNyckeltal, giltigOmsattning, giltigtArtal, giltigtNyckeltal } from "@/lib/nyckeltal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -119,12 +119,21 @@ export async function POST(request) {
     surveys === null ||
     !giltigUndersokning(surveys.customer_satisfaction) ||
     !giltigUndersokning(surveys.employee_satisfaction) ||
-    !giltigtNyckeltal(egnaIn.revenue) ||
     !giltigtNyckeltal(egnaIn.employees) ||
     !giltigtArtal(egnaIn.revenue_year) ||
     !giltigtArtal(egnaIn.employees_year)
   ) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
+  }
+
+  // Omsättningen får ett eget besked. Den är tvingande i Mkr, och ett bolag som
+  // skrivit "18,4 miljoner" ska få veta vad som är fel i stället för att gissa
+  // vilket av tjugo fält som stoppade sparningen.
+  if (!giltigOmsattning(egnaIn.revenue)) {
+    return NextResponse.json(
+      { error: "Omsättningen anges i miljoner kronor, som ett tal: 18,4 för 18,4 Mkr och 0,3 för 300 tkr." },
+      { status: 400 }
+    );
   }
 
   const normaliserade = addresses.map(normaliseraAdress);
