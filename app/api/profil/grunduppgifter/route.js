@@ -4,6 +4,7 @@ import { YRKESOMRADEN, GILTIGA_TJANSTER } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { giltigaAdresser, normaliseraAdress, orterUrAdresser } from "@/lib/adresser";
 import { GILTIGA_ISO } from "@/lib/iso";
+import { giltigtArtal, giltigtNyckeltal, markeraAndrade } from "@/lib/nyckeltal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,6 +66,16 @@ export async function POST(request) {
   const { companyId, vision, description, focus, services, recruitingRoles, link, contact, ka, iso, logo, slideshow, addresses, surveys } =
     body;
 
+  // Nyckeltalen. Bolaget äger dem efter övertagandet — se lib/nyckeltal.js och
+  // migration_nyckeltal.sql för varför de ändå märks med sin källa.
+  const nyckeltal = {
+    revenue: body.revenue ?? null,
+    revenueYear: body.revenueYear ?? null,
+    employees: body.employees ?? null,
+    employeesYear: body.employeesYear ?? null,
+    founded: body.founded ?? null,
+  };
+
   const text = (v, max) => typeof v === "string" && v.length <= max;
   const lista = (v, giltiga, max) =>
     Array.isArray(v) && v.length <= max && v.every((x) => giltiga.has(x));
@@ -106,7 +117,12 @@ export async function POST(request) {
     typeof surveys !== "object" ||
     surveys === null ||
     !giltigUndersokning(surveys.customer_satisfaction) ||
-    !giltigUndersokning(surveys.employee_satisfaction)
+    !giltigUndersokning(surveys.employee_satisfaction) ||
+    !giltigtNyckeltal(nyckeltal.revenue) ||
+    !giltigtNyckeltal(nyckeltal.employees) ||
+    !giltigtArtal(nyckeltal.revenueYear) ||
+    !giltigtArtal(nyckeltal.employeesYear) ||
+    !giltigtArtal(nyckeltal.founded)
   ) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
   }
@@ -124,9 +140,27 @@ export async function POST(request) {
     return NextResponse.json({ error: "Inte behörig." }, { status: 403 });
   }
 
+  // Nuvarande siffror läses innan de skrivs över, så att bara de fält som
+  // faktiskt ändrats märks som bolagets egna. Den som sparar profilen utan att
+  // röra siffrorna ska inte få dem omstämplade — datumet skulle då ljuga om när
+  // uppgiften senast kontrollerades.
+  const { data: fore } = await supabase
+    .from("companies")
+    .select("revenue, revenue_year, employees, employees_year, founded, key_figures_updated")
+    .eq("id", companyId)
+    .maybeSingle();
+
+  const arTal = (v) => (v === null || v === undefined || v === "" ? null : Number(v));
+
   const { error } = await supabase
     .from("companies")
     .update({
+      revenue: nyckeltal.revenue?.trim() || null,
+      revenue_year: arTal(nyckeltal.revenueYear),
+      employees: nyckeltal.employees?.trim() || null,
+      employees_year: arTal(nyckeltal.employeesYear),
+      founded: arTal(nyckeltal.founded),
+      key_figures_updated: markeraAndrade(fore?.key_figures_updated, fore, nyckeltal),
       vision: vision.trim() || null,
       description: description.trim() || null,
       focus,

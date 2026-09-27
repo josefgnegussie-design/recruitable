@@ -56,7 +56,12 @@ export default async function MinaSidorPage({ searchParams }) {
 
   const { data: company } = await supabase
     .from("companies")
-    .select("id, name, is_premium, vision, description, focus, services, recruiting_roles, link, contact, ka, iso_certifications, slideshow, addresses, logo, surveys")
+    .select(
+      "id, name, is_premium, vision, description, focus, services, recruiting_roles, link, contact, " +
+        "ka, iso_certifications, slideshow, addresses, logo, surveys, " +
+        // Nyckeltalen är bolagets egna sedan migration_nyckeltal.sql.
+        "revenue, revenue_year, employees, employees_year, founded"
+    )
     .eq("id", adminRow.company_id)
     .single();
 

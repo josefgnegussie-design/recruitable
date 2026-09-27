@@ -28,6 +28,16 @@ export default function ProfilEditor({ company }) {
   const [slideshow, setSlideshow] = useState(company.slideshow || []);
   const [addresses, setAddresses] = useState(company.addresses || []);
 
+  // Nyckeltalen kom ur Bolagsverket och årsredovisningar och var låsta. De är
+  // bolagets egna nu — omsättningen i registret är ofta räkenskapsåret 2024, och
+  // den som tar över sin profil ska kunna skriva dit årets siffra och tala om
+  // vilket år den gäller.
+  const [revenue, setRevenue] = useState(company.revenue || "");
+  const [revenueYear, setRevenueYear] = useState(company.revenue_year ?? "");
+  const [employees, setEmployees] = useState(company.employees || "");
+  const [employeesYear, setEmployeesYear] = useState(company.employees_year ?? "");
+  const [founded, setFounded] = useState(company.founded ?? "");
+
   const [customerScore, setCustomerScore] = useState(
     company.surveys?.customer_satisfaction?.score ?? ""
   );
@@ -124,6 +134,14 @@ export default function ProfilEditor({ company }) {
         iso,
         slideshow,
         addresses,
+        // Tomma fält skickas som null och inte som "", så att en rensad siffra
+        // blir tom i registret i stället för en tom sträng som ser ut som ett
+        // värde när profilen renderas.
+        revenue: revenue.trim() || null,
+        revenueYear: revenueYear === "" ? null : Number(revenueYear),
+        employees: employees.trim() || null,
+        employeesYear: employeesYear === "" ? null : Number(employeesYear),
+        founded: founded === "" ? null : Number(founded),
         surveys: {
           customer_satisfaction: surveyEntry(customerScore, customerYear, customerSource),
           employee_satisfaction: surveyEntry(employeeScore, employeeYear, employeeSource),
@@ -269,6 +287,82 @@ export default function ProfilEditor({ company }) {
           ort hittar er. Kostar ingenting och är inte begränsat till era betalda kontor.
         </p>
         <AdressField value={addresses} onChange={setAddresses} />
+      </div>
+
+      <div className="auth-panel" style={{ marginTop: 20 }}>
+        <div className="filter-title">Nyckeltal</div>
+        <p className="hint" style={{ marginTop: 0 }}>
+          Siffrorna kommer från Bolagsverket och årsredovisningar och är ofta ett par år gamla. Skriv
+          era egna i stället — och ange vilket år de gäller, för det är året som gör dem jämförbara.
+          Profilen visar vad ni uppdaterat och när.
+        </p>
+        <div className="profil-rad">
+          <div className="field">
+            <label htmlFor="gp-revenue">Omsättning</label>
+            <input
+              id="gp-revenue"
+              type="text"
+              maxLength={60}
+              value={revenue}
+              placeholder="t.ex. 221,2 Mkr"
+              onChange={(e) => setRevenue(e.target.value)}
+            />
+            <p className="hint">Skriv som ni brukar — &quot;18,4 Mkr&quot; eller &quot;1 997 Mkr (koncern)&quot;.</p>
+          </div>
+          <div className="field">
+            <label htmlFor="gp-revenue-year">Räkenskapsår</label>
+            <input
+              id="gp-revenue-year"
+              type="number"
+              min="1800"
+              max={new Date().getFullYear() + 1}
+              value={revenueYear}
+              placeholder="2025"
+              onChange={(e) => setRevenueYear(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="profil-rad">
+          <div className="field">
+            <label htmlFor="gp-employees">Medarbetare</label>
+            <input
+              id="gp-employees"
+              type="text"
+              maxLength={60}
+              value={employees}
+              placeholder="t.ex. 301"
+              onChange={(e) => setEmployees(e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="gp-employees-year">Räkenskapsår</label>
+            <input
+              id="gp-employees-year"
+              type="number"
+              min="1800"
+              max={new Date().getFullYear() + 1}
+              value={employeesYear}
+              placeholder="2025"
+              onChange={(e) => setEmployeesYear(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="field">
+          <label htmlFor="gp-founded">Grundat</label>
+          <input
+            id="gp-founded"
+            type="number"
+            min="1800"
+            max={new Date().getFullYear() + 1}
+            value={founded}
+            placeholder="2016"
+            onChange={(e) => setFounded(e.target.value)}
+          />
+          <p className="hint">
+            Registreringsåret hos Bolagsverket från början. Har verksamheten äldre rötter än bolaget
+            är det er historia som är den riktiga — skriv den.
+          </p>
+        </div>
       </div>
 
       <div className="auth-panel" style={{ marginTop: 20 }}>

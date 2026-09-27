@@ -76,6 +76,18 @@ export default async function ProfilePage({ params }) {
   );
   const harVision = Boolean(c.vision || harUndersokningar);
   const iso = sorteradeIso(c.iso);
+
+  // Källmärkningen av nyckeltalen. Ett tal bolaget skrivit själv och ett hämtat
+  // ur en årsredovisning är inte samma sorts uppgift, och hela registrets värde
+  // för en köpare är att siffrorna går att jämföra — att visa dem som om de vore
+  // likvärdiga vore att ljuga tyst. Saknas märket kommer talet fortfarande ur
+  // registret, och då säger raden ingenting extra.
+  const kalla = (falt) => {
+    const datum = c.keyFiguresUpdated?.[falt];
+    if (!datum) return null;
+    const manad = new Date(datum).toLocaleDateString("sv-SE", { year: "numeric", month: "long" });
+    return ` · uppgift från bolaget, ${manad}`;
+  };
   const harVerksamhet = Boolean(c.desc || c.verksamhetsbeskrivning || c.addresses?.length);
 
   return (
@@ -134,12 +146,18 @@ export default async function ProfilePage({ params }) {
           <div className="spec-cell">
             <div className="k">Omsättning</div>
             <div className="v">{c.revenue}</div>
-            <div className="y">Räkenskapsår {c.revenueYear}</div>
+            <div className="y">
+              Räkenskapsår {c.revenueYear}
+              {kalla("revenue")}
+            </div>
           </div>
           <div className="spec-cell">
             <div className="k">Medarbetare</div>
             <div className="v">{c.employees}</div>
-            <div className="y">Räkenskapsår {c.employeesYear}</div>
+            <div className="y">
+              Räkenskapsår {c.employeesYear}
+              {kalla("employees")}
+            </div>
           </div>
           <div className="spec-cell">
             <div className="k">Kollektivavtal</div>
@@ -148,6 +166,7 @@ export default async function ProfilePage({ params }) {
           <div className="spec-cell">
             <div className="k">Grundat</div>
             <div className="v">{c.founded}</div>
+            {kalla("founded") && <div className="y">{kalla("founded")}</div>}
           </div>
           {/* Till skillnad från kollektivavtalet står här inget "Nej": rutan
               finns bara när bolaget självt angett en certifiering. Ett
