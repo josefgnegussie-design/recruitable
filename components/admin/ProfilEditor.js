@@ -32,11 +32,12 @@ export default function ProfilEditor({ company }) {
   // bolagets egna nu — omsättningen i registret är ofta räkenskapsåret 2024, och
   // den som tar över sin profil ska kunna skriva dit årets siffra och tala om
   // vilket år den gäller.
-  const [revenue, setRevenue] = useState(company.revenue || "");
-  const [revenueYear, setRevenueYear] = useState(company.revenue_year ?? "");
-  const [employees, setEmployees] = useState(company.employees || "");
-  const [employeesYear, setEmployeesYear] = useState(company.employees_year ?? "");
-  const [founded, setFounded] = useState(company.founded ?? "");
+  const egna = company.company_key_figures || {};
+  const [revenue, setRevenue] = useState(egna.revenue || "");
+  const [revenueYear, setRevenueYear] = useState(egna.revenue_year ?? "");
+  const [employees, setEmployees] = useState(egna.employees || "");
+  const [employeesYear, setEmployeesYear] = useState(egna.employees_year ?? "");
+  const [founded, setFounded] = useState(egna.founded ?? "");
 
   const [customerScore, setCustomerScore] = useState(
     company.surveys?.customer_satisfaction?.score ?? ""
@@ -165,9 +166,10 @@ export default function ProfilEditor({ company }) {
         <h3 style={{ marginTop: 0 }}>Er profil</h3>
         <p style={{ fontSize: 13, color: "var(--color-muted)", marginBottom: 0 }}>
           Det här är uppgifterna ni själva svarar för, och allt här syns för den som söker
-          leverantör. Omsättning, antal anställda, adress och organisationsnummer hämtas från
-          Bolagsverket och årsredovisningar och går inte att ändra — det är den grunden som gör
-          registret jämförbart.
+          leverantör. Även nyckeltalen: de kom från Bolagsverket och årsredovisningar, men är era
+          att uppdatera nu. Profilen visar vad ni ändrat och när — det är så en siffra ni skrivit
+          själva ändå går att jämföra med en hämtad ur en årsredovisning. Organisationsnummer och
+          bolagsnamn ändrar vi åt er; hör av er så gör vi det.
         </p>
       </div>
 
@@ -292,9 +294,10 @@ export default function ProfilEditor({ company }) {
       <div className="auth-panel" style={{ marginTop: 20 }}>
         <div className="filter-title">Nyckeltal</div>
         <p className="hint" style={{ marginTop: 0 }}>
-          Siffrorna kommer från Bolagsverket och årsredovisningar och är ofta ett par år gamla. Skriv
-          era egna i stället — och ange vilket år de gäller, för det är året som gör dem jämförbara.
-          Profilen visar vad ni uppdaterat och när.
+          Siffrorna nedan kommer från Bolagsverket och årsredovisningar och är ofta ett par år gamla.
+          Skriv era egna så visas de överst på profilen — registrets tal står kvar under, mindre, som
+          jämförelse. Ange vilket år er siffra gäller; det är året som gör den jämförbar. Lämnar ni
+          ett fält tomt visas bara registrets tal.
         </p>
         <div className="profil-rad">
           <div className="field">
@@ -307,7 +310,12 @@ export default function ProfilEditor({ company }) {
               placeholder="t.ex. 221,2 Mkr"
               onChange={(e) => setRevenue(e.target.value)}
             />
-            <p className="hint">Skriv som ni brukar — &quot;18,4 Mkr&quot; eller &quot;1 997 Mkr (koncern)&quot;.</p>
+            <p className="hint">
+              {company.revenue
+                ? `Registret: ${company.revenue}${company.revenue_year ? ` (${company.revenue_year})` : ""}. `
+                : "Registret saknar omsättning för er. "}
+              Skriv som ni brukar — &quot;18,4 Mkr&quot; eller &quot;1 997 Mkr (koncern)&quot;.
+            </p>
           </div>
           <div className="field">
             <label htmlFor="gp-revenue-year">Räkenskapsår</label>
@@ -333,6 +341,11 @@ export default function ProfilEditor({ company }) {
               placeholder="t.ex. 301"
               onChange={(e) => setEmployees(e.target.value)}
             />
+            <p className="hint">
+              {company.employees
+                ? `Registret: ${company.employees}${company.employees_year ? ` (${company.employees_year})` : ""}.`
+                : "Registret saknar antal medarbetare för er."}
+            </p>
           </div>
           <div className="field">
             <label htmlFor="gp-employees-year">Räkenskapsår</label>
@@ -359,8 +372,9 @@ export default function ProfilEditor({ company }) {
             onChange={(e) => setFounded(e.target.value)}
           />
           <p className="hint">
-            Registreringsåret hos Bolagsverket från början. Har verksamheten äldre rötter än bolaget
-            är det er historia som är den riktiga — skriv den.
+            {company.founded ? `Registret: ${company.founded}. ` : ""}
+            Registreringsåret hos Bolagsverket. Har verksamheten äldre rötter än bolaget är det er
+            historia som är den riktiga — skriv den.
           </p>
         </div>
       </div>

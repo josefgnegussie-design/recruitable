@@ -1285,3 +1285,7 @@ nav.site-nav .utloggning-fel{font-size:12px;color:var(--rust-400);}
   .valkommen-kort .profile-actions{align-items:stretch;}
   .valkommen-kort .profile-actions .btn{width:100%;text-align:center;}
 }
+/* Registrets tal under bolagets egen uppgift. Mindre och dovare: det är ett
+   jämförelsetal, inte sidans besked — men det ska gå att läsa, för det är det
+   som gör bolagets egen siffra trovärdig. */
+.jamforelsetal{font-family:var(--font-mono);font-size:10.5px;line-height:1.45;color:var(--color-muted);margin-top:4px;opacity:0.85;}

@@ -58,7 +58,7 @@ export default async function MinaSidorPage({ searchParams }) {
     .from("companies")
     .select(
       "id, name, is_premium, vision, description, focus, services, recruiting_roles, link, contact, " +
-        "ka, iso_certifications, slideshow, addresses, logo, surveys, " +
+        "ka, iso_certifications, slideshow, addresses, logo, surveys, company_key_figures, " +
         // Nyckeltalen är bolagets egna sedan migration_nyckeltal.sql.
         "revenue, revenue_year, employees, employees_year, founded"
     )

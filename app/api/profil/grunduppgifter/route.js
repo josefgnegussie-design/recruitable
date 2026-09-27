@@ -4,7 +4,7 @@ import { YRKESOMRADEN, GILTIGA_TJANSTER } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { giltigaAdresser, normaliseraAdress, orterUrAdresser } from "@/lib/adresser";
 import { GILTIGA_ISO } from "@/lib/iso";
-import { giltigtArtal, giltigtNyckeltal, markeraAndrade } from "@/lib/nyckeltal";
+import { byggEgnaNyckeltal, giltigtArtal, giltigtNyckeltal } from "@/lib/nyckeltal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,13 +66,13 @@ export async function POST(request) {
   const { companyId, vision, description, focus, services, recruitingRoles, link, contact, ka, iso, logo, slideshow, addresses, surveys } =
     body;
 
-  // Nyckeltalen. Bolaget äger dem efter övertagandet — se lib/nyckeltal.js och
-  // migration_nyckeltal.sql för varför de ändå märks med sin källa.
-  const nyckeltal = {
+  // Bolagets egna nyckeltal. De sparas VID SIDAN av registrets kolumner, som
+  // aldrig rörs härifrån — se lib/nyckeltal.js för varför båda behövs.
+  const egnaIn = {
     revenue: body.revenue ?? null,
-    revenueYear: body.revenueYear ?? null,
+    revenue_year: body.revenueYear ?? null,
     employees: body.employees ?? null,
-    employeesYear: body.employeesYear ?? null,
+    employees_year: body.employeesYear ?? null,
     founded: body.founded ?? null,
   };
 
@@ -118,11 +118,11 @@ export async function POST(request) {
     surveys === null ||
     !giltigUndersokning(surveys.customer_satisfaction) ||
     !giltigUndersokning(surveys.employee_satisfaction) ||
-    !giltigtNyckeltal(nyckeltal.revenue) ||
-    !giltigtNyckeltal(nyckeltal.employees) ||
-    !giltigtArtal(nyckeltal.revenueYear) ||
-    !giltigtArtal(nyckeltal.employeesYear) ||
-    !giltigtArtal(nyckeltal.founded)
+    !giltigtNyckeltal(egnaIn.revenue) ||
+    !giltigtNyckeltal(egnaIn.employees) ||
+    !giltigtArtal(egnaIn.revenue_year) ||
+    !giltigtArtal(egnaIn.employees_year) ||
+    !giltigtArtal(egnaIn.founded)
   ) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
   }
@@ -140,27 +140,23 @@ export async function POST(request) {
     return NextResponse.json({ error: "Inte behörig." }, { status: 403 });
   }
 
-  // Nuvarande siffror läses innan de skrivs över, så att bara de fält som
-  // faktiskt ändrats märks som bolagets egna. Den som sparar profilen utan att
-  // röra siffrorna ska inte få dem omstämplade — datumet skulle då ljuga om när
-  // uppgiften senast kontrollerades.
+  // Bolagets tidigare egna tal läses först, så att ett datum bara sätts om när
+  // uppgiften faktiskt ändrats. Den som sparar profilen utan att röra siffrorna
+  // ska inte få dem omdaterade — datumet skulle då ljuga om när uppgiften
+  // senast stämde.
   const { data: fore } = await supabase
     .from("companies")
-    .select("revenue, revenue_year, employees, employees_year, founded, key_figures_updated")
+    .select("company_key_figures")
     .eq("id", companyId)
     .maybeSingle();
-
-  const arTal = (v) => (v === null || v === undefined || v === "" ? null : Number(v));
 
   const { error } = await supabase
     .from("companies")
     .update({
-      revenue: nyckeltal.revenue?.trim() || null,
-      revenue_year: arTal(nyckeltal.revenueYear),
-      employees: nyckeltal.employees?.trim() || null,
-      employees_year: arTal(nyckeltal.employeesYear),
-      founded: arTal(nyckeltal.founded),
-      key_figures_updated: markeraAndrade(fore?.key_figures_updated, fore, nyckeltal),
+      // Registrets kolumner — revenue, employees, founded — rörs INTE här. De
+      // kommer ur Bolagsverket och årsredovisningar och är jämförelsetalet som
+      // står kvar under bolagets egen siffra på profilen.
+      company_key_figures: byggEgnaNyckeltal(fore?.company_key_figures, egnaIn),
       vision: vision.trim() || null,
       description: description.trim() || null,
       focus,

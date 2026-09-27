@@ -1,28 +1,32 @@
--- Bolagen får äga sina egna nyckeltal.
+-- Bolagen får skriva sina egna nyckeltal — vid sidan av registrets, inte i
+-- stället för dem.
 --
 -- Hittills har siffrorna varit låsta: omsättning, medarbetare och grundat kom
--- ur Bolagsverket och årsredovisningar, och bolaget fick bara skriva den mjuka
--- delen av profilen. Godkännandemejlet lovade till och med att uppgifterna
--- "ligger kvar och går inte att ändra".
+-- ur Bolagsverket och årsredovisningar, och godkännandemejlet lovade till och
+-- med att de "inte går att ändra". Det håller inte när profilen ska vara
+-- bolagets egen. Omsättningen i registret är ofta räkenskapsåret 2024, hämtad
+-- en gång ur en årsredovisning, och den som tar över sin profil 2026 ska kunna
+-- skriva dit årets siffra.
 --
--- Det håller inte när profilen ska vara bolagets egen. Omsättningen i registret
--- är ofta räkenskapsåret 2024, hämtat en gång ur en årsredovisning, och den som
--- tar över sin profil 2026 ska kunna skriva dit årets siffra — och tala om
--- vilket år den gäller. Samma sak för antalet medarbetare. Efter övertagandet
--- har källorna gjort sitt.
+-- Men den reviderade siffran är värd för mycket för att skrivas över. Två skäl:
 --
--- MEN: hela registrets värde för en köpare är att siffrorna går att jämföra.
--- En omsättning bolaget skrivit själv och en hämtad ur en årsredovisning är
--- inte samma sorts uppgift, och att visa dem som om de vore det vore att ljuga
--- tyst. Därför spåras VILKA fält bolaget tagit över och NÄR, så att profilen
--- kan säga "uppgift från bolaget, uppdaterad september 2026" där det gäller och
--- "enligt Bolagsverket och årsredovisning" där det fortfarande gäller.
+--   1. Köparen jämför bolag med varandra. En siffra bolaget skrivit själv och en
+--      hämtad ur en årsredovisning är inte samma sorts uppgift. Står båda kvar
+--      behåller jämförelsen sitt ankare — och bolagets egen siffra blir starkare,
+--      inte svagare, av att stå bredvid den reviderade.
+--   2. Skrev bolaget över kolumnen vore den borta för gott. Vi skulle inte ens
+--      kunna fylla på med nästa årsredovisning utan att radera bolagets uppgift.
 --
--- Formen är { "revenue": "2026-09-27", "employees": "2026-09-27" } — en nyckel
--- per fält bolaget rört, med datumet det senast gjordes. Ett fält som saknas i
--- objektet kommer alltjämt från registret. En jsonb och inte en kolumn per fält:
--- fälten är få men kommer att bli fler, och varje nytt nyckeltal ska inte kräva
--- en ny migration bara för att kunna märkas med sin källa.
+-- Därför: companies.revenue/employees/founded förblir REGISTRETS kolumner och
+-- rörs aldrig av ett bolag. Bolagets egna tal ligger i company_key_figures, och
+-- profilen visar dem överst med registrets som jämförelsetal under.
+--
+-- Formen är platt, med ett datum per uppgift:
+--   { "revenue": "268 Mkr", "revenue_year": 2026, "revenue_updated": "2026-09-27",
+--     "employees": "312", "employees_year": 2026, "employees_updated": "...",
+--     "founded": 1998, "founded_updated": "..." }
+-- En nyckel som saknas betyder att bolaget inte rört den uppgiften, och då är
+-- registrets tal det enda som visas.
 --
 -- Vad bolaget INTE får ändra, och varför: organisationsnumret är identiteten
 -- hela registret matchar på — granskningskön, kohortlistan och kontrollen mot
@@ -30,13 +34,13 @@
 -- annan juridisk person. Namnet styr slugen, alltså adressen till profilen.
 -- Båda ändras av oss, efter att bolaget hört av sig.
 
-alter table companies add column if not exists key_figures_updated jsonb not null default '{}'::jsonb;
+alter table companies add column if not exists company_key_figures jsonb not null default '{}'::jsonb;
 
 do $$
 begin
-  if not exists (select 1 from pg_constraint where conname = 'companies_key_figures_updated_ar_objekt') then
-    alter table companies add constraint companies_key_figures_updated_ar_objekt
-      check (jsonb_typeof(key_figures_updated) = 'object');
+  if not exists (select 1 from pg_constraint where conname = 'companies_company_key_figures_ar_objekt') then
+    alter table companies add constraint companies_company_key_figures_ar_objekt
+      check (jsonb_typeof(company_key_figures) = 'object');
   end if;
 end $$;
 

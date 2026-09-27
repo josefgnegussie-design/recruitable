@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { foljSammanslagning, hamtaBolagMedId, hamtaBolagMedSlug } from "@/lib/companiesRepo";
 import { arId, bolagsUrl } from "@/lib/slug";
+import { nyckeltal } from "@/lib/nyckeltal";
 import { betyg, undersokningsRubrik } from "@/components/CompanyFacts";
 import Bildspel from "@/components/Bildspel";
 import Faktalista from "@/components/Faktalista";
@@ -77,17 +78,37 @@ export default async function ProfilePage({ params }) {
   const harVision = Boolean(c.vision || harUndersokningar);
   const iso = sorteradeIso(c.iso);
 
-  // Källmärkningen av nyckeltalen. Ett tal bolaget skrivit själv och ett hämtat
-  // ur en årsredovisning är inte samma sorts uppgift, och hela registrets värde
-  // för en köpare är att siffrorna går att jämföra — att visa dem som om de vore
-  // likvärdiga vore att ljuga tyst. Saknas märket kommer talet fortfarande ur
-  // registret, och då säger raden ingenting extra.
-  const kalla = (falt) => {
-    const datum = c.keyFiguresUpdated?.[falt];
-    if (!datum) return null;
-    const manad = new Date(datum).toLocaleDateString("sv-SE", { year: "numeric", month: "long" });
-    return ` · uppgift från bolaget, ${manad}`;
-  };
+  // Nyckeltalen i två lager: bolagets egen uppgift överst, registrets under som
+  // jämförelsetal. Ett tal bolaget skrivit själv och ett hämtat ur en
+  // årsredovisning är inte samma sorts uppgift, och hela registrets värde för en
+  // köpare är att siffrorna går att jämföra — står båda kvar behåller
+  // jämförelsen sitt ankare. Har bolaget inte rört uppgiften står registrets
+  // ensamt, precis som förut.
+  const omsattning = nyckeltal(c, "revenue");
+  const medarbetare = nyckeltal(c, "employees");
+  const grundat = nyckeltal(c, "founded");
+
+  const manad = (datum) =>
+    datum ? new Date(datum).toLocaleDateString("sv-SE", { year: "numeric", month: "long" }) : null;
+
+  const Nyckeltalscell = ({ etikett, t }) => (
+    <div className="spec-cell">
+      <div className="k">{etikett}</div>
+      <div className="v">{t.varde}</div>
+      {(t.ar || t.franBolaget) && (
+        <div className="y">
+          {t.ar ? `Räkenskapsår ${t.ar}` : null}
+          {t.franBolaget ? `${t.ar ? " · " : ""}uppgift från bolaget${manad(t.uppdaterad) ? `, ${manad(t.uppdaterad)}` : ""}` : null}
+        </div>
+      )}
+      {t.jamforelse && (
+        <div className="jamforelsetal">
+          {t.jamforelse.varde}
+          {t.jamforelse.ar ? ` (${t.jamforelse.ar})` : ""} enligt Bolagsverket och årsredovisning
+        </div>
+      )}
+    </div>
+  );
   const harVerksamhet = Boolean(c.desc || c.verksamhetsbeskrivning || c.addresses?.length);
 
   return (
@@ -143,31 +164,13 @@ export default async function ProfilePage({ params }) {
         </div>
 
         <div className={`spec-grid${iso.length ? " med-iso" : ""}`}>
-          <div className="spec-cell">
-            <div className="k">Omsättning</div>
-            <div className="v">{c.revenue}</div>
-            <div className="y">
-              Räkenskapsår {c.revenueYear}
-              {kalla("revenue")}
-            </div>
-          </div>
-          <div className="spec-cell">
-            <div className="k">Medarbetare</div>
-            <div className="v">{c.employees}</div>
-            <div className="y">
-              Räkenskapsår {c.employeesYear}
-              {kalla("employees")}
-            </div>
-          </div>
+          <Nyckeltalscell etikett="Omsättning" t={omsattning} />
+          <Nyckeltalscell etikett="Medarbetare" t={medarbetare} />
           <div className="spec-cell">
             <div className="k">Kollektivavtal</div>
             <div className="v">{c.ka ? "Ja" : "Nej"}</div>
           </div>
-          <div className="spec-cell">
-            <div className="k">Grundat</div>
-            <div className="v">{c.founded}</div>
-            {kalla("founded") && <div className="y">{kalla("founded")}</div>}
-          </div>
+          <Nyckeltalscell etikett="Grundat" t={grundat} />
           {/* Till skillnad från kollektivavtalet står här inget "Nej": rutan
               finns bara när bolaget självt angett en certifiering. Ett
               otillfrågat bolag och ett bolag utan certifiering ser annars
