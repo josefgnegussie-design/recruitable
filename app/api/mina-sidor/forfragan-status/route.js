@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const VALID_STATUSES = new Set(["accepted", "declined"]);
 
-// Bolagets Acceptera/Neka på Mina sidor. Går via en serverroute istället för
+// Bolagets Acceptera / Tacka nej på Mina sidor. Går via en serverroute istället för
 // ett direkt Supabase-anrop från klienten (som tidigare) så att beslutet
 // också triggar en mejlnotis till plattformsadmin — se
 // sendRecipientDecisionToAdmin i lib/email.js och /admin/logg.

@@ -127,7 +127,7 @@ export function Utfallsstapel({ accepterade, nekade, obesvarade }) {
 
   const delar = [
     { etikett: "Accepterade", varde: accepterade, farg: FARG.accepterade },
-    { etikett: "Nekade", varde: nekade, farg: FARG.nekade },
+    { etikett: "Tackat nej", varde: nekade, farg: FARG.nekade },
     { etikett: "Obesvarade", varde: obesvarade, farg: FARG.obesvarade },
   ].filter((d) => d.varde > 0);
 
@@ -182,7 +182,7 @@ export function Manadsdiagram({ manader }) {
             const skala = (v) => (v / max) * (hojd - 18);
             const segment = [
               { v: m.obesvarade, farg: FARG.obesvarade, namn: "Obesvarade" },
-              { v: m.nekade, farg: FARG.nekade, namn: "Nekade" },
+              { v: m.nekade, farg: FARG.nekade, namn: "Tackat nej" },
               { v: m.accepterade, farg: FARG.accepterade, namn: "Accepterade" },
             ];
             let y = hojd;
@@ -229,7 +229,7 @@ export function Manadsdiagram({ manader }) {
         </li>
         <li>
           <span className="prick" style={{ background: FARG.nekade }} />
-          Nekade
+          Tackat nej
         </li>
         <li>
           <span className="prick" style={{ background: FARG.obesvarade }} />

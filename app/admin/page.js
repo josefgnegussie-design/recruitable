@@ -256,7 +256,7 @@ export default async function AdminOversikt({ searchParams }) {
               forandring: forandring(accepterade, Number(ff.accepterade || 0)),
             },
             {
-              etikett: "Nekade",
+              etikett: "Tackat nej",
               varde: tal(nekade),
               suffix: andel(nekade, utskick) !== null ? ` (${andel(nekade, utskick)} %)` : "",
             },

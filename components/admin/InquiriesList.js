@@ -7,7 +7,7 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString("sv-SE", { year: "numeric", month: "short", day: "numeric" });
 }
 
-const STATUS_LABEL = { accepted: "Accepterad", declined: "Nekad" };
+const STATUS_LABEL = { accepted: "Accepterad", declined: "Tackat nej" };
 
 function inomDennaManad(iso) {
   const d = new Date(iso);
@@ -213,7 +213,7 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
                 disabled={updatingId === inq.recipientId || raknaOrd(meddelanden[inq.recipientId]) > MAX_ORD_I_SVAR}
                 onClick={() => setStatus(inq.recipientId, "declined")}
               >
-                Neka
+                Tacka nej
               </button>
               {inq.status !== "pending" && (
                 <span className={`status-pill ${inq.status}`}>{STATUS_LABEL[inq.status]}</span>
