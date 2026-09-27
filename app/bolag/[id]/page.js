@@ -3,6 +3,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { foljSammanslagning, hamtaBolagMedId, hamtaBolagMedSlug } from "@/lib/companiesRepo";
 import { arId, bolagsUrl } from "@/lib/slug";
 import { nyckeltal } from "@/lib/nyckeltal";
+import Kallor from "@/components/Kallor";
 import { betyg, undersokningsRubrik } from "@/components/CompanyFacts";
 import Bildspel from "@/components/Bildspel";
 import Faktalista from "@/components/Faktalista";
@@ -105,7 +106,21 @@ export default async function ProfilePage({ params }) {
       {t.jamforelse && (
         <div className="jamforelsetal">
           {t.jamforelse.varde}
-          {t.jamforelse.ar ? ` (${t.jamforelse.ar})` : ""} enligt Bolagsverket och årsredovisning
+          {t.jamforelse.ar ? ` (${t.jamforelse.ar})` : ""}{" "}
+          <Kallor etikett="källa">
+            <p>
+              <strong>{t.varde}</strong> är bolagets egen uppgift
+              {t.ar ? ` för räkenskapsåret ${t.ar}` : ""}
+              {manad(t.uppdaterad) ? `, lämnad ${manad(t.uppdaterad)}` : ""}.
+            </p>
+            <p>
+              <strong>
+                {t.jamforelse.varde}
+                {t.jamforelse.ar ? ` (${t.jamforelse.ar})` : ""}
+              </strong>{" "}
+              kommer från Bolagsverket och bolagets årsredovisning, och står kvar som jämförelse.
+            </p>
+          </Kallor>
         </div>
       )}
     </div>
@@ -218,9 +233,7 @@ export default async function ProfilePage({ params }) {
                       <span className="k">{undersokningsRubrik("Kundnöjdhet", c.surveys.customer_satisfaction)}</span>
                       <span className="v">{betyg(c.surveys.customer_satisfaction.score)} / 5</span>
                     </div>
-                    {c.surveys.customer_satisfaction.source && (
-                      <div className="note">Källa: {c.surveys.customer_satisfaction.source}</div>
-                    )}
+
                   </>
                 )}
                 {c.surveys.employee_satisfaction && (
@@ -229,12 +242,25 @@ export default async function ProfilePage({ params }) {
                       <span className="k">{undersokningsRubrik("Medarbetarnöjdhet", c.surveys.employee_satisfaction)}</span>
                       <span className="v">{betyg(c.surveys.employee_satisfaction.score)} / 5</span>
                     </div>
-                    {c.surveys.employee_satisfaction.source && (
-                      <div className="note">Källa: {c.surveys.employee_satisfaction.source}</div>
-                    )}
+
                   </>
                 )}
-                <div className="note">Mätningarna är bolagets egna och redovisas med den källa de angett.</div>
+                <div className="note">
+                  <Kallor>
+                    <p>Mätningarna är bolagets egna, inte våra.</p>
+                    {c.surveys.customer_satisfaction?.source && (
+                      <p>
+                        Kundnöjdhet: <strong>{c.surveys.customer_satisfaction.source}</strong>
+                      </p>
+                    )}
+                    {c.surveys.employee_satisfaction?.source && (
+                      <p>
+                        Medarbetarnöjdhet: <strong>{c.surveys.employee_satisfaction.source}</strong>
+                      </p>
+                    )}
+                    <p>Bolaget svarar för både siffran och källan.</p>
+                  </Kallor>
+                </div>
               </div>
             )}
           </div>
@@ -274,23 +300,32 @@ export default async function ProfilePage({ params }) {
                   ursprungliga texten lovade att bolagets webbplats kontrollerats,
                   vilket stämmer för de dryga femtio som gåtts igenom för hand —
                   men inte för de tusentals som hämtats maskinellt ur register. */}
-              {c.klassificeringHarledd ? (
-                <div className="note">
-                  Fokusområden och tjänster är härledda ur bolagsordningen, inte lämnade av bolaget.
-                  Ungefär ett bolag av fjorton får en inriktning som inte stämmer helt — stämmer det
-                  inte här, ta över profilen och rätta den.
-                </div>
-              ) : c.desc ? (
-                <div className="note">
-                  Källa: offentlig bolagsdata (Allabolag/Ratsit/Bolagsfakta) + bolagets webbplats,
-                  kontrollerad augusti 2026.
-                </div>
-              ) : (
-                <div className="note">
-                  Uppgifterna kommer från Bolagsverket och offentliga årsredovisningar. Bolaget har
-                  inte lämnat några uppgifter själv.
-                </div>
-              )}
+              <div className="note">
+                <Kallor>
+                  {c.klassificeringHarledd ? (
+                    <>
+                      <p>
+                        Fokusområden och tjänster är <strong>härledda ur bolagsordningen</strong>,
+                        inte lämnade av bolaget.
+                      </p>
+                      <p>
+                        Ungefär ett bolag av fjorton får en inriktning som inte stämmer helt.
+                        Stämmer det inte här kan bolaget ta över profilen och rätta den.
+                      </p>
+                    </>
+                  ) : c.desc ? (
+                    <p>
+                      <strong>Offentlig bolagsdata</strong> (Allabolag, Ratsit, Bolagsfakta) och
+                      bolagets egen webbplats, kontrollerad augusti 2026.
+                    </p>
+                  ) : (
+                    <p>
+                      <strong>Bolagsverket och offentliga årsredovisningar.</strong> Bolaget har inte
+                      lämnat några uppgifter själv.
+                    </p>
+                  )}
+                </Kallor>
+              </div>
             </div>
           </div>
         </div>
@@ -313,7 +348,15 @@ export default async function ProfilePage({ params }) {
               <div className="panel">
                 <h3>Verksamhet</h3>
                 <Brodtext text={c.verksamhetsbeskrivning} />
-                <p className="note">Enligt bolagsordningen, registrerad hos Bolagsverket.</p>
+                <p className="note">
+                  <Kallor>
+                    <p>
+                      Texten är bolagets egen formulering ur <strong>bolagsordningen</strong>,
+                      registrerad hos Bolagsverket.
+                    </p>
+                    <p>Den visas tills bolaget skrivit en egen beskrivning.</p>
+                  </Kallor>
+                </p>
               </div>
             )}
 

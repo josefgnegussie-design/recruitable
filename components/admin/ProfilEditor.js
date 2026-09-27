@@ -350,15 +350,17 @@ export default function ProfilEditor({ company }) {
             <input
               id="gp-employees"
               type="text"
-              maxLength={60}
+              inputMode="numeric"
+              maxLength={10}
               value={employees}
-              placeholder="t.ex. 301"
+              placeholder="t.ex. 250"
               onChange={(e) => setEmployees(e.target.value)}
             />
             <p className="hint">
               {company.employees
-                ? `Registret: ${company.employees}${company.employees_year ? ` (${company.employees_year})` : ""}.`
-                : "Registret saknar antal medarbetare för er."}
+                ? `Registret: ${company.employees}${company.employees_year ? ` (${company.employees_year})` : ""}. `
+                : "Registret saknar antal medarbetare för er. "}
+              Ange ett helt antal personer.
             </p>
           </div>
           <div className="field">

@@ -4,7 +4,12 @@ import { YRKESOMRADEN, GILTIGA_TJANSTER } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { giltigaAdresser, normaliseraAdress, orterUrAdresser } from "@/lib/adresser";
 import { GILTIGA_ISO } from "@/lib/iso";
-import { byggEgnaNyckeltal, giltigOmsattning, giltigtArtal, giltigtNyckeltal } from "@/lib/nyckeltal";
+import {
+  byggEgnaNyckeltal,
+  giltigOmsattning,
+  giltigtArtal,
+  giltigtMedarbetarantal,
+} from "@/lib/nyckeltal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -119,7 +124,6 @@ export async function POST(request) {
     surveys === null ||
     !giltigUndersokning(surveys.customer_satisfaction) ||
     !giltigUndersokning(surveys.employee_satisfaction) ||
-    !giltigtNyckeltal(egnaIn.employees) ||
     !giltigtArtal(egnaIn.revenue_year) ||
     !giltigtArtal(egnaIn.employees_year)
   ) {

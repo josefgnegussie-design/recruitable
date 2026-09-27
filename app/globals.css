@@ -1299,3 +1299,32 @@ nav.site-nav .utloggning-fel{font-size:12px;color:var(--rust-400);}
 .falt-med-enhet{display:flex;align-items:stretch;gap:0;}
 .falt-med-enhet input{flex:1;min-width:0;border-top-right-radius:0;border-bottom-right-radius:0;}
 .falt-med-enhet .enhet{display:flex;align-items:center;padding:0 14px;font-family:var(--font-mono);font-size:13px;color:var(--color-muted);background:var(--color-surface-soft);border:1px solid var(--color-hairline);border-left:none;border-radius:0 var(--radius-md) var(--radius-md) 0;white-space:nowrap;}
+
+/* ===== Källhänvisningar, hopfällda ===== */
+/* Ett ord som fäller ut resten. Visas vid hover OCH fokus: pekskärmar har ingen
+   hover, tangentbord har ingen musmarkör, och samma uppgift ska nå alla tre.
+   Ingen JavaScript — rutan är alltid i DOM:en och skärmläsare når den. */
+.kallor{position:relative;display:inline-block;}
+.kallor-knapp{background:none;border:none;padding:0;font-family:var(--font-mono);font-size:11px;letter-spacing:0.4px;text-transform:uppercase;color:var(--color-muted);cursor:help;text-decoration:underline dotted;text-underline-offset:3px;}
+.kallor-knapp:hover,.kallor-knapp:focus-visible{color:var(--color-accent);}
+
+.kallor-ruta{
+  position:absolute;left:0;bottom:calc(100% + 8px);z-index:40;
+  width:max-content;max-width:min(340px,80vw);
+  background:var(--color-surface-card);border:1px solid var(--color-hairline);
+  border-radius:var(--radius-md);box-shadow:var(--shadow-card);
+  padding:12px 14px;font-size:12.5px;line-height:1.5;color:var(--color-body);
+  text-transform:none;letter-spacing:normal;font-family:var(--font-body);
+  opacity:0;visibility:hidden;transform:translateY(4px);
+  transition:opacity 120ms ease,transform 120ms ease,visibility 120ms;
+}
+.kallor:hover .kallor-ruta,.kallor:focus-within .kallor-ruta{opacity:1;visibility:visible;transform:translateY(0);}
+.kallor-ruta p{margin:0 0 8px;}
+.kallor-ruta p:last-child{margin-bottom:0;}
+.kallor-ruta strong{color:var(--color-ink);}
+
+/* Nära högerkanten skulle rutan annars hamna utanför skärmen. */
+.kallor.hoger .kallor-ruta{left:auto;right:0;}
+@media (max-width:640px){
+  .kallor-ruta{left:auto;right:0;max-width:min(300px,88vw);}
+}
