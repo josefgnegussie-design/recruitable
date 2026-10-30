@@ -79,6 +79,17 @@ function filterHref(filters) {
   return query ? `/rekrytera?${query}` : "/rekrytera";
 }
 
+// Listan kommer rangordnad efter relevans. Att förvälja alla träffar, upp till
+// hundra, gjorde det enklare att skicka till för många än till rätt bolag.
+const FORVALDA = 10;
+// Över så här många valda bolag påminner formuläret om att förfrågan blir
+// bredare än den behöver vara. "Välj alla" går fortfarande.
+const VARNA_OVER = 15;
+
+function forval(results) {
+  return new Set(results.slice(0, FORVALDA).map((c) => c.id));
+}
+
 function serializeDraft(draft) {
   // Set går inte att JSON-serialisera.
   return { ...draft, selected: [...draft.selected] };
@@ -110,7 +121,7 @@ export default function InquiryWizard({ filters, results, totalt }) {
     "forfragan",
     {
       step: 1,
-      selected: new Set(results.map((c) => c.id)),
+      selected: forval(results),
       filterSignature,
       name: "",
       email: "",
@@ -129,7 +140,7 @@ export default function InquiryWizard({ filters, results, totalt }) {
     if (!restored || appliedSignature.current) return;
     appliedSignature.current = true;
     if (draft.filterSignature !== filterSignature) {
-      patch({ selected: new Set(results.map((c) => c.id)), filterSignature, step: 1 });
+      patch({ selected: forval(results), filterSignature, step: 1 });
     }
   }, [restored, draft.filterSignature, filterSignature, results, patch]);
 
@@ -352,8 +363,10 @@ export default function InquiryWizard({ filters, results, totalt }) {
                 <p className="hero-sub">
                   Visar {results.length}
                   {totalt > results.length ? ` av ${totalt}` : ""} bolag för{" "}
-                  {filters.omrade || "alla yrkesområden"} · {filters.ort || "alla orter"}. Bocka ur de ni
-                  inte vill skicka förfrågan till.
+                  {filters.omrade || "alla yrkesområden"} · {filters.ort || "alla orter"}.{" "}
+                  {results.length > FORVALDA
+                    ? `De ${FORVALDA} mest relevanta är förvalda. Lägg till eller bocka ur efter behov.`
+                    : "Bocka ur de ni inte vill skicka förfrågan till."}
                   {totalt > results.length && " Snäva in filtret om ni vill se fler."}
                 </p>
               )}
@@ -372,6 +385,11 @@ export default function InquiryWizard({ filters, results, totalt }) {
                 )}
               </div>
             </div>
+            {selected.size > VARNA_OVER && (
+              <p className="urvalsvarning" role="status">
+                {`Ni har valt ${selected.size} bolag. Med fler än ${VARNA_OVER} blir det ofta fler samtal att hantera än svar att välja bland. Bocka gärna ur de minst relevanta.`}
+              </p>
+            )}
             {results.length === 0 ? (
               <p>Inga bolag matchar filtret. <Link href={filterHref(filters)}>Justera filtret</Link>.</p>
             ) : (
