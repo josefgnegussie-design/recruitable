@@ -150,7 +150,7 @@ export default async function ProfilePage({ params }) {
         <div className="claim-banner">
           <p>
             <strong>Den här profilen är sammanställd ur offentliga register.</strong> Uppgifterna kommer
-            från Bolagsverket och årsredovisningar — bolaget har inte själv fyllt i något här.
+            från Bolagsverket och årsredovisningar. Bolaget har inte själv fyllt i något här.
           </p>
           <Link className="qs-btn" href="/for-bolag/registrera">
             Är detta ert bolag? Ta över profilen

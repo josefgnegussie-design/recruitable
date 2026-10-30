@@ -240,7 +240,7 @@
 --navy-900:#0f2229;--navy-800:#14313b;--navy-700:#1c4351;--navy-600:#255468;
 --rust-600:#c2692f;--rust-500:#d97b3f;--rust-400:#e59559;
 --warm-50:#f4f2ee;--warm-100:#ebe8e2;--warm-200:#ddd9d1;--warm-300:#c7c2b8;
---stone-600:#6b7573;--stone-500:#828b89;--stone-400:#98a09e;
+--stone-600:#5f6967;--stone-500:#828b89;--stone-400:#98a09e;
 --ink-900:#16211f;--ink-700:#3d4644;
 --green-600:#3f8f5f;--amber-600:#c98a1f;--red-600:#b8433a;
 --white:#ffffff;
@@ -251,6 +251,8 @@
 --color-primary-disabled:var(--warm-200);
 --color-accent:var(--rust-500);
 --color-accent-hover:var(--rust-600);
+--color-action:#b85d24;
+--color-action-hover:#a04f1c;
 --color-ink:var(--ink-900);
 --color-body:var(--ink-700);
 --color-body-strong:var(--ink-900);
@@ -325,9 +327,9 @@ a:hover{color:var(--color-accent)}
   button{font-family:var(--font-body);cursor:pointer;}
   h1,h2,h3{text-wrap:balance;}
 
-  header.site{background:var(--color-surface-dark);color:var(--color-on-dark);border-bottom:3px solid var(--color-accent);position:relative;z-index:100;}
+  header.site{background:var(--color-surface-dark);color:var(--color-on-dark);position:relative;z-index:100;}
   .header-inner{max-width:1180px;margin:0 auto;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
-  .logo{font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:0.2px;display:flex;align-items:center;gap:10px;}
+  .logo{font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:0.2px;display:flex;align-items:center;gap:10px;color:var(--color-on-dark);text-decoration:none;}
   .logo .mark{width:11px;height:11px;background:var(--color-accent);border-radius:3px;transform:rotate(45deg);flex-shrink:0;}
   .doc-tag{font-family:var(--font-mono);font-size:11px;color:var(--color-on-dark-soft);letter-spacing:1px;}
   nav.site-nav{display:flex;gap:28px;font-size:13px;letter-spacing:0.2px;}
@@ -337,6 +339,11 @@ a:hover{color:var(--color-accent)}
   .menu-toggle span{display:block;width:100%;height:2px;background:var(--color-on-dark);border-radius:1px;transition:opacity .15s ease, transform .15s ease;}
 
   .hero{max-width:1180px;margin:0 auto;padding:48px 24px 36px;display:grid;grid-template-columns:1.1fr 0.9fr;gap:48px;align-items:end;}
+  /* Söksidan: texten centrerad i höjd mot filtret. Bottenjusterad lämnade den
+     övre vänstra halvan tom bredvid ett högt formulär. */
+  .hero.hero-sok{align-items:center;padding-top:64px;padding-bottom:72px;}
+  .hero-sok .hero-stats{margin-top:32px;padding-top:20px;border-top:1px solid var(--color-hairline);}
+  .hero-sok .hero-stats .num{font-family:var(--font-display);font-size:36px;letter-spacing:-0.01em;}
   .hero .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--color-muted);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
   .hero .eyebrow::before{content:"";width:22px;height:2px;background:var(--color-accent);display:inline-block;border-radius:2px;}
   h1.hero-title{font-family:var(--font-display);font-weight:var(--text-display-lg-weight);font-size:var(--text-display-lg-size);line-height:var(--text-display-lg-lh);margin:0 0 18px;letter-spacing:var(--text-display-lg-ls);color:var(--color-ink);}
@@ -348,8 +355,8 @@ a:hover{color:var(--color-accent)}
   .hero-stats .num{font-size:26px;font-weight:600;color:var(--color-ink);display:block;}
   .hero-stats .label{font-size:11px;color:var(--color-muted);letter-spacing:0.4px;text-transform:uppercase;}
 
-  .hero-panel{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:22px 22px 22px;position:relative;}
-  .hero-panel::before{content:"KVICKFILTER";position:absolute;top:-11px;left:18px;background:var(--color-surface-dark);color:var(--color-on-dark);font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;padding:3px 10px;border-radius:var(--radius-pill);}
+  /* Filtret har en riktig rubrik i stället för ett etikettpiller på kanten. */
+  .hero-panel{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:28px;position:relative;}
 
   .auth-panel{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:22px 22px 22px;}
   .auth-panel p{margin:8px 0 14px;font-size:13px;color:var(--color-body);}
@@ -372,7 +379,7 @@ a:hover{color:var(--color-accent)}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
   .card{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:18px 18px 16px;position:relative;}
   .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
-  .card-name{font-family:var(--font-display);font-size:18px;font-weight:600;margin:0 0 3px;color:var(--color-ink);}
+  .card-name{font-family:var(--font-display);font-size:19px;font-weight:600;margin:0 0 3px;color:var(--color-ink);}
   .card-city{font-family:var(--font-mono);font-size:11.5px;color:var(--color-muted);letter-spacing:0.3px;}
   .stamp{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:var(--radius-pill);background:rgba(63,143,95,0.12);color:var(--color-success);flex-shrink:0;text-align:center;}
   .stamp span{font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:0.3px;line-height:1.2;}
@@ -422,12 +429,22 @@ a:hover{color:var(--color-accent)}
     .faktaruta{grid-template-columns:1fr 1fr;}
     .faktaruta > div:nth-child(3){grid-column:1 / -1;}
   }
-  .faktaruta .k{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:var(--color-muted);margin-bottom:2px;}
-  .faktaruta .v{font-size:13.5px;font-weight:600;color:var(--color-ink);}
-  .card-actions{display:flex;gap:8px;align-items:center;border-top:1px solid var(--color-hairline-soft);padding-top:12px;}
+  .faktaruta .k{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:var(--color-muted);margin-bottom:4px;}
+  /* Siffrorna är det man jämför korten på, så de får displaytypsnittet och
+     tydlig storlek. Årtalet står efter siffran i stället för i etiketten. */
+  .faktaruta .v{font-family:var(--font-display);font-size:17px;line-height:1.2;font-weight:600;color:var(--color-ink);}
+  .faktaruta .ar{font-family:var(--font-mono);font-size:10.5px;font-weight:400;color:var(--color-muted);margin-left:6px;letter-spacing:0;}
+  /* Länkar i stället för två knappar: kort med och utan webbplats såg olika
+     ut, eftersom en ensam knapp tog hela bredden och två delade på den. */
+  .card-actions{display:flex;gap:16px;align-items:center;justify-content:space-between;border-top:1px solid var(--color-hairline-soft);padding-top:14px;}
+  .card-lank{font-size:14px;font-weight:600;color:var(--color-primary);text-decoration:none;}
+  .card-lank:hover{color:var(--color-action);}
+  .card-lank.extern{font-weight:500;color:var(--color-muted);}
+  .card-lank.extern:hover{color:var(--color-ink);text-decoration:underline;text-underline-offset:3px;}
+  .tjanster{font-size:13px;font-weight:600;color:var(--color-ink);margin:10px 0 6px;}
   .btn{display:inline-block;font-size:12.5px;font-weight:600;letter-spacing:0.2px;padding:9px 14px;border:none;border-radius:var(--radius-md);text-transform:none;flex:1;text-align:center;text-decoration:none;}
-  .btn-primary{background:var(--color-primary);color:#fff;}
-  .btn-primary:hover{background:var(--color-primary-hover);}
+  .btn-primary{background:var(--color-action);color:#fff;}
+  .btn-primary:hover{background:var(--color-action-hover);color:#fff;}
   .btn-ghost{background:none;border:1px solid var(--color-hairline);color:var(--color-body);}
   .view{display:none;}
   .view.active{display:block;}
@@ -464,6 +481,9 @@ a:hover{color:var(--color-accent)}
   .spec-grid.med-iso{grid-template-columns:repeat(5,1fr);}
   .spec-cell.iso .y + div{margin-top:8px;}
   .profile-body{display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start;}
+  /* Två rader paneler låg nästan kant i kant: sista panelen i en spalt har
+     ingen marginal under sig, så glappet mellan raderna blev noll. */
+  .profile-body + .profile-body{margin-top:18px;}
   .panel{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:24px;margin-bottom:18px;}
   .panel:last-child{margin-bottom:0;}
   /* Bildpanelen är en ram runt bilden, inte ett textstycke: knapp marginal, och
@@ -527,18 +547,31 @@ a:hover{color:var(--color-accent)}
   .disclaimer b{color:var(--color-body);}
 
   /* ===================== LANDING PAGE ===================== */
-  .l-hero{max-width:1180px;margin:0 auto;padding:64px 24px 40px;display:grid;grid-template-columns:1.05fr 0.95fr;gap:56px;align-items:center;}
-  .l-hero.l-hero-single{grid-template-columns:1fr;max-width:760px;text-align:center;}
-  .l-hero.l-hero-single .l-cta-row{justify-content:center;}
-  .l-hero.l-hero-single .l-hero-sub{margin-left:auto;margin-right:auto;max-width:64ch;}
-  .l-hero h1{font-family:var(--font-display);font-weight:var(--text-display-xl-weight);font-size:var(--text-display-xl-size);line-height:var(--text-display-xl-lh);letter-spacing:var(--text-display-xl-ls);margin:0 0 20px;color:var(--color-ink);}
-  .l-hero h1 em{font-style:normal;background:linear-gradient(180deg, transparent 62%, var(--rust-400) 62%);}
-  .l-hero-sub{font-size:17px;color:var(--color-body);max-width:46ch;margin:0 0 28px;}
-  .l-cta-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
-  .btn-lg{display:inline-block;font-size:14px;font-weight:600;letter-spacing:0.2px;padding:15px 26px;border:none;border-radius:var(--radius-md);text-transform:none;cursor:pointer;text-decoration:none;}
-  .btn-lg.primary{background:var(--color-accent);color:#fff;}
-  .btn-lg.primary:hover{background:var(--color-accent-hover);}
-  .btn-lg.text{background:none;border:none;color:var(--color-body);font-family:var(--font-mono);font-size:12.5px;letter-spacing:0.2px;padding:15px 4px;text-decoration:underline;text-underline-offset:4px;}
+  /* Hero i två spalter på samma 1180-raster som resten av sidan: text till
+     vänster, registerkartan till höger. Den centrerade heron bytte axel mot
+     de vänsterställda sektionerna under och gav ett ryck där de möttes. */
+  .l-hero{max-width:1180px;margin:0 auto;padding:72px 24px 24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,380px);gap:72px;align-items:center;}
+  .l-hero h1{font-family:var(--font-display);font-weight:var(--text-display-xl-weight);font-size:var(--text-display-xl-size);line-height:var(--text-display-xl-lh);letter-spacing:var(--text-display-xl-ls);margin:0 0 24px;color:var(--color-ink);max-width:14ch;}
+  .l-hero-sub{font-size:18px;line-height:1.6;color:var(--color-body);max-width:52ch;margin:0 0 32px;}
+  .l-cta-row{display:flex;gap:8px 20px;flex-wrap:wrap;align-items:center;}
+  /* En handlingsfärg på hela sajten. Den mörkare tonen av orange klarar
+     kontrastkravet för vit text (4,5:1), det gjorde inte rust-500. */
+  .btn-lg{display:inline-block;font-size:15px;font-weight:600;letter-spacing:0.1px;padding:15px 26px;border:none;border-radius:var(--radius-md);text-transform:none;cursor:pointer;text-decoration:none;}
+  .btn-lg.primary{background:var(--color-action);color:#fff;}
+  .btn-lg.primary:hover{background:var(--color-action-hover);color:#fff;}
+  .btn-lg.secondary{background:transparent;color:var(--color-primary);box-shadow:inset 0 0 0 1.5px var(--color-primary);}
+  .btn-lg.secondary:hover{background:var(--color-primary);color:#fff;}
+  .btn-lg.text{background:none;color:var(--color-body);padding:15px 2px;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:5px;}
+  .btn-lg.text:hover{color:var(--color-ink);}
+
+  /* Registerkartan. Höjden är taket: Sverige är högt och smalt, och i full
+     bredd hade kartan blivit högre än skärmen. */
+  .registerkarta{margin:0;display:flex;flex-direction:column;align-items:center;gap:20px;}
+  .registerkarta svg{display:block;width:100%;max-width:300px;height:auto;max-height:520px;}
+  .karta-bolag{fill:var(--color-accent);fill-opacity:0.78;stroke:var(--color-canvas);stroke-width:0.6;}
+  .registerkarta figcaption{display:flex;align-items:baseline;gap:10px;max-width:300px;font-size:14px;line-height:1.45;color:var(--color-muted);}
+  .registerkarta-tal{font-family:var(--font-display);font-size:30px;font-weight:600;color:var(--color-ink);letter-spacing:-0.01em;flex-shrink:0;}
+
   .qs-panel{background:var(--color-surface-dark);border-radius:var(--radius-lg);box-shadow:var(--shadow-elevated);padding:30px 26px 26px;position:relative;color:var(--color-on-dark);}
   .qs-panel::before{content:"HITTA RÄTT REKRYTERINGSPARTNER";position:absolute;top:-11px;left:18px;background:var(--color-accent);color:#fff;font-family:var(--font-mono);font-size:10px;letter-spacing:1px;padding:3px 10px;border-radius:var(--radius-pill);}
   .qs-label{font-family:var(--font-display);font-weight:600;font-size:21px;margin:0 0 6px;}
@@ -547,44 +580,48 @@ a:hover{color:var(--color-accent)}
   .qs-select{width:100%;appearance:none;cursor:pointer;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#fff;border-radius:var(--radius-pill);padding:12px 38px 12px 16px;font-family:var(--font-body);font-size:13.5px;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');background-repeat:no-repeat;background-position:right 14px center;background-size:13px;}
   .qs-select:focus{outline:none;border-color:var(--color-accent);box-shadow:0 0 0 3px rgba(217,123,63,0.28);}
   .qs-select option{color:var(--color-ink);background:#fff;}
-  .qs-btn{width:100%;background:var(--color-accent);color:#fff;border:none;border-radius:var(--radius-md);padding:13px 22px;font-weight:600;font-size:14px;cursor:pointer;}
-  .qs-btn:hover{background:var(--color-accent-hover);}
+  .qs-btn{width:100%;background:var(--color-action);color:#fff;border:none;border-radius:var(--radius-md);padding:13px 22px;font-weight:600;font-size:14px;cursor:pointer;}
+  .qs-btn:hover{background:var(--color-action-hover);color:#fff;}
   /* En avstängd knapp såg likadan ut som en som gick att trycka på. Tydligast i
      sammanslagningskön, där godkännandet är avstängt så länge det upphörande
      bolaget har en löpande prenumeration — utan det här ser det ut som om
      klicket inte gjorde något. Gäller varje knapp med disabled. */
   .qs-btn:disabled{background:var(--color-hairline);color:var(--color-muted);cursor:not-allowed;}
 
-  .l-section{max-width:1180px;margin:0 auto;padding:56px 24px;}
-  .l-section.tight{padding-top:0;}
-  .l-kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--color-body);display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+
+  /* Sektionerna skiljs åt av luft, inte av lådor. Avståndet ovanför en
+     rubrik är tydligt större än det mellan rubrik och innehåll, så att det
+     syns vilket stycke rubriken hör till. */
+  .l-section{max-width:1180px;margin:0 auto;padding:104px 24px 0;}
+  .l-section.tight{padding-top:48px;}
+  .l-section:last-child{padding-bottom:104px;}
+  .l-kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--color-muted);display:flex;align-items:center;gap:10px;margin-bottom:20px;}
   .l-kicker::before{content:"";width:22px;height:2px;background:var(--color-accent);display:inline-block;border-radius:2px;}
-  .l-section h2{font-family:var(--font-display);font-size:var(--text-display-md-size);font-weight:var(--text-display-md-weight);line-height:var(--text-display-md-lh);margin:0 0 14px;max-width:20ch;color:var(--color-ink);}
-  .l-section-sub{font-size:15px;color:var(--color-body);max-width:60ch;margin:0 0 36px;}
+  .l-section h2{font-family:var(--font-display);font-size:var(--text-display-md-size);font-weight:var(--text-display-md-weight);line-height:var(--text-display-md-lh);letter-spacing:var(--text-display-md-ls);margin:0 0 16px;color:var(--color-ink);}
+  .l-section-sub{font-size:16px;line-height:1.6;color:var(--color-body);max-width:60ch;margin:0 0 32px;}
+
+  /* Rubrik till vänster, löptext till höger. Används där innehållet är ett
+     resonemang och inte en uppräkning, så att det läses som text. */
+  .l-split{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,7fr);gap:24px 72px;align-items:start;}
+  .l-split h2{margin:0;position:sticky;top:24px;}
+  .l-prosa{max-width:62ch;}
+  .l-prosa p{font-size:17px;line-height:1.65;color:var(--color-body);margin:0 0 20px;}
+  .l-prosa p:last-child{margin-bottom:0;}
+  .l-prosa strong{color:var(--color-ink);font-weight:600;}
+  .l-citat{margin:36px 0 0;padding:4px 0 4px 24px;border-left:3px solid var(--color-accent);font-family:var(--font-display);font-size:22px;font-weight:500;line-height:1.4;color:var(--color-ink);}
 
   .branch-picker{max-width:420px;}
   .branch-select{width:100%;appearance:none;font-family:var(--font-body);font-size:15px;font-weight:500;color:var(--color-ink);background:var(--color-surface-card) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%233d4644" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>') no-repeat right 18px center;background-size:14px;border:1px solid var(--color-hairline);border-radius:var(--radius-md);box-shadow:var(--shadow-card);padding:16px 44px 16px 18px;cursor:pointer;}
   .branch-select:focus{outline:none;box-shadow:var(--shadow-focus-accent);border-color:var(--color-accent);}
 
-  .pain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
-  .pain-cell{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:26px 24px;}
-  .pain-cell .pain-mark{font-family:var(--font-mono);font-size:11px;color:var(--color-accent);letter-spacing:0.8px;margin-bottom:10px;}
-  .pain-cell h4{font-family:var(--font-display);font-size:18px;margin:0 0 8px;font-weight:600;color:var(--color-ink);}
-  .pain-cell p{font-size:13.5px;color:var(--color-body);margin:0;}
 
-  .steps-row{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
-  .steps-row.cols-3{grid-template-columns:repeat(3,1fr);}
-  .step-card{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:28px 24px;position:relative;}
-  .step-num{font-family:var(--font-mono);font-size:13px;color:var(--color-muted);letter-spacing:0.8px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
-  .step-num .box-num{width:28px;height:28px;border-radius:var(--radius-md);border:1.5px solid var(--color-primary);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--color-primary);}
-  .step-card h4{font-family:var(--font-display);font-size:19px;margin:0 0 8px;font-weight:600;color:var(--color-ink);}
-  .step-card p{font-size:13.5px;color:var(--color-body);margin:0;}
-
-  .l-stat-band{background:var(--color-surface-dark);color:var(--color-on-dark);}
-  .l-stat-inner{max-width:1180px;margin:0 auto;padding:56px 24px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
-  .l-stat{border-left:2px solid var(--color-accent);padding-left:16px;}
-  .l-stat .num{font-family:var(--font-display);font-size:34px;font-weight:600;display:block;}
-  .l-stat .label{font-family:var(--font-mono);font-size:11.5px;color:var(--color-on-dark-soft);letter-spacing:0.4px;text-transform:uppercase;margin-top:4px;}
+  /* Stegen som en numrerad rad utan ramar. Siffran står i displaytypsnittet
+     och bär ordningen; ingen extra etikett behövs. */
+  .steg-lista{list-style:none;margin:40px 0 44px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:40px 32px;counter-reset:steg;}
+  .steg-lista li{counter-increment:steg;border-top:1px solid var(--color-ink);padding-top:20px;}
+  .steg-lista li::before{content:counter(steg);display:block;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--color-accent);margin-bottom:14px;}
+  .steg-lista h3{font-family:var(--font-display);font-size:20px;line-height:1.25;font-weight:600;color:var(--color-ink);margin:0 0 10px;}
+  .steg-lista p{font-size:15px;line-height:1.6;color:var(--color-body);margin:0;}
 
   .preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
   .preview-card{display:block;text-decoration:none;background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:20px;cursor:pointer;transition:box-shadow .12s ease, transform .12s ease;}
@@ -595,29 +632,17 @@ a:hover{color:var(--color-accent)}
   .preview-card .pc-vision{font-size:12.5px;color:var(--color-body);font-style:italic;border-left:2px solid var(--color-accent);padding-left:9px;margin:0 0 12px;min-height:34px;}
   .preview-card .pc-tags{display:flex;flex-wrap:wrap;gap:6px;}
 
-  .l-cta-band{background:var(--color-accent);border-radius:var(--radius-lg);max-width:1180px;margin:0 auto;padding:44px 40px;display:flex;justify-content:space-between;align-items:center;gap:30px;flex-wrap:wrap;color:#fff;}
-  .l-cta-band h3{font-family:var(--font-display);font-size:var(--text-display-sm-size);margin:0 0 6px;font-weight:600;max-width:22ch;}
-  .l-cta-band p{margin:0;font-size:14px;opacity:.92;}
-  .l-cta-band .btn-lg.primary{background:#fff;color:var(--color-accent);}
-  .l-cta-band .btn-lg.primary:hover{background:var(--warm-50);}
+
+  /* Avslutande uppmaning. Ett band mellan två linjer i stället för en orange
+     platta, så att den inte konkurrerar med knapparna högre upp. */
+  .l-strip{display:flex;justify-content:space-between;align-items:center;gap:20px 40px;flex-wrap:wrap;border-top:1px solid var(--color-hairline);border-bottom:1px solid var(--color-hairline);padding:36px 0;}
+  .l-strip h3{font-family:var(--font-display);font-size:var(--text-display-sm-size);line-height:1.2;font-weight:600;color:var(--color-ink);margin:0 0 8px;}
+  .l-strip p{margin:0;font-size:16px;color:var(--color-body);max-width:56ch;}
 
   /* ===================== OM OSS ===================== */
-  .about-hero{max-width:760px;margin:0 auto;padding:64px 24px 8px;text-align:center;}
-  .about-hero h1{font-family:var(--font-display);font-weight:var(--text-display-xl-weight);font-size:var(--text-display-xl-size);line-height:var(--text-display-xl-lh);letter-spacing:var(--text-display-xl-ls);margin:0 0 18px;color:var(--color-ink);}
-  .about-hero-lead{font-family:var(--font-display);font-size:19px;font-weight:600;color:var(--color-accent);margin:0 auto 18px;max-width:54ch;line-height:1.5;}
-  .about-hero-sub{font-size:17px;color:var(--color-body);margin:0 auto;max-width:52ch;}
-  .about-hero .l-kicker{justify-content:center;}
-
-  .vision-block{max-width:820px;margin:44px auto 0;background:var(--color-surface-dark);color:var(--color-on-dark);border-radius:var(--radius-lg);box-shadow:var(--shadow-elevated);padding:40px 44px;text-align:center;}
-  .vision-block .l-kicker{justify-content:center;color:var(--color-on-dark-soft);}
-  .vision-block .l-kicker::before{background:var(--color-accent);}
-  .vision-block p{font-family:var(--font-display);font-size:22px;line-height:1.5;font-weight:500;margin:0;max-width:34ch;margin:0 auto;}
-
-  .idea-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
-  .idea-cell{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:28px 24px;}
-  .idea-cell .idea-mark{font-family:var(--font-mono);font-size:11px;color:var(--color-accent);letter-spacing:0.8px;margin-bottom:10px;text-transform:uppercase;}
-  .idea-cell h4{font-family:var(--font-display);font-size:18px;margin:0 0 8px;font-weight:600;color:var(--color-ink);}
-  .idea-cell p{font-size:13.5px;color:var(--color-body);margin:0;line-height:1.6;}
+  .about-hero{max-width:1180px;margin:0 auto;padding:72px 24px 0;}
+  .about-hero h1{font-family:var(--font-display);font-weight:var(--text-display-xl-weight);font-size:var(--text-display-xl-size);line-height:var(--text-display-xl-lh);letter-spacing:var(--text-display-xl-ls);margin:0 0 24px;color:var(--color-ink);max-width:22ch;}
+  .about-hero-sub{font-size:18px;line-height:1.6;color:var(--color-body);margin:0;max-width:56ch;}
 
   .faq-list{display:flex;flex-direction:column;gap:0;max-width:820px;}
   .faq-item{padding:22px 0;border-top:1px solid var(--color-hairline);}
@@ -650,7 +675,7 @@ a:hover{color:var(--color-accent)}
   }
 
   @media (max-width:640px){
-    .l-hero-sub, .hero-sub, .about-hero-lead, .about-hero-sub{font-size:15px;}
+    .hero-sub{font-size:15px;}
     .l-section-sub{font-size:14px;}
     .faq-q{font-size:15.5px;}
     .faq-a{font-size:14px;}
@@ -659,15 +684,22 @@ a:hover{color:var(--color-accent)}
     .results-bar .qs-btn{width:100%;text-align:center;margin-top:4px;}
 
     .menu-toggle{display:flex;}
-    nav.site-nav{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;background:var(--color-surface-dark);border-bottom:3px solid var(--color-accent);padding:4px 24px 16px;box-shadow:0 8px 20px rgba(0,0,0,0.2);}
+    nav.site-nav{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;background:var(--color-surface-dark);border-top:1px solid rgba(255,255,255,0.1);padding:4px 24px 16px;box-shadow:0 8px 20px rgba(0,0,0,0.2);}
     nav.site-nav.open{display:flex;}
     nav.site-nav a{padding:13px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
     nav.site-nav a.active{border-bottom-color:rgba(255,255,255,0.1);}
     nav.site-nav a:last-child{border-bottom:none;}
 
-    .l-cta-band{flex-direction:column;align-items:stretch;padding:32px 24px;}
-    .l-cta-band h3, .l-cta-band p{max-width:none;}
-    .l-cta-band .btn-lg{text-align:center;}
+    .l-strip{flex-direction:column;align-items:stretch;padding:28px 0;}
+    .registerkarta{flex-direction:row;align-items:center;gap:20px;}
+    .registerkarta svg{width:42%;max-height:240px;}
+    .registerkarta figcaption{flex-direction:column;gap:4px;}
+    .l-strip .btn-lg, .l-cta-row .btn-lg.primary{text-align:center;}
+    .l-section{padding-top:72px;}
+    .l-section:last-child{padding-bottom:72px;}
+    .l-hero-sub, .about-hero-sub{font-size:16px;}
+    .l-prosa p{font-size:16px;}
+    .l-citat{font-size:19px;}
   }
 
   .confirm-overlay{position:fixed;inset:0;z-index:250;background:rgba(20,24,23,0.5);display:flex;align-items:center;justify-content:center;padding:24px;}
@@ -688,12 +720,14 @@ a:hover{color:var(--color-accent)}
   .cookie-banner-text a{color:#fff;text-decoration:underline;text-underline-offset:3px;}
   .cookie-banner-actions{display:flex;gap:10px;flex-shrink:0;}
   .cookie-btn{font-family:var(--font-body);font-size:13px;font-weight:600;padding:11px 20px;border-radius:var(--radius-md);cursor:pointer;border:none;}
-  .cookie-btn.primary{background:var(--color-accent);color:#fff;}
-  .cookie-btn.primary:hover{background:var(--color-accent-hover);}
+  .cookie-btn.primary{background:var(--color-action);color:#fff;}
+  .cookie-btn.primary:hover{background:var(--color-action-hover);}
   .cookie-btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.35);color:#fff;}
   .cookie-btn.ghost:hover{background:rgba(255,255,255,0.08);}
   @media (max-width:600px){
-    .cookie-banner{flex-direction:column;align-items:stretch;}
+    .cookie-banner{flex-direction:column;align-items:stretch;padding:14px 16px 16px;gap:12px;}
+    .cookie-banner-text{font-size:12.5px;line-height:1.5;}
+    .cookie-btn{padding:10px 12px;}
     .cookie-banner-actions{justify-content:stretch;}
     .cookie-btn{flex:1;}
   }
@@ -707,8 +741,13 @@ a:hover{color:var(--color-accent)}
   .nearby-results .flow-suggest-card{align-items:center;}
 
   .site-footer{background:var(--color-surface-dark);color:var(--color-on-dark-soft);}
-  .footer-inner{max-width:1180px;margin:0 auto;padding:28px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-family:var(--font-mono);font-size:11.5px;}
-  .footer-inner a{color:inherit;text-decoration:underline;text-underline-offset:3px;}
+  .footer-inner{max-width:1180px;margin:0 auto;padding:36px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px 32px;font-size:13.5px;}
+  .footer-inner .footer-namn{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:600;font-size:16px;color:var(--color-on-dark);}
+  .footer-inner .footer-namn .mark{width:9px;height:9px;background:var(--color-accent);border-radius:2px;transform:rotate(45deg);}
+  .footer-lankar{display:flex;gap:24px;}
+  .footer-inner a{color:inherit;text-decoration:none;}
+  .footer-inner a:hover{color:var(--color-on-dark);text-decoration:underline;text-underline-offset:3px;}
+  .footer-data{font-family:var(--font-mono);font-size:12px;}
 
   /* ===================== FLOW DEMO ===================== */
   .flow-wrap{max-width:760px;margin:0 auto;padding:20px 24px 100px;}
@@ -766,15 +805,19 @@ a:hover{color:var(--color-accent)}
   @media (prefers-reduced-motion:reduce){.flow-spinner{animation-duration:2.4s;}}
 
   @media (max-width:1100px){
-    .steps-row{grid-template-columns:repeat(2,1fr);}
+    .steg-lista{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+  @media (max-width:560px){
+    .steg-lista{grid-template-columns:1fr;gap:32px;}
   }
 
   @media (max-width:900px){
-    .l-hero{grid-template-columns:1fr;}
-    .pain-grid, .steps-row, .steps-row.cols-3, .preview-grid, .idea-grid{grid-template-columns:1fr;}
-    .l-stat-inner{grid-template-columns:repeat(2,1fr);}
-    .vision-block{padding:30px 26px;}
-    .vision-block p{font-size:19px;}
+    .l-hero{grid-template-columns:1fr;gap:48px;padding-top:48px;}
+    .l-hero h1{max-width:none;}
+    .registerkarta svg{max-height:360px;}
+    .preview-grid{grid-template-columns:1fr;}
+    .l-split{grid-template-columns:1fr;}
+    .l-split h2{position:static;}
     :root{
       --text-display-xl-size:40px;--text-display-xl-lh:1.14;
       --text-display-lg-size:32px;--text-display-lg-lh:1.16;
@@ -836,11 +879,19 @@ a:hover{color:var(--color-accent)}
 .inquiry-summary{font-size:13px;color:var(--color-muted);margin-bottom:20px;}
 
 /* ===== Branschnyheter (startsidan) ===== */
-.news-list{display:flex;flex-direction:column;border-top:1px solid var(--color-hairline);margin-top:24px;}
-.news-item{display:block;padding:18px 4px;border-bottom:1px solid var(--color-hairline);text-decoration:none;transition:background .12s ease;}
-.news-item:hover{background:var(--color-surface-soft);}
-.news-meta{font-family:var(--font-mono);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--color-muted);margin-bottom:4px;}
-.news-title{font-family:var(--font-display);font-size:17px;font-weight:600;color:var(--color-ink);}
+/* Källa och datum i en egen spalt, rubriken bredvid och en pil som säger att
+   länken leder bort från sajten. Läses som en innehållsförteckning. */
+.news-list{display:flex;flex-direction:column;border-top:1px solid var(--color-ink);margin-top:32px;}
+.news-item{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr) auto;gap:6px 32px;align-items:baseline;padding:20px 0;border-bottom:1px solid var(--color-hairline);text-decoration:none;}
+.news-meta{font-family:var(--font-mono);font-size:12px;letter-spacing:0.4px;text-transform:uppercase;color:var(--color-muted);}
+.news-title{font-family:var(--font-display);font-size:18px;line-height:1.35;font-weight:600;color:var(--color-ink);}
+.news-item::after{content:"↗";font-size:16px;color:var(--color-muted);transition:transform .12s ease,color .12s ease;}
+.news-item:hover .news-title{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;}
+.news-item:hover::after{color:var(--color-accent);transform:translate(2px,-2px);}
+@media (max-width:640px){
+  .news-item{grid-template-columns:minmax(0,1fr) auto;}
+  .news-meta{grid-column:1 / -1;}
+}
 
 /* ===== Profilformuläret: Undersökningar bredvid Bildspel ===== */
 /* Två paneler på samma rad. Under 900 px staplas de — 44 px-rutorna och
@@ -1087,10 +1138,17 @@ a.tab-btn{text-decoration:none;display:inline-block;}
 .password-toggle:hover{color:var(--color-accent-hover);}
 
 /* ===== Inbjudan att ta över en oövertagen profil ===== */
-.claim-banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;max-width:1180px;margin:0 auto 4px;padding:16px 24px;background:var(--color-surface-soft);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);}
+/* Samma bredd som profilens innehåll under: 1180 minus kantavståndet på 24 px
+   per sida. Med 1180 rakt av stack banderollen ut förbi kortens kanter. */
+.claim-banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;width:min(1132px, calc(100% - 48px));margin:0 auto 4px;padding:16px 24px;background:var(--color-surface-soft);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);}
 .claim-banner p{margin:0;font-size:13.5px;line-height:1.5;color:var(--color-body);max-width:640px;}
 .claim-banner strong{color:var(--color-ink);}
-.claim-banner .qs-btn{width:auto;flex-shrink:0;padding:11px 20px;font-size:13.5px;text-decoration:none;}
+/* Banderollen vänder sig till bolaget, inte till besökaren som söker
+   leverantör. Därför en konturknapp: den orange handlingsfärgen hör till
+   "Skicka förfrågan" strax under, och två orange knappar ovanför varandra
+   tävlade om samma blick. */
+.claim-banner .qs-btn{width:auto;flex-shrink:0;padding:11px 20px;font-size:13.5px;text-decoration:none;background:transparent;color:var(--color-primary);box-shadow:inset 0 0 0 1.5px var(--color-primary);}
+.claim-banner .qs-btn:hover{background:var(--color-primary);color:#fff;}
 @media (max-width:640px){ .claim-banner .qs-btn{width:100%;text-align:center;} }
 /* Bolaget har upphört. Profilen ligger kvar — den är svaret till den som söker
    efter bolaget — men får inte kunna förväxlas med ett bolag man kan anlita, så

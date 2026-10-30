@@ -1,97 +1,107 @@
 import Link from "next/link";
 import { INDUSTRY_NEWS } from "@/lib/industryNews";
-import { hamtaUrval } from "@/lib/companiesRepo";
+import { hamtaKoordinater, hamtaUrval, raknaBolag } from "@/lib/companiesRepo";
 import NearbyCompanies from "@/components/NearbyCompanies";
 import PreviewCompanies from "@/components/PreviewCompanies";
+import Registerkarta from "@/components/Registerkarta";
 
 export const revalidate = 300;
 
+// Startsidan är byggd för att läsas uppifrån och ner som en sida, inte som en
+// rad lådor. Förut låg nästan varje sektion i likadana vita kort med samma
+// etikett ovanför rubriken — ett mönster så vanligt att sidan såg mallgjord
+// ut. Nu bär kartan över registret toppen, problemen och stegen är löptext
+// och en numrerad rad, och kort används bara där innehållet faktiskt är
+// klickbara objekt: bolagen.
+const STEG = [
+  {
+    rubrik: "Beskriv rollen",
+    text: "Ange yrkesområde, tjänst och ort. Ni behöver inget konto. Skriv gärna några rader om vad ni specifikt söker.",
+  },
+  {
+    rubrik: "Se vilka bolag som passar",
+    text: "Bolagen som matchar visas i en lista, med omsättning, kollektivavtal och auktorisation synligt direkt.",
+  },
+  {
+    rubrik: "Skicka en förfrågan",
+    text: "Välj de bolag ni vill höra från och beskriv behovet. Förfrågan går direkt till dem.",
+  },
+  {
+    rubrik: "Bolagen hör av sig",
+    text: "De bolag ni valt kontaktar er. Ni bestämmer själva vem ni går vidare med.",
+  },
+];
+
 export default async function LandingPage() {
-  const urval = await hamtaUrval(3);
+  const [urval, punkter, antalBolag] = await Promise.all([hamtaUrval(3), hamtaKoordinater(), raknaBolag()]);
 
   return (
     <div id="view-landing">
-      <section className="l-hero l-hero-single">
-        <div>
+      <section className="l-hero">
+        <div className="l-hero-text">
           <div className="l-kicker">Bemanning &amp; rekrytering · Sverige</div>
-          <h1>
-            Beskriv rollen och hitta <em>rätt partner</em>
-          </h1>
+          <h1>Beskriv rollen och hitta rätt partner</h1>
           <p className="l-hero-sub">
-            Fyra steg från behov till rätt bemannings- eller rekryteringspartner: beskriv rollen, se vilka bolag
-            som matchar, skicka en förfrågan till de som är intressanta — och låt dem höra av sig till er.
+            Recruitable samlar Sveriges bemannings- och rekryteringsbolag på ett ställe. Berätta vad ni söker,
+            se vilka bolag som passar och skicka en förfrågan till dem ni vill prata med.
           </p>
           <div className="l-cta-row">
-            <Link className="btn-lg primary" href="/rekrytera">Rekrytera →</Link>
+            <Link className="btn-lg primary" href="/rekrytera">Hitta bolag</Link>
+            <a className="btn-lg text" href="#sa-funkar-det">Så funkar det</a>
           </div>
+        </div>
+        <Registerkarta punkter={punkter} antalBolag={antalBolag} />
+      </section>
+
+      <section className="l-section l-split">
+        <h2>Varför det är svårt att välja partner</h2>
+        <div className="l-prosa">
+          <p>
+            <strong>Många låter likadant.</strong> Bemanningsbolag, rekryteringsbolag och interimsbyråer
+            beskriver sig själva på nästan samma sätt. Det är svårt att se vem som faktiskt passar er
+            verksamhet.
+          </p>
+          <p>
+            <strong>Villkoren syns för sent.</strong> Kollektivavtal, auktorisation och hur stor
+            konsultstocken är avgör om ett samarbete fungerar. Ändå får ni oftast veta det först när ni redan
+            har börjat prata.
+          </p>
+          <p>
+            <strong>Mötena tar tid.</strong> Introduktionsmöten med bolag som ändå inte passar är den dyraste
+            delen av att hitta rätt.
+          </p>
         </div>
       </section>
 
-      <section className="l-section tight">
-        <div className="pain-grid">
-          <div className="pain-cell">
-            <div className="pain-mark">// 01</div>
-            <h4>Många lika låter lika</h4>
-            <p>Bemanning, rekrytering, interim — alla säger ungefär samma sak om sig själva. Svårt att veta vem som faktiskt passar er verksamhet.</p>
-          </div>
-          <div className="pain-cell">
-            <div className="pain-mark">// 02</div>
-            <h4>Villkoren är otydliga</h4>
-            <p>Kollektivavtal, auktorisation och storlek på konsultstocken avgör om ett samarbete funkar i praktiken — men syns sällan förrän ni redan är i dialog.</p>
-          </div>
-          <div className="pain-cell">
-            <div className="pain-mark">// 03</div>
-            <h4>Tiden går åt till möten</h4>
-            <p>Att boka in och sitta av introduktionsmöten med bolag som ändå inte passar är den dyraste delen av att hitta rätt partner.</p>
-          </div>
-        </div>
+      <section className="l-section" id="sa-funkar-det">
+        <h2>Så funkar det</h2>
+        <ol className="steg-lista">
+          {STEG.map((s) => (
+            <li key={s.rubrik}>
+              <h3>{s.rubrik}</h3>
+              <p>{s.text}</p>
+            </li>
+          ))}
+        </ol>
+        <Link className="btn-lg primary" href="/rekrytera">Beskriv er roll</Link>
       </section>
 
-      <section className="l-section tight">
-        <div className="l-kicker">Så funkar det</div>
-        <h2>Fyra steg till rätt partner</h2>
+      <section className="l-section">
+        <h2>Hitta bolag nära er</h2>
         <p className="l-section-sub">
-          Ni slipper gissa er fram genom listor och introduktionsmöten — Recruitable sköter urvalet, ni sköter
-          samtalet.
+          Skriv in er adress, så listar vi bolagen i registret från närmast till längst bort.
         </p>
-        <div className="steps-row">
-          <div className="step-card">
-            <div className="step-num"><span className="box-num">1</span>Beskriv</div>
-            <h4>Beskriv rollen</h4>
-            <p>
-              Ange yrkesområde, tjänst och ort i Kvickfiltret — helt utan att skapa konto. Lägg gärna till vad ni
-              specifikt söker.
-            </p>
-          </div>
-          <div className="step-card">
-            <div className="step-num"><span className="box-num">2</span>Hitta</div>
-            <h4>Hitta rätt bolag</h4>
-            <p>
-              Se en rangordnad lista över de bemannings- och rekryteringsföretag som faktiskt matchar era
-              villkor — omsättning, kollektivavtal och auktorisation direkt synligt.
-            </p>
-          </div>
-          <div className="step-card">
-            <div className="step-num"><span className="box-num">3</span>Skicka</div>
-            <h4>Skicka förfrågan</h4>
-            <p>
-              Välj vilka bolag som är intressanta och beskriv behovet mer i detalj. Förfrågan går direkt till
-              dem, utan mellanhänder.
-            </p>
-          </div>
-          <div className="step-card">
-            <div className="step-num"><span className="box-num">4</span>Kontakt</div>
-            <h4>Bolagen hör av sig</h4>
-            <p>
-              De bolag ni valt tar kontakt direkt med er. Ni väljer sedan själva vem ni vill gå vidare med.
-            </p>
-          </div>
-        </div>
+        <NearbyCompanies />
       </section>
 
-      <section className="l-section tight">
-        <div className="l-kicker">Branschnyheter</div>
-        <h2>Vad som händer i branschen</h2>
+      <section className="l-section">
+        <h2>Några bolag i registret</h2>
+        <p className="l-section-sub">Ett slumpat urval bland de bolag som har fyllt i sin profil.</p>
+        <PreviewCompanies bolag={urval} />
+      </section>
+
+      <section className="l-section">
+        <h2>Från branschen</h2>
         <div className="news-list">
           {INDUSTRY_NEWS.map((n) => (
             <a className="news-item" href={n.url} target="_blank" rel="noopener noreferrer" key={n.url}>
@@ -102,43 +112,15 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section className="l-section tight">
-        <div className="l-kicker">Ett urval</div>
-        <h2>Tre bolag att börja med</h2>
-        <p className="l-section-sub">Ett nedslag i registret — tre bolag ur listan, nya för varje gång sidan laddas om.</p>
-        <PreviewCompanies bolag={urval} />
-      </section>
-
-      <section className="l-section tight">
-        <div className="l-cta-band">
+      <section className="l-section l-section-sist">
+        <div className="l-strip">
           <div>
-            <h3>Redo att hitta rätt bemannings- eller rekryteringspartner?</h3>
-            <p>Filtrera på yrkesområde, tjänst och ort — och skicka en förfrågan direkt till de bolag ni vill kontakta.</p>
+            <h3>Är ni ett bemannings- eller rekryteringsbolag?</h3>
+            <p>Ta över er profil i registret och fyll i det som inte syns i offentliga källor.</p>
           </div>
-          <Link className="btn-lg primary" href="/rekrytera">Rekrytera</Link>
+          <Link className="btn-lg secondary" href="/for-bolag/registrera">Skapa konto</Link>
         </div>
       </section>
-
-      <section className="l-section tight">
-        <div className="l-kicker">Nära dig</div>
-        <h2>Hitta bolag i din närhet</h2>
-        <p className="l-section-sub">Skriv in er adress så listar vi bemannings- och rekryteringsbolagen i registret, från närmast till längst bort.</p>
-        <NearbyCompanies />
-      </section>
-
-      <section className="l-section tight">
-        <div className="l-cta-band">
-          <div>
-            <h3>Kan vårt bolag bli listat i registret?</h3>
-            <p>
-              Om ni är ett bemannings- eller rekryteringsföretag som vill bli en del av registret, tryck på{" "}
-              <Link href="/for-bolag/registrera">Skapa konto</Link>.
-            </p>
-          </div>
-          <Link className="btn-lg primary" href="/for-bolag/registrera">Skapa konto</Link>
-        </div>
-      </section>
-
     </div>
   );
 }

@@ -21,9 +21,8 @@ export default function CookieConsent() {
   return (
     <div className="cookie-banner" role="dialog" aria-label="Cookie-inställningar">
       <p className="cookie-banner-text">
-        Vi använder cookies för att mäta hur besökare använder recruitable.se och därigenom förbättra tjänsten.
-        Icke-nödvändiga cookies sätts bara om du godkänner det. Läs mer i vår{" "}
-        <Link href="/integritetspolicy">integritetspolicy</Link>.
+        Vi vill mäta hur sajten används för att kunna förbättra den. Cookies för det sätts bara om du
+        godkänner. <Link href="/integritetspolicy">Läs mer</Link>
       </p>
       <div className="cookie-banner-actions">
         <button className="cookie-btn ghost" onClick={() => handle("declined")}>Endast nödvändiga</button>

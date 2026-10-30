@@ -30,16 +30,19 @@ const MARGINAL = 6;
 // brett, och 0,6 em av teckenstorleken nedan.
 const TECKENBREDD = 4.3;
 
-const BREDD = (LNG_MAX - LNG_MIN) * KX * SKALA;
-const HOJD = (LAT_MAX - LAT_MIN) * SKALA;
+export const BREDD = (LNG_MAX - LNG_MIN) * KX * SKALA;
+export const HOJD = (LAT_MAX - LAT_MIN) * SKALA;
+export { MARGINAL };
 
-const x = (lng) => MARGINAL + (lng - LNG_MIN) * KX * SKALA;
-const y = (lat) => MARGINAL + (LAT_MAX - lat) * SKALA;
+// Exporterade så att registerkartan på startsidan ritar landet med exakt samma
+// projektion — två kartor över samma land ska inte ha olika form.
+export const x = (lng) => MARGINAL + (lng - LNG_MIN) * KX * SKALA;
+export const y = (lat) => MARGINAL + (LAT_MAX - lat) * SKALA;
 
 // En prick per bebodd ruta, ritad som ett streck utan längd med rund ände —
 // billigare i uppmärkning än lika många <circle>, och tusen prickar ska inte
 // kosta trettio kilobyte HTML.
-function landPath() {
+export function landPath() {
   return sverigePrickar()
     .map(([lat, lng]) => `M${x(lng).toFixed(1)} ${y(lat).toFixed(1)}h.1`)
     .join("");

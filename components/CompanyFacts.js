@@ -32,6 +32,9 @@ export function IsoStamplar({ iso }) {
 // bildspelet — och på urvalskortet inte alls. Nu ligger de på samma ställe i
 // varje kort, så att den som jämför bolag kan läsa rakt nedåt i listan.
 //
+// Årtalet står efter siffran och inte i etiketten ("Medarbetare 2024"): så
+// blir etiketterna lika i alla kort och går att läsa rakt nedåt i listan.
+//
 // Nyckeltalen på en rad med tre fält. ISO får en egen rad under, i hela
 // bredden, så att varje certifiering kan stå med sin titel. Raden finns bara
 // när bolaget angett en certifiering; se IsoStamplar.
@@ -40,12 +43,18 @@ export function Faktaruta({ company: c }) {
   return (
     <div className="faktaruta">
       <div>
-        <div className="k">Medarbetare{c.employeesYear ? ` ${c.employeesYear}` : ""}</div>
-        <div className="v">{c.employees || "—"}</div>
+        <div className="k">Medarbetare</div>
+        <div className="v">
+          {c.employees || "—"}
+          {c.employees && c.employeesYear ? <span className="ar">{c.employeesYear}</span> : null}
+        </div>
       </div>
       <div>
-        <div className="k">Omsättning{c.revenueYear ? ` ${c.revenueYear}` : ""}</div>
-        <div className="v">{c.revenue || "—"}</div>
+        <div className="k">Omsättning</div>
+        <div className="v">
+          {c.revenue || "—"}
+          {c.revenue && c.revenueYear ? <span className="ar">{c.revenueYear}</span> : null}
+        </div>
       </div>
       <div>
         <div className="k">Kollektivavtal</div>
@@ -73,24 +82,25 @@ export function betyg(v) {
   return Number.isFinite(n) ? n.toFixed(1).replace(".", ",") : null;
 }
 
-// Tjänster först och fyllda, sedan yrkesområdena konturade. Ordningen är
-// medveten: tjänsten avgör om bolaget överhuvudtaget är aktuellt, området
-// avgör om de kan branschen.
+// Tjänsterna som en rad text, yrkesområdena som taggar. Förut var båda
+// piller, fyllda och konturade, och skillnaden gick inte att se utan att veta
+// om den. Ordningen är kvar: tjänsten avgör om bolaget överhuvudtaget är
+// aktuellt, området avgör om de kan branschen.
 export function CompanyTags({ services = [], focus = [] }) {
   if (!services.length && !focus.length) return null;
   return (
-    <div className="tag-row">
-      {services.map((s) => (
-        <span className="tag service" key={`t-${s}`}>
-          {s}
-        </span>
-      ))}
-      {focus.map((f) => (
-        <span className="tag" key={`o-${f}`}>
-          {f}
-        </span>
-      ))}
-    </div>
+    <>
+      {services.length > 0 && <div className="tjanster">{services.join(" · ")}</div>}
+      {focus.length > 0 && (
+        <div className="tag-row">
+          {focus.map((f) => (
+            <span className="tag" key={`o-${f}`}>
+              {f}
+            </span>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
