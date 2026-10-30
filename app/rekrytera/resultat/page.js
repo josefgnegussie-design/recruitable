@@ -1,6 +1,7 @@
 import InquiryWizard from "@/components/inquiry/InquiryWizard";
-import { hamtaBolag } from "@/lib/companiesRepo";
+import { hamtaBolag, hamtaBolagMedId, hamtaBolagMedSlug } from "@/lib/companiesRepo";
 import { publikaBolag } from "@/lib/publikBolag";
+import { arId } from "@/lib/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +12,29 @@ export const dynamic = "force-dynamic";
 // bör snävas in i filtret i stället.
 const MAX_TRAFFAR = 100;
 
+// ?bolag= kommer från knappen på en profilsida: besökaren har redan valt sitt
+// bolag och ska inte möta en träfflista. Ett upphört eller okänt bolag ger
+// vanlig sökning i stället — profilen visar ingen knapp för dem, så hit kommer
+// man bara med en gammal eller handskriven länk.
+async function forvaltBolag(nyckel) {
+  if (typeof nyckel !== "string" || !nyckel) return null;
+  const bolag = arId(nyckel) ? await hamtaBolagMedId(nyckel) : await hamtaBolagMedSlug(nyckel);
+  return bolag && !bolag.retiredAt ? bolag : null;
+}
+
 export default async function PartnersResultPage({ searchParams }) {
   const params = await searchParams;
+
+  const forvalt = await forvaltBolag(params.bolag);
+  if (forvalt) {
+    return (
+      <InquiryWizard
+        filters={{ beskrivning: "", omrade: "", service: "", ort: "", bolag: forvalt.slug || String(forvalt.id) }}
+        results={publikaBolag([forvalt])}
+        totalt={1}
+      />
+    );
+  }
 
   const filters = {
     beskrivning: params.beskrivning || "",

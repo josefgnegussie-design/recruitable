@@ -9,6 +9,7 @@ import Bildspel from "@/components/Bildspel";
 import Faktalista from "@/components/Faktalista";
 import Brodtext from "@/components/Brodtext";
 import Sverigekarta from "@/components/Sverigekarta";
+import TillbakaTillSokningen from "@/components/TillbakaTillSokningen";
 import { koordinatForOrt, slaUppPostnummer } from "@/lib/postnummer";
 import { sorteradeIso } from "@/lib/iso";
 
@@ -129,7 +130,7 @@ export default async function ProfilePage({ params }) {
 
   return (
     <div id="view-profile">
-      <Link className="back-link" href="/rekrytera">&larr; Tillbaka till sökningen</Link>
+      <TillbakaTillSokningen />
       {/* Bolaget har upphört utan efterträdare — annars hade besökaren redan
           skickats vidare ovan. Profilen ligger kvar med flit: den som söker efter
           bolaget får veta vad som hänt i stället för att möta en 404. */}
@@ -171,8 +172,16 @@ export default async function ProfilePage({ params }) {
             </div>
           </div>
           <div className="profile-actions">
+            {/* Den som hittat ett bra bolag ska kunna gå vidare härifrån, inte
+                behöva söka fram det igen. Ett upphört bolag tar inte emot
+                förfrågningar. */}
+            {!c.retiredAt && (
+              <Link className="btn btn-primary" href={`/rekrytera/resultat?bolag=${encodeURIComponent(c.slug || c.id)}`}>
+                Skicka förfrågan till {c.name}
+              </Link>
+            )}
             {c.link ? (
-              <a className="btn btn-primary" href={c.link} target="_blank" rel="noopener noreferrer">Besök webbplats</a>
+              <a className={`btn ${c.retiredAt ? "btn-primary" : "btn-ghost"}`} href={c.link} target="_blank" rel="noopener noreferrer">Besök webbplats</a>
             ) : (
               <span className="note">Ingen webbplats verifierad</span>
             )}
