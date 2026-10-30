@@ -7,6 +7,7 @@ const SIDOR = [
   { href: "/admin", etikett: "Översikt" },
   { href: "/admin/fakturering", etikett: "Faktureringsunderlag" },
   { href: "/admin/moderera-forfragningar", etikett: "Granska förfrågningar", ko: "forfragningar" },
+  { href: "/admin/upphandlingar", etikett: "Granska upphandlingar", ko: "upphandlingar" },
   { href: "/admin/kontoansokningar", etikett: "Kontoansökningar", ko: "ansokningar" },
   { href: "/admin/sammanslagningar", etikett: "Sammanslagningar", ko: "sammanslagningar" },
   { href: "/admin/logg", etikett: "Loggbok" },

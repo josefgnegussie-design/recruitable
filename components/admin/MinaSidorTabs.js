@@ -13,6 +13,7 @@ import { usePathname } from "next/navigation";
 // "Logga ut" på samma sida på desktop.
 const FLIKAR = [
   { href: "/mina-sidor", namn: "Förfrågningar" },
+  { href: "/mina-sidor/upphandling", namn: "Upphandlingar" },
   { href: "/mina-sidor/profil", namn: "Profil" },
   { href: "/mina-sidor/kontor", namn: "Kontor" },
   { href: "/mina-sidor/konto", namn: "Konto" },

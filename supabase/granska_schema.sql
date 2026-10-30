@@ -16,6 +16,7 @@
 
 with forvantade_tabeller(tabell) as (
   values
+    ('bolagsinbjudningar'),
     ('cancellation_feedback'),
     ('companies'),
     ('company_admins'),
@@ -23,6 +24,9 @@ with forvantade_tabeller(tabell) as (
     ('inquiry_recipients'),
     ('merge_requests'),
     ('offices'),
+    ('procurement_interests'),
+    ('procurement_questions'),
+    ('procurements'),
     ('site_events')
 ),
 forvantade_kolumner(tabell, kolumn) as (
@@ -32,6 +36,7 @@ forvantade_kolumner(tabell, kolumn) as (
     ('companies', 'bolagsverket_active'),
     ('companies', 'bolagsverket_checked_at'),
     ('companies', 'claimed'),
+    ('companies', 'company_key_figures'),
     ('companies', 'deregistered_at'),
     ('companies', 'deregistration_handled_at'),
     ('companies', 'iso_certifications'),
@@ -57,7 +62,11 @@ forvantade_kolumner(tabell, kolumn) as (
     ('inquiries', 'moderated_at'),
     ('inquiries', 'moderation_status'),
     ('inquiries', 'requester_phone'),
+    ('inquiries', 'uppfoljning_token_hash'),
+    ('inquiry_recipients', 'decline_reported_at'),
+    ('inquiry_recipients', 'office_id'),
     ('inquiry_recipients', 'responded_at'),
+    ('inquiry_recipients', 'response_message'),
     ('inquiry_recipients', 'status')
 )
 select

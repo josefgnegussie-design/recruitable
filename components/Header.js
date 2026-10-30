@@ -17,6 +17,7 @@ export default function Header() {
   const [arBolagsadmin, setArBolagsadmin] = useState(false);
   const isLanding = pathname === "/";
   const isRekrytera = pathname.startsWith("/rekrytera");
+  const isUpphandling = pathname.startsWith("/upphandling");
   const isOmOss = pathname.startsWith("/om-oss");
   const isLoggaIn = pathname.startsWith("/logga-in");
   const isForBolag = pathname.startsWith("/for-bolag");
@@ -95,6 +96,8 @@ export default function Header() {
               <Link href="/rekrytera" className={isRekrytera ? "active" : ""} onClick={closeMenu}>Rekrytera</Link>
             </>
           )}
+          {/* Upphandling syns för alla: inloggade bolag är leverantörerna där. */}
+          <Link href="/upphandling" className={isUpphandling ? "active" : ""} onClick={closeMenu}>Upphandling</Link>
           <Link href="/om-oss" className={isOmOss ? "active" : ""} onClick={closeMenu}>Om oss</Link>
           {inloggad ? (
             <>
