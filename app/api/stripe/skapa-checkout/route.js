@@ -74,8 +74,8 @@ export async function POST(request) {
     client_reference_id: String(company.id),
     metadata: { companyId: String(company.id) },
     subscription_data: { metadata: { companyId: String(company.id) } },
-    success_url: `${origin}/mina-sidor?premium=klart`,
-    cancel_url: `${origin}/mina-sidor?premium=avbrutet`,
+    success_url: `${origin}/mina-sidor/profil?premium=klart`,
+    cancel_url: `${origin}/mina-sidor/profil?premium=avbrutet`,
   });
 
   return NextResponse.json({ url: session.url });

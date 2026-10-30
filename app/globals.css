@@ -1019,6 +1019,10 @@ a:hover{color:var(--color-accent)}
 .tab-row{display:flex;gap:4px;border-bottom:1px solid var(--color-hairline);margin-bottom:8px;}
 .tab-btn{background:none;border:none;font-family:var(--font-mono);font-size:12.5px;letter-spacing:0.4px;text-transform:uppercase;color:var(--color-muted);padding:12px 4px;margin-right:24px;cursor:pointer;border-bottom:2px solid transparent;}
 .tab-btn.active{color:var(--color-ink);border-bottom-color:var(--color-accent);}
+/* Flikarna är länkar sedan de fick egna adresser. */
+a.tab-btn{text-decoration:none;display:inline-block;}
+/* Förfrågan som en mejllänk pekar på. */
+.forfragan-markerad{border-color:var(--color-accent);box-shadow:0 0 0 2px var(--color-accent),var(--shadow-card);scroll-margin-top:96px;}
 /* På 375 px fick tre flikar med 24 px marginal plus utloggningen inte plats:
    raden bröts i två och "Logga ut" skars av mot högerkanten. Utloggningen finns
    redan i huvudmenyn, så flikraden behöver den inte på små skärmar. */

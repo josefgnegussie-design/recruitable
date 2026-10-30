@@ -1,124 +1,33 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import MinaSidorTabs from "@/components/admin/MinaSidorTabs";
-import { INQUIRIES_PAGE_SIZE, mapInquiryRow } from "@/lib/inquiries";
-import { isPlatformAdmin } from "@/lib/platformAdmin";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { hamtaAdministratorer } from "@/lib/bolagsadmin";
-import { hamtaArenden } from "@/lib/sammanslagning";
+import MinaSidorStatus from "@/components/admin/MinaSidorStatus";
+import InquiriesList from "@/components/admin/InquiriesList";
+import { hamtaBolagskonto, hamtaFlikraknare, hamtaForfragningar } from "@/lib/minaSidor";
 
+const STRIPE_UTFALL = new Set(["klart", "avbrutet"]);
+
+// Förfrågningsfliken. Övriga flikar har egna sidor under /mina-sidor/.
 export default async function MinaSidorPage({ searchParams }) {
   const params = await searchParams;
-  const premiumStatus = params?.premium;
-  const officeStatus = params?.kontor;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) redirect("/logga-in");
+  // Stripe skickade tidigare tillbaka hit med ?premium= och ?kontor=, och
+  // betalningar som påbörjades före bytet till egna flikadresser kommer
+  // fortfarande den vägen. Beskedet hör hemma på fliken betalningen gällde.
+  if (STRIPE_UTFALL.has(params?.premium)) redirect(`/mina-sidor/profil?premium=${params.premium}`);
+  if (STRIPE_UTFALL.has(params?.kontor)) redirect(`/mina-sidor/kontor?kontor=${params.kontor}`);
 
-  // Recruitables egna konton har inget bolag att administrera och landade
-  // förut på "Vi hittar ingen bolagskoppling för det här kontot". Inloggningen
-  // skickar alla hit, så omdirigeringen hör hemma här och inte i formuläret —
-  // då gäller den oavsett vilken väg man kom in.
-  if (isPlatformAdmin(user.email)) redirect("/admin");
+  const konto = await hamtaBolagskonto();
+  if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} />;
 
-  const { data: adminRow } = await supabase
-    .from("company_admins")
-    .select("company_id, verified, ar_agare")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!adminRow) {
-    return (
-      <div style={{ maxWidth: 640, margin: "60px auto", padding: "0 24px" }}>
-        <p>Vi hittar ingen bolagskoppling för det här kontot. Kontakta info@recruitable.se.</p>
-      </div>
-    );
-  }
-
-  if (!adminRow.verified) {
-    return (
-      <div style={{ maxWidth: 640, margin: "60px auto", padding: "0 24px" }}>
-        <p>Ert konto väntar fortfarande på godkännande. Vi hör av oss så snart det är klart.</p>
-      </div>
-    );
-  }
-
-  if (!adminRow.company_id) {
-    return (
-      <div style={{ maxWidth: 640, margin: "60px auto", padding: "0 24px" }}>
-        <p>Ert konto är godkänt men ännu inte kopplat till ett bolag. Kontakta info@recruitable.se.</p>
-      </div>
-    );
-  }
-
-  const { data: company } = await supabase
-    .from("companies")
-    .select(
-      "id, name, is_premium, vision, description, focus, services, recruiting_roles, link, contact, " +
-        "ka, iso_certifications, slideshow, addresses, logo, surveys, company_key_figures, " +
-        // Nyckeltalen är bolagets egna sedan migration_nyckeltal.sql.
-        "revenue, revenue_year, employees, employees_year, founded"
-    )
-    .eq("id", adminRow.company_id)
-    .single();
-
-  const { data: officeRows } = await supabase
-    .from("offices")
-    .select("id, city, address, contact_name, contact_email, is_headquarters, paid, created_at")
-    .eq("company_id", adminRow.company_id)
-    .order("created_at", { ascending: true });
-
-  // Hämtar bara den första sidan (senaste INQUIRIES_PAGE_SIZE) — fler sidor
-  // laddas vid behov via /api/mina-sidor/forfragan-lista. Annars skulle ett
-  // bolag med många förfrågningar över tid göra sidan tyngre och tyngre.
-  // Läses med service role och inte med besökarens session: bolagen har inte
-  // längre select på inquiries (migration_forfragan_sekretess.sql), eftersom den
-  // policyn gav dem hela raden — inklusive kundens namn och mejl — innan de
-  // accepterat och betalat för leaden. Behörigheten är redan avgjord ovan:
-  // adminRow är verifierad och company_id styr vilka rader som hämtas.
-  const { data: inquiryRows } = await createAdminClient()
-    .from("inquiry_recipients")
-    .select("id, created_at, status, inquiries!inner(*)")
-    .eq("company_id", adminRow.company_id)
-    // Modereringsgrinden. Den satt i RLS-policyn på inquiry_recipients, som slog
-    // upp inquiries.moderation_status — men servicerollen går förbi RLS, och
-    // mottagarraderna skapas redan när förfrågan skickas in. Utan filtret här
-    // skulle bolagen se förfrågningar du ännu inte granskat.
-    .eq("inquiries.moderation_status", "approved")
-    .order("created_at", { ascending: false })
-    .limit(INQUIRIES_PAGE_SIZE + 1);
-
-  const rows = inquiryRows || [];
-  const hasMore = rows.length > INQUIRIES_PAGE_SIZE;
-  const inquiries = rows
-    .slice(0, INQUIRIES_PAGE_SIZE)
-    .filter((row) => row.inquiries)
-    .map(mapInquiryRow);
-
-  // Administratörerna hämtas här och inte i kontofliken: mejladresserna bor i
-  // auth.users och kräver servicerollen, och listan är färdig innan sidan
-  // renderas i stället för efter.
-  const administratorer = await hamtaAdministratorer(createAdminClient(), adminRow.company_id);
-
-  // Sammanslagningsärendena läses med besökarens egen session. RLS-policyn i
-  // migration_sammanslagning.sql släpper bara igenom ärenden där bolaget är den
-  // ena parten, så servicerollen behövs inte.
-  const arenden = await hamtaArenden(supabase, adminRow.company_id);
+  const companyId = konto.adminRow.company_id;
+  const [raknare, { inquiries, hasMore }] = await Promise.all([
+    hamtaFlikraknare(konto.supabase, companyId),
+    hamtaForfragningar(companyId),
+  ]);
 
   return (
-    <MinaSidorTabs
-      company={company}
-      inquiries={inquiries}
-      hasMore={hasMore}
-      premiumStatus={premiumStatus}
-      offices={officeRows || []}
-      officeStatus={officeStatus}
-      arAgare={Boolean(adminRow.ar_agare)}
-      administratorer={administratorer}
-      arenden={arenden}
-    />
+    <MinaSidorTabs {...raknare}>
+      <InquiriesList inquiries={inquiries} initialHasMore={hasMore} />
+    </MinaSidorTabs>
   );
 }
