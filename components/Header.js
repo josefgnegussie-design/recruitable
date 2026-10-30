@@ -19,6 +19,7 @@ export default function Header() {
   const isRekrytera = pathname.startsWith("/rekrytera");
   const isOmOss = pathname.startsWith("/om-oss");
   const isLoggaIn = pathname.startsWith("/logga-in");
+  const isForBolag = pathname.startsWith("/for-bolag");
   // /admin räknas hit: dit skickas ett plattformsadminkonto vidare från
   // /mina-sidor, så det är samma länk sett från besökaren.
   const isMinaSidor = pathname.startsWith("/mina-sidor") || pathname.startsWith("/admin");
@@ -101,7 +102,14 @@ export default function Header() {
               <LoggaUtKnapp className="nav-utloggning" vidKlick={closeMenu} />
             </>
           ) : (
-            <Link href="/logga-in" className={isLoggaIn ? "active" : ""} onClick={closeMenu}>Logga in</Link>
+            // Beställare har inget konto, så "Logga in" lockade fel besökare.
+            // Länkarna säger nu vem de är till för.
+            <>
+              <Link href="/for-bolag/registrera" className={isForBolag ? "active" : ""} onClick={closeMenu}>
+                För bemanningsbolag
+              </Link>
+              <Link href="/logga-in" className={isLoggaIn ? "active" : ""} onClick={closeMenu}>Bolagsinloggning</Link>
+            </>
           )}
         </nav>
       </div>

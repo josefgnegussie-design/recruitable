@@ -50,9 +50,11 @@ export default function InquiryWizard({ filters, results, totalt }) {
   const description = filters.beskrivning || "";
   // Byter besökaren filter är den gamla bolagsmarkeringen inte längre relevant,
   // medan kontaktuppgifterna fortfarande är det.
+  // Ett förvalt bolag (från en profilsida) ingår i signaturen, så att ett äldre
+  // utkast med andra bolag markerade inte skriver över förvalet.
   const filterSignature = useMemo(
-    () => [filters.omrade || "", filters.service || "", filters.ort || ""].join("|"),
-    [filters.omrade, filters.service, filters.ort]
+    () => [filters.omrade || "", filters.service || "", filters.ort || "", filters.bolag || ""].join("|"),
+    [filters.omrade, filters.service, filters.ort, filters.bolag]
   );
 
   const { state: draft, setState: setDraft, patch, restored, clearDraft } = useSessionDraft(
@@ -182,7 +184,11 @@ export default function InquiryWizard({ filters, results, totalt }) {
   return (
     <div id="view-rekrytera-results">
       {visibleStep === 1 && (
-        <Link className="back-link" href={filterHref(filters)}>&larr; Tillbaka till filtret</Link>
+        filters.bolag ? (
+          <Link className="back-link" href={`/bolag/${filters.bolag}`}>&larr; Tillbaka till profilen</Link>
+        ) : (
+          <Link className="back-link" href={filterHref(filters)}>&larr; Tillbaka till filtret</Link>
+        )
       )}
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 24px 0" }}>
         <Stepper step={visibleStep} total={3} />
@@ -194,13 +200,20 @@ export default function InquiryWizard({ filters, results, totalt }) {
             <div>
               <div className="eyebrow">Steg 1 av 3 · Rangordnade efter relevans</div>
               <h1 className="hero-title">Välj de bolag <em>ni vill kontakta</em></h1>
-              <p className="hero-sub">
-                Visar {results.length}
-                {totalt > results.length ? ` av ${totalt}` : ""} bolag för{" "}
-                {filters.omrade || "alla yrkesområden"} · {filters.ort || "alla orter"}. Bocka ur de ni
-                inte vill skicka förfrågan till.
-                {totalt > results.length && " Snäva in filtret om ni vill se fler."}
-              </p>
+              {filters.bolag ? (
+                <p className="hero-sub">
+                  Förfrågan går till {results[0]?.name}. Vill ni nå fler bolag med samma förfrågan?{" "}
+                  <Link href="/rekrytera">Sök bland alla bolag</Link>.
+                </p>
+              ) : (
+                <p className="hero-sub">
+                  Visar {results.length}
+                  {totalt > results.length ? ` av ${totalt}` : ""} bolag för{" "}
+                  {filters.omrade || "alla yrkesområden"} · {filters.ort || "alla orter"}. Bocka ur de ni
+                  inte vill skicka förfrågan till.
+                  {totalt > results.length && " Snäva in filtret om ni vill se fler."}
+                </p>
+              )}
             </div>
           </section>
           <div style={{ maxWidth: 1180, margin: "0 auto", padding: "10px 24px 40px" }}>

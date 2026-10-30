@@ -6,6 +6,14 @@ import { YRKESOMRADEN, FILTER_DEFS } from "@/lib/taxonomy";
 import { allRegionCities } from "@/lib/helpers";
 import CompanyCard from "@/components/CompanyCard";
 import TjanstInfo from "@/components/TjanstInfo";
+import { markeraFranTraffar } from "@/lib/franTraffar";
+
+// Fångar klick på profillänkarna i korten, så att profilens tillbakalänk vet
+// att den kan gå bakåt i historiken i stället för till en tom sökning.
+function vidKortklick(e) {
+  const lank = e.target.closest?.('a[href^="/bolag/"]');
+  if (lank) markeraFranTraffar(new URL(lank.href).pathname);
+}
 
 function SokContent({ antalBolag, urval }) {
   // urval kommer färdigblandat från servern — sex bolag, inget mer.
@@ -111,7 +119,7 @@ function SokContent({ antalBolag, urval }) {
 
       <section className="l-section tight">
         <h2>Urval av bolag</h2>
-        <div className="grid">
+        <div className="grid" onClickCapture={vidKortklick}>
           {urval.map((c) => (
             <CompanyCard company={c} key={c.id} />
           ))}

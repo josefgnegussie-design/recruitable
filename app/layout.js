@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import Sidvisningar from "@/components/Sidvisningar";
 import CookieConsent from "@/components/CookieConsent";
@@ -19,6 +20,7 @@ export default function RootLayout({ children }) {
         <Sidvisningar />
         <Header />
         {children}
+        <Footer />
         <CookieConsent />
         <Analytics />
       </body>

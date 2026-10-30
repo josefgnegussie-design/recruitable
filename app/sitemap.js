@@ -4,11 +4,11 @@ import { bolagsUrl } from "@/lib/slug";
 const SITE = "https://recruitable.se";
 
 // Sidorna som finns oavsett register. /bolag är utelämnad — den vidarebefordrar
-// till /rekrytera — liksom inloggning, konto och allt bakom den.
+// till /rekrytera — liksom inloggning, konto och allt bakom den. /matcha var en
+// simulerad demo och leder numera också till /rekrytera.
 const SIDOR = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/rekrytera", changeFrequency: "weekly", priority: 0.9 },
-  { path: "/matcha", changeFrequency: "monthly", priority: 0.7 },
   { path: "/for-bolag/registrera", changeFrequency: "monthly", priority: 0.6 },
   { path: "/om-oss", changeFrequency: "yearly", priority: 0.5 },
   { path: "/kontakt", changeFrequency: "yearly", priority: 0.5 },

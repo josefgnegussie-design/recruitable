@@ -11,6 +11,11 @@ import LoggaUtKnapp from "@/components/admin/LoggaUtKnapp";
 
 export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStatus, offices, officeStatus, arAgare, administratorer, arenden }) {
   const [tab, setTab] = useState(premiumStatus ? "profil" : officeStatus ? "kontor" : "forfragningar");
+  // Fliken räknar bara det som väntar på svar. Alla inlästa förfrågningar,
+  // besvarade inräknade, säger inget om vad som behöver göras.
+  const [obesvarade, setObesvarade] = useState(
+    () => inquiries.filter((inq) => inq.status === "pending").length
+  );
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 24px 80px" }}>
@@ -40,7 +45,7 @@ export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStat
           className={`tab-btn${tab === "forfragningar" ? " active" : ""}`}
           onClick={() => setTab("forfragningar")}
         >
-          Förfrågningar{inquiries.length > 0 ? ` (${inquiries.length})` : ""}
+          Förfrågningar{obesvarade > 0 ? ` · ${obesvarade} ${obesvarade === 1 ? "ny" : "nya"}` : ""}
         </button>
         <button
           type="button"
@@ -66,7 +71,13 @@ export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStat
         <LoggaUtKnapp />
       </div>
 
-      {tab === "forfragningar" && <InquiriesList inquiries={inquiries} initialHasMore={hasMore} />}
+      {tab === "forfragningar" && (
+        <InquiriesList
+          inquiries={inquiries}
+          initialHasMore={hasMore}
+          andraObesvarade={(diff) => setObesvarade((n) => Math.max(0, n + diff))}
+        />
+      )}
 
       {/* Hela profilen redigeras av alla verifierade bolag. Fälten är precis det
           en kund väljer leverantör utifrån, så en betalvägg här gör registret

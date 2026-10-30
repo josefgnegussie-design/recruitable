@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-export default function LoginForm() {
+// next kommer från inloggningssidan, redan granskad av sakerSokvag: vart
+// besökaren var på väg när middlewaren skickade hit hen. Ett plattformsadmin-
+// konto som landar på /mina-sidor skickas därifrån vidare till /admin.
+export default function LoginForm({ next }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +26,7 @@ export default function LoginForm() {
       setError("Fel e-post eller lösenord.");
       return;
     }
-    router.push("/mina-sidor");
+    router.push(next || "/mina-sidor");
     router.refresh();
   }
 

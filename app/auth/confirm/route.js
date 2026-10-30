@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { sakerSokvag } from "@/lib/sakerSokvag";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,17 +27,11 @@ const FELSIDA = {
   email_change: "/logga-in?fel=lank",
 };
 
-// Bara sökvägar på den egna sajten. Utan den här kontrollen skulle ?next= kunna
-// peka vidare till en främmande domän, med vår adress som avsändare.
-function saker(next) {
-  return typeof next === "string" && /^\/[^/\\]/.test(next) ? next : null;
-}
-
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url);
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
-  const next = saker(searchParams.get("next"));
+  const next = sakerSokvag(searchParams.get("next"));
 
   if (!tokenHash || !TILLATNA_TYPER.has(type)) {
     return NextResponse.redirect(new URL(FELSIDA[type] || "/logga-in?fel=lank", origin));
