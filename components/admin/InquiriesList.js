@@ -17,7 +17,9 @@ function inomDennaManad(iso) {
 
 const MANAD = new Date().toLocaleDateString("sv-SE", { month: "long" });
 
-export default function InquiriesList({ inquiries: initialInquiries, initialHasMore }) {
+// andraObesvarade får skillnaden i antal obesvarade varje gång listan ändras,
+// så att räknaren på fliken följer med utan omladdning.
+export default function InquiriesList({ inquiries: initialInquiries, initialHasMore, andraObesvarade }) {
   const [inquiries, setInquiries] = useState(initialInquiries);
   const [updatingId, setUpdatingId] = useState(null);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -44,6 +46,7 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
     if (res.ok) {
       const { inquiries: more, hasMore: nextHasMore } = await res.json();
       setInquiries((prev) => [...prev, ...more]);
+      andraObesvarade?.(more.filter((inq) => inq.status === "pending").length);
       setHasMore(nextHasMore);
     }
     setLoadingMore(false);
@@ -68,6 +71,9 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
     }
 
     setFel((f) => ({ ...f, [recipientId]: null }));
+
+    const forra = inquiries.find((inq) => inq.recipientId === recipientId)?.status;
+    if (forra === "pending" && status !== "pending") andraObesvarade?.(-1);
 
     let extra = {};
     if (status === "accepted") {
