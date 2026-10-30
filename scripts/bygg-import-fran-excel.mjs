@@ -28,18 +28,15 @@ const FORSTA_ID = 60;
 // "finans", "tech" och "care" är medvetet uteslutna — de förekommer i namn som
 // inte har med branschen att göra.
 const YRKESMONSTER = [
-  ["Hälso- och sjukvård", /läkar|lakar|sjuksköt|sjukskot|vårdbemanning|vardbemanning|vårdpersonal|tandläkar|tandlakar|omsorgsbemanning|hemtjänst|hemtjanst|psykolog/i],
-  ["Transport, distribution, lager", /lager\s*&|logistikbemanning|åkeri|akeri|chaufför|chauffor|truckförar|truckforar|distributionsbemanning|transportbemanning/i],
+  ["Hälso- och sjukvård", /läkar|lakar|sjuksköt|sjukskot|vårdbemanning|vardbemanning|vårdpersonal|tandläkar|tandlakar|psykolog/i],
+  ["Lager, logistik och transport", /lager\s*&|logistikbemanning|åkeri|akeri|chaufför|chauffor|truckförar|truckforar|distributionsbemanning|transportbemanning/i],
   ["Bygg och anläggning", /byggbemanning|byggrekryter|construction|anläggningsbemanning|anlaggningsbemanning|byggkompetens/i],
-  ["Industriell tillverkning", /industribemanning|industrirekryter|produktionsbemanning|svetsbemanning|verkstadsbemanning/i],
-  ["Data/IT", /it-bemanning|it-rekryter|it-konsult|utvecklarbemanning|developers|mjukvarukonsult/i],
-  ["Chefer och verksamhetsledare", /interim executive|chefsrekryter|executive search|ledarrekryter/i],
-  ["Hotell, restaurang, storhushåll", /restaurangbemanning|hotellbemanning|kockbemanning|krogbemanning/i],
-  ["Pedagogik", /lärarbemanning|lararbemanning|skolbemanning|förskolebemanning|forskolebemanning|lärarvikar|lararvikar/i],
-  ["Yrken med social inriktning", /socionombemanning|socialtjänstbemanning|behandlingsbemanning/i],
-  ["Sanering och renhållning", /lokalvård|lokalvard|städbemanning|stadbemanning|saneringstjänst/i],
-  ["Naturbruk", /lantbruksbemanning|skogsbemanning|trädgårdsbemanning|tradgardsbemanning/i],
-  ["Säkerhet och bevakning", /bevakningstjänst|väktarbemanning|vaktarbemanning/i],
+  ["Industri och tillverkning", /industribemanning|industrirekryter|produktionsbemanning|svetsbemanning|verkstadsbemanning/i],
+  ["IT", /it-bemanning|it-rekryter|it-konsult|utvecklarbemanning|developers|mjukvarukonsult/i],
+  ["Chefer och ledning", /interim executive|chefsrekryter|executive search|ledarrekryter/i],
+  ["Hotell, restaurang och storkök", /restaurangbemanning|hotellbemanning|kockbemanning|krogbemanning/i],
+  ["Skola och förskola", /lärarbemanning|lararbemanning|skolbemanning|förskolebemanning|forskolebemanning|lärarvikar|lararvikar/i],
+  ["Omsorg och socialt arbete", /omsorgsbemanning|hemtjänst|hemtjanst|socionombemanning|socialtjänstbemanning|behandlingsbemanning/i],
 ];
 
 // Tjänsterna går att läsa direkt ur namnet när ordet står där. Excel-filen har

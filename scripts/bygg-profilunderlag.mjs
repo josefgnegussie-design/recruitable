@@ -29,12 +29,11 @@ const TOPP = Number(process.argv[2]) || 100;
 // Samma listor som filtren i lib/taxonomy.js. Fritext här skulle ge kategorier
 // som inget filter kan hitta.
 const YRKESOMRADEN = [
-  "Administration, ekonomi, juridik", "Bygg och anläggning", "Chefer och verksamhetsledare",
-  "Data/IT", "Försäljning, inköp, marknadsföring", "Hantverk", "Hotell, restaurang, storhushåll",
-  "Hälso- och sjukvård", "Industriell tillverkning", "Installation, drift, underhåll",
-  "Kropps- och skönhetsvård", "Kultur, media, design", "Militära yrken", "Naturbruk",
-  "Naturvetenskap", "Pedagogik", "Sanering och renhållning", "Säkerhet och bevakning",
-  "Transport, distribution, lager", "Yrken med social inriktning", "Yrken med teknisk inriktning",
+  "Industri och tillverkning", "Lager, logistik och transport", "IT", "Administration och kontor",
+  "Ekonomi och finans", "Teknik och ingenjörer", "Försäljning och kundtjänst",
+  "Hälso- och sjukvård", "Omsorg och socialt arbete", "Bygg och anläggning",
+  "El, installation och underhåll", "Hotell, restaurang och storkök", "Skola och förskola",
+  "Handel och butik", "Chefer och ledning", "HR och personal", "Juridik",
 ];
 const TJANSTER = ["Bemanning", "Rekrytering", "Interim", "Search"];
 

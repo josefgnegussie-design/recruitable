@@ -33,22 +33,20 @@ const UT = new URL("./data/klassificering-forslag.json", import.meta.url);
 // hälften av de rätta hittade. Ord som "utbildning", "teknik" och "service" är
 // uteslutna — de står i nästan varje bolagsordning utan att säga något.
 const BRANSCHORD = [
-  ["Hälso- och sjukvård", "vård|sjukvård|omsorg|läkar|sjukskötersk|tandvård"],
-  ["Data/IT", "\\bIT\\b|mjukvar|systemutveckl|programmering|utvecklare"],
+  ["Hälso- och sjukvård", "vård|sjukvård|läkar|sjukskötersk|tandvård"],
+  ["IT", "\\bIT\\b|mjukvar|systemutveckl|programmering|utvecklare"],
   ["Bygg och anläggning", "bygg|anläggning|bergarbete|bergteknik"],
-  ["Industriell tillverkning", "industri|verkstad|produktionsbemanning"],
-  ["Transport, distribution, lager", "logistik|\\blager\\b|transport|åkeri|sjöfart|shipping|luftfart|tågbransch|offshore"],
-  ["Administration, ekonomi, juridik", "ekonomi|redovisning|\\blön\\b|finans|\\bHR\\b"],
-  ["Chefer och verksamhetsledare", "företagsledande|ledande befattning|executive"],
-  ["Yrken med teknisk inriktning", "ingenjör|tekniska konsulter|teknisk konsultverksamhet"],
-  ["Försäljning, inköp, marknadsföring", "inköp|supply chain|detaljhandel"],
-  ["Yrken med social inriktning", "socialt arbete|socionom|\\bHVB\\b|socialtjänst"],
-  ["Pedagogik", "förskol|skola|lärar|pedagog"],
-  ["Hotell, restaurang, storhushåll", "restaurang|hotell|storhushåll"],
-  ["Sanering och renhållning", "lokalvård|städ|sanering"],
-  ["Naturbruk", "lantbruk|skogsbruk|trädgård"],
-  ["Säkerhet och bevakning", "bevakning|väktare"],
-  ["Kultur, media, design", "\\bmedia\\b|mediebransch"],
+  ["Industri och tillverkning", "industri|verkstad|produktionsbemanning"],
+  ["Lager, logistik och transport", "logistik|\\blager\\b|transport|åkeri|sjöfart|shipping|luftfart|tågbransch|offshore"],
+  ["Ekonomi och finans", "ekonomi|redovisning|\\blön\\b|finans"],
+  ["HR och personal", "\\bHR\\b"],
+  ["Chefer och ledning", "företagsledande|ledande befattning|executive"],
+  ["Teknik och ingenjörer", "ingenjör|tekniska konsulter|teknisk konsultverksamhet"],
+  ["Försäljning och kundtjänst", "inköp|supply chain"],
+  ["Handel och butik", "detaljhandel"],
+  ["Omsorg och socialt arbete", "omsorg|socialt arbete|socionom|\\bHVB\\b|socialtjänst"],
+  ["Skola och förskola", "förskol|skola|lärar|pedagog"],
+  ["Hotell, restaurang och storkök", "restaurang|hotell|storhushåll"],
 ];
 
 const YRKE = BRANSCHORD.map(([omrade, ord]) => [

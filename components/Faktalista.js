@@ -21,7 +21,7 @@ export default function Faktalista({ varden }) {
   const visade = alla || kvar <= 0 ? varden : varden.slice(0, TAK);
 
   // Mittpunkt och inte komma mellan värdena: flera yrkesområden heter saker som
-  // "Installation, drift, underhåll", och med komma som skiljetecken gick det
+  // "Lager, logistik och transport", och med komma som skiljetecken gick det
   // inte att se var ett område slutade och nästa började — särskilt inte när
   // knappen bredvid påstår hur många de är.
   return (

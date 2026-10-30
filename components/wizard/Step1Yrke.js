@@ -13,7 +13,7 @@ export default function Step1Yrke({ flow, patch, onNext }) {
     <div className="flow-panel">
       <div className="flow-eyebrow">Steg 1 av 6</div>
       <h3>Yrke</h3>
-      <p className="sub">Välj yrkesområde och sedan yrke — precis som på Arbetsförmedlingens &ldquo;Hitta yrken&rdquo;.</p>
+      <p className="sub">Välj yrkesområde och sedan yrke.</p>
       <div className="field-row">
         <div className="field">
           <label htmlFor="fl-omrade">Yrkesområde</label>
