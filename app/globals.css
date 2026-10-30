@@ -1337,3 +1337,8 @@ nav.site-nav .utloggning-fel{font-size:12px;color:var(--rust-400);}
 @media (max-width:640px){
   .kallor-ruta{left:auto;right:0;max-width:min(300px,88vw);}
 }
+
+/* Förklaring ovanför inloggningsformuläret, t.ex. när en mejllänk redan är
+   förbrukad. Samma ton som claim-bannern: upplysning, inte larm. */
+.login-notis{margin:0 0 16px;padding:14px 16px;background:var(--color-surface-soft);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);font-size:13.5px;line-height:1.5;color:var(--color-body);}
+.login-notis a{color:var(--color-ink);text-decoration:underline;text-underline-offset:3px;}

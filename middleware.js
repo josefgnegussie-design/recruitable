@@ -165,9 +165,14 @@ export async function middleware(request) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Vart besökaren var på väg följer med som ?next=, så att inloggningen kan
+  // skicka tillbaka hit i stället för alltid till /mina-sidor. Värdet granskas
+  // igen av sakerSokvag i inloggningsformuläret innan det används.
   if (!user && arSkyddadSida) {
     const url = request.nextUrl.clone();
     url.pathname = "/logga-in";
+    url.search = "";
+    url.searchParams.set("next", pathname + request.nextUrl.search);
     return NextResponse.redirect(url);
   }
 
