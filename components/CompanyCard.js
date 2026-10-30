@@ -36,9 +36,9 @@ export default function CompanyCard({ company: c }) {
       ) : null}
       <CompanySurveys surveys={c.surveys} />
       <div className="card-actions">
-        <Link className="btn btn-primary" href={bolagsUrl(c)}>Se profil</Link>
+        <Link className="card-lank" href={bolagsUrl(c)}>Se profil &rarr;</Link>
         {c.link && (
-          <a className="btn btn-ghost" href={c.link} target="_blank" rel="noopener noreferrer">Till webbplats</a>
+          <a className="card-lank extern" href={c.link} target="_blank" rel="noopener noreferrer">Webbplats ↗</a>
         )}
       </div>
     </div>

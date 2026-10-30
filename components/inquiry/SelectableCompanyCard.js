@@ -44,13 +44,13 @@ export default function SelectableCompanyCard({ company: c, selected, onToggle }
           stoppa klicket, annars kryssar man ur bolaget på väg för att läsa om det. */}
       <div className="card-actions">
         <a
-          className="btn btn-ghost"
+          className="card-lank"
           href={bolagsUrl(c)}
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
         >
-          Läs hela profilen
+          Läs hela profilen ↗
         </a>
       </div>
     </div>

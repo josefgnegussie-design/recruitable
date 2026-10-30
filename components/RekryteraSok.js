@@ -48,21 +48,21 @@ function SokContent({ antalBolag, urval }) {
 
   return (
     <div id="view-rekrytera">
-      <section className="hero" style={{ minHeight: "calc(100vh - 160px)", alignContent: "center" }}>
+      <section className="hero hero-sok">
         <div>
           <div className="eyebrow">Hitta partners · Sverige</div>
           <h1 className="hero-title">Rekrytera</h1>
           <p className="hero-sub">
-            Ange ort och yrkesområde så visar vi bemannings- och rekryteringsbolagen i Sverige rangordnade
-            efter relevans för just era behov.
+            Ange ort och yrkesområde och beskriv vad ni söker. Vi visar bemannings- och rekryteringsbolagen
+            som passar bäst först.
           </p>
           <div className="hero-stats">
-            <div className="stat"><span className="num">{antalBolag}</span><span className="label">Bolag i registret</span></div>
+            <div className="stat"><span className="num">{antalBolag.toLocaleString("sv-SE")}</span><span className="label">Bolag i registret</span></div>
           </div>
         </div>
         <div className="hero-panel">
-          <p>Välj ort och yrkesområde, beskriv sedan ert behov och filtrera på tjänst.</p>
-          <div className="field">
+          <h2 className="filter-title">Kvickfiltret</h2>
+                    <div className="field">
             <label htmlFor="pt-ort">Ort</label>
             <input
               id="pt-ort"
@@ -118,7 +118,7 @@ function SokContent({ antalBolag, urval }) {
       </section>
 
       <section className="l-section tight">
-        <h2>Urval av bolag</h2>
+        <h2>Ett urval ur registret</h2>
         <div className="grid" onClickCapture={vidKortklick}>
           {urval.map((c) => (
             <CompanyCard company={c} key={c.id} />
