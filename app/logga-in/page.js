@@ -22,7 +22,7 @@ export default async function LoggaInPage({ searchParams }) {
     <div id="view-logga-in">
       <section className="hero" style={{ gridTemplateColumns: "1fr", maxWidth: 480, margin: "0 auto" }}>
         <div>
-          <div className="eyebrow">För bolagsadmins</div>
+          <div className="eyebrow">För bemannings- och rekryteringsbolag</div>
           <h1 className="hero-title">Logga in</h1>
         </div>
       </section>
