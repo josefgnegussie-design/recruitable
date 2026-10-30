@@ -40,6 +40,9 @@ const nextConfig = {
     return [
       { source: "/partners", destination: "/rekrytera", permanent: true },
       { source: "/partners/resultat", destination: "/rekrytera/resultat", permanent: true },
+      // /matcha var en simulering mot gammal statisk data. Den riktiga vägen
+      // till en förfrågan går genom /rekrytera.
+      { source: "/matcha", destination: "/rekrytera", permanent: true },
     ];
   },
 };
