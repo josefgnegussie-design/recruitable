@@ -6,6 +6,7 @@ import { verifyTurnstile } from "@/lib/turnstile";
 import { clientIp } from "@/lib/requestIp";
 import { sendInquiryConfirmationToRequester, sendModerationAlertToAdmins } from "@/lib/email";
 import { upphordaAv } from "@/lib/sammanslagning";
+import { nyUppfoljningstoken, uppfoljningsSokvag } from "@/lib/uppfoljning";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -140,25 +141,42 @@ export async function POST(request) {
     );
   }
 
-  const { data: inquiry, error: inquiryError } = await supabase
+  const forfraganRad = {
+    search_role: searchRole || null,
+    focus_area: focusArea || null,
+    service: service || null,
+    region: region || null,
+    city: city || null,
+    description: description.trim(),
+    requester_name: requesterName.trim(),
+    requester_email: requesterEmail.trim(),
+    requester_website: requesterWebsite.trim(),
+    requester_role: requesterRole.trim(),
+    requester_company: requesterCompany.trim(),
+    requester_city: requesterCity.trim(),
+    requester_phone: requesterPhone?.trim() || null,
+  };
+
+  // Uppföljningslänken till beställaren. Saknas kolumnen har migrationen inte
+  // körts: förfrågan sparas då utan länk i stället för att gå förlorad, och
+  // beställaren får mejlet som förut.
+  const uppfoljning = nyUppfoljningstoken();
+  let { data: inquiry, error: inquiryError } = await supabase
     .from("inquiries")
-    .insert({
-      search_role: searchRole || null,
-      focus_area: focusArea || null,
-      service: service || null,
-      region: region || null,
-      city: city || null,
-      description: description.trim(),
-      requester_name: requesterName.trim(),
-      requester_email: requesterEmail.trim(),
-      requester_website: requesterWebsite.trim(),
-      requester_role: requesterRole.trim(),
-      requester_company: requesterCompany.trim(),
-      requester_city: requesterCity.trim(),
-      requester_phone: requesterPhone?.trim() || null,
-    })
+    .insert({ ...forfraganRad, uppfoljning_token_hash: uppfoljning.tokenHash })
     .select("id")
     .single();
+
+  let uppfoljningsLank = uppfoljningsSokvag(uppfoljning.token);
+  if (inquiryError && (inquiryError.code === "42703" || inquiryError.code === "PGRST204")) {
+    console.error("inquiries saknar uppfoljning_token_hash — kör supabase/migration_uppfoljning.sql.");
+    uppfoljningsLank = null;
+    ({ data: inquiry, error: inquiryError } = await supabase
+      .from("inquiries")
+      .insert(forfraganRad)
+      .select("id")
+      .single());
+  }
 
   if (inquiryError || !inquiry) {
     console.error("Kunde inte spara förfrågan:", JSON.stringify(inquiryError));
@@ -189,6 +207,7 @@ export async function POST(request) {
     focusArea: focusArea || "",
     service: service || "",
     companyNames,
+    uppfoljningsLank,
   };
 
   // Bekräftelse till avsändaren och granskningsnotis till plattformsadmin
@@ -201,5 +220,7 @@ export async function POST(request) {
     sendModerationAlertToAdmins(inquiryForEmail),
   ]);
 
-  return NextResponse.json({ ok: true, count: recipients.length });
+  // Länken går också tillbaka till webbläsaren, så att tacksidan kan visa den.
+  // Det är beställarens egen förfrågan, och token är samma som i mejlet.
+  return NextResponse.json({ ok: true, count: recipients.length, uppfoljning: uppfoljningsLank });
 }

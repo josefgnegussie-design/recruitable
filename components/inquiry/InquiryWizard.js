@@ -91,6 +91,9 @@ export default function InquiryWizard({ filters, results, totalt }) {
   // Kvittosteget ligger utanför utkastet: en skickad förfrågan ska inte kunna
   // återuppstå som ett halvfyllt formulär nästa gång sidan öppnas.
   const [sent, setSent] = useState(false);
+  // Uppföljningssidan för just den här förfrågan. Samma länk som i
+  // bekräftelsemejlet; null om servern inte kunde skapa någon.
+  const [uppfoljning, setUppfoljning] = useState(null);
   const handleTurnstileVerify = useCallback((token) => setTurnstileToken(token), []);
 
   function toggleCompany(id) {
@@ -170,6 +173,8 @@ export default function InquiryWizard({ filters, results, totalt }) {
       return;
     }
 
+    const svar = await res.json().catch(() => ({}));
+    setUppfoljning(typeof svar.uppfoljning === "string" ? svar.uppfoljning : null);
     setStatus("success");
     setShowConfirm(false);
     // Förfrågan är skickad — utkastet ska inte ligga kvar till nästa gång.
@@ -387,9 +392,18 @@ export default function InquiryWizard({ filters, results, totalt }) {
             <p>
               {`Er förfrågan skickades till granskning hos Recruitable. Så snart den är godkänd ser de ${selected.size} valda bolagen den under sina Mina sidor och kan höra av sig direkt till dig på ${draft.email}.`}
             </p>
-            <Link className="qs-btn" href="/" style={{ display: "inline-block", textDecoration: "none" }}>
-              Till startsidan
-            </Link>
+            {uppfoljning ? (
+              <>
+                <p>Följ förfrågan på en egen sida: där ser du vilka bolag som är intresserade, har tackat nej eller inte svarat än. Länken finns också i bekräftelsemejlet.</p>
+                <Link className="qs-btn" href={uppfoljning} style={{ display: "inline-block", textDecoration: "none" }}>
+                  Följ förfrågan
+                </Link>
+              </>
+            ) : (
+              <Link className="qs-btn" href="/" style={{ display: "inline-block", textDecoration: "none" }}>
+                Till startsidan
+              </Link>
+            )}
           </div>
           <SkrappostPaminnelse adress={draft.email} />
         </div>
