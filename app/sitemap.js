@@ -9,6 +9,7 @@ const SITE = "https://recruitable.se";
 const SIDOR = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/rekrytera", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/upphandling", changeFrequency: "daily", priority: 0.8 },
   { path: "/for-bolag/registrera", changeFrequency: "monthly", priority: 0.6 },
   { path: "/om-oss", changeFrequency: "yearly", priority: 0.5 },
   { path: "/kontakt", changeFrequency: "yearly", priority: 0.5 },

@@ -12,6 +12,7 @@ const STANGDA = [
   "/aterstall-losenord",
   "/inbjudan/",
   "/forfragan/",
+  "/upphandling/hantera/",
   "/auth/",
   "/api/",
   "/coming-soon",
