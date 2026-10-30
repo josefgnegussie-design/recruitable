@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import MinaSidorTabs from "@/components/admin/MinaSidorTabs";
 import MinaSidorStatus from "@/components/admin/MinaSidorStatus";
 import InquiriesList from "@/components/admin/InquiriesList";
-import { hamtaBolagskonto, hamtaFlikraknare, hamtaForfragningar } from "@/lib/minaSidor";
+import MinaSidorOversikt from "@/components/admin/MinaSidorOversikt";
+import { hamtaBolagskonto, hamtaFlikraknare, hamtaForfragningar, hamtaOversikt } from "@/lib/minaSidor";
 
 const STRIPE_UTFALL = new Set(["klart", "avbrutet"]);
 
@@ -20,13 +21,15 @@ export default async function MinaSidorPage({ searchParams }) {
   if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} adminRow={konto.adminRow} />;
 
   const companyId = konto.adminRow.company_id;
-  const [raknare, { inquiries, hasMore }] = await Promise.all([
+  const [raknare, { inquiries, hasMore }, oversikt] = await Promise.all([
     hamtaFlikraknare(konto.supabase, companyId),
     hamtaForfragningar(companyId),
+    hamtaOversikt(companyId),
   ]);
 
   return (
     <MinaSidorTabs {...raknare}>
+      <MinaSidorOversikt {...oversikt} />
       <InquiriesList inquiries={inquiries} initialHasMore={hasMore} />
     </MinaSidorTabs>
   );

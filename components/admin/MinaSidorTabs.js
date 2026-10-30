@@ -33,6 +33,14 @@ export function useAndraObesvarade() {
   return useContext(ObesvaradeKontext);
 }
 
+// Antalet som väntar på svar just nu, för översikten på förfrågningsfliken.
+// Samma siffra som på fliken, så att de två aldrig säger olika saker.
+const AntalObesvaradeKontext = createContext(0);
+
+export function useObesvarade() {
+  return useContext(AntalObesvaradeKontext);
+}
+
 const BESKED = {
   premium: {
     klart: { ok: true, text: "Tack! Betalningen är mottagen och premium aktiveras inom kort." },
@@ -95,7 +103,9 @@ export default function MinaSidorTabs({ obesvarade: initialtObesvarade, antalKon
         })}
       </nav>
 
-      <ObesvaradeKontext.Provider value={andraObesvarade}>{children}</ObesvaradeKontext.Provider>
+      <ObesvaradeKontext.Provider value={andraObesvarade}>
+        <AntalObesvaradeKontext.Provider value={obesvarade}>{children}</AntalObesvaradeKontext.Provider>
+      </ObesvaradeKontext.Provider>
     </div>
   );
 }

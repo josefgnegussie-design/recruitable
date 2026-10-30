@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import MinaSidorTabs from "@/components/admin/MinaSidorTabs";
 import MinaSidorStatus from "@/components/admin/MinaSidorStatus";
 import InquiriesList from "@/components/admin/InquiriesList";
-import { hamtaBolagskonto, hamtaFlikraknare, hamtaForfragan, hamtaForfragningar } from "@/lib/minaSidor";
+import MinaSidorOversikt from "@/components/admin/MinaSidorOversikt";
+import { hamtaBolagskonto, hamtaFlikraknare, hamtaForfragan, hamtaForfragningar, hamtaOversikt } from "@/lib/minaSidor";
 
 // En enskild förfrågan, dit mejlet till bolaget länkar. Visas i den vanliga
 // listan, framscrollad och markerad, så att bolaget kan svara direkt och ändå
@@ -14,12 +15,13 @@ export default async function ForfraganPage({ params }) {
   if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} adminRow={konto.adminRow} />;
 
   const companyId = konto.adminRow.company_id;
-  const [forfragan, raknare, { inquiries, hasMore }] = await Promise.all([
+  const [forfragan, raknare, { inquiries, hasMore }, oversikt] = await Promise.all([
     // Hämtas med bolagets id som villkor: en förfrågan som hör till ett annat
     // bolag ger samma 404 som en som inte finns.
     hamtaForfragan(companyId, id),
     hamtaFlikraknare(konto.supabase, companyId),
     hamtaForfragningar(companyId),
+    hamtaOversikt(companyId),
   ]);
 
   if (!forfragan) notFound();
@@ -32,6 +34,7 @@ export default async function ForfraganPage({ params }) {
 
   return (
     <MinaSidorTabs {...raknare}>
+      <MinaSidorOversikt {...oversikt} />
       <InquiriesList inquiries={lista} initialHasMore={hasMore} markeradId={forfragan.recipientId} />
     </MinaSidorTabs>
   );
