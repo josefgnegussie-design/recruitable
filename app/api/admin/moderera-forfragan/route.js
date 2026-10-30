@@ -131,8 +131,12 @@ export async function POST(request) {
   // hamnade hos och på vilken adress. Uträkningen gjordes tidigare i minnet och
   // kastades, så varken vi eller det betalande bolaget kunde i efterhand se om
   // kontoret faktiskt fick sin förfrågan. Se migration_forfragan_routing.sql.
+  //
+  // Raderna läses tillbaka för sina id:n: mejlet länkar direkt till förfrågan
+  // på Mina sidor, och adressen där är mottagarradens id.
+  const mottagarId = new Map();
   if (mottagare.length) {
-    const { error: routningsFel } = await admin.from("inquiry_recipients").upsert(
+    const { data: sparade, error: routningsFel } = await admin.from("inquiry_recipients").upsert(
       mottagare.map((m) => ({
         inquiry_id: inquiryId,
         company_id: m.companyId,
@@ -140,7 +144,9 @@ export async function POST(request) {
         notified_email: m.email,
       })),
       { onConflict: "inquiry_id,company_id" }
-    );
+    ).select("id, company_id");
+
+    for (const rad of sparade ?? []) mottagarId.set(rad.company_id, rad.id);
 
     // Utskicket ska gå ut även om kvittot inte kan sparas, men tystnad vore
     // fel väg: en saknad kolumn betyder att migrationen inte körts, och det
@@ -161,7 +167,9 @@ export async function POST(request) {
   if (adresser.length) {
     after(async () => {
       const utfall = await Promise.allSettled(
-        adresser.map((m) => sendInquiryReceivedToCompany({ to: m.email, inquiry: forMejl }))
+        adresser.map((m) =>
+          sendInquiryReceivedToCompany({ to: m.email, inquiry: forMejl, recipientId: mottagarId.get(m.companyId) })
+        )
       );
 
       // notified_at sätts först här, och bara för adresser som verkligen tog

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MAX_ORD_I_SVAR, raknaOrd } from "@/lib/inquiries";
+import { useAndraObesvarade } from "@/components/admin/MinaSidorTabs";
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString("sv-SE", { year: "numeric", month: "short", day: "numeric" });
@@ -17,9 +18,12 @@ function inomDennaManad(iso) {
 
 const MANAD = new Date().toLocaleDateString("sv-SE", { month: "long" });
 
-// andraObesvarade får skillnaden i antal obesvarade varje gång listan ändras,
-// så att räknaren på fliken följer med utan omladdning.
-export default function InquiriesList({ inquiries: initialInquiries, initialHasMore, andraObesvarade }) {
+// markeradId är förfrågan som en mejllänk pekar på. Den scrollas fram och
+// markeras, och visas även om den ligger utanför månadsfiltret.
+export default function InquiriesList({ inquiries: initialInquiries, initialHasMore, markeradId }) {
+  // Får skillnaden i antal obesvarade när bolaget svarar, så att räknaren på
+  // fliken följer med utan omladdning.
+  const andraObesvarade = useAndraObesvarade();
   const [inquiries, setInquiries] = useState(initialInquiries);
   const [updatingId, setUpdatingId] = useState(null);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -31,6 +35,12 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
   // som kräver ett svar i dag ligger längst upp och allt annat bara skymmer.
   // Utgångsläget är därför innevarande månad, och resten hämtas på begäran.
   const [visaAllt, setVisaAllt] = useState(false);
+
+  // Scrollas fram efter första renderingen, när kortet finns på sidan.
+  useEffect(() => {
+    if (!markeradId) return;
+    document.getElementById(`forfragan-${markeradId}`)?.scrollIntoView({ block: "center" });
+  }, [markeradId]);
 
   async function loadMore() {
     const last = inquiries[inquiries.length - 1];
@@ -45,8 +55,13 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
 
     if (res.ok) {
       const { inquiries: more, hasMore: nextHasMore } = await res.json();
-      setInquiries((prev) => [...prev, ...more]);
-      andraObesvarade?.(more.filter((inq) => inq.status === "pending").length);
+      // Räknaren på fliken kommer från databasen och omfattar redan även de
+      // äldre sidorna. En markerad förfrågan kan däremot redan ligga i listan,
+      // om mejllänken pekade på en äldre — den ska inte dyka upp två gånger.
+      setInquiries((prev) => {
+        const finns = new Set(prev.map((inq) => inq.recipientId));
+        return [...prev, ...more.filter((inq) => !finns.has(inq.recipientId))];
+      });
       setHasMore(nextHasMore);
     }
     setLoadingMore(false);
@@ -96,13 +111,19 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
   // ett svar har det gjort tvärtom mot sitt syfte.
   const synliga = visaAllt
     ? inquiries
-    : inquiries.filter((inq) => inomDennaManad(inq.receivedAt) || inq.status === "pending");
+    : inquiries.filter(
+        (inq) => inomDennaManad(inq.receivedAt) || inq.status === "pending" || inq.recipientId === markeradId
+      );
   const doldaLaddade = inquiries.length - synliga.length;
   // Räknas separat från synliga: de obesvarade från tidigare månader lyfts in i
   // vyn men hör inte till månadens antal, och en etikett som säger "den här
   // månaden" får inte räkna med dem.
   const iManaden = synliga.filter((inq) => inomDennaManad(inq.receivedAt)).length;
-  const aldreObesvarade = synliga.length - iManaden;
+  // En äldre förfrågan som visas för att en mejllänk pekar på den räknas inte
+  // som obesvarad om den redan är besvarad.
+  const aldreObesvarade = synliga.filter(
+    (inq) => !inomDennaManad(inq.receivedAt) && inq.status === "pending"
+  ).length;
   const finnsTidigare = doldaLaddade > 0 || hasMore;
 
   async function visaTidigare() {
@@ -147,7 +168,11 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
       {synliga.map((inq) => {
         const unlocked = inq.status === "accepted" && inq.requester_name;
         return (
-          <div className="auth-panel" key={inq.recipientId}>
+          <div
+            className={`auth-panel${inq.recipientId === markeradId ? " forfragan-markerad" : ""}`}
+            key={inq.recipientId}
+            id={`forfragan-${inq.recipientId}`}
+          >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
               {/* Rubriken var kundens bolagsnamn, vilket gav bort hela leaden
                   innan den betalats. Nu är rubriken behovet: vad de söker och

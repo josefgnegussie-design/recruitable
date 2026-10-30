@@ -12,8 +12,13 @@ import { createClient } from "@/lib/supabase/client";
 // Listan kommer färdig från servern. Att hämta den i en effekt hade gett en
 // extra rundtur efter renderingen och ett tomt läge att visa under tiden —
 // sidan vet redan vilka administratörerna är när den byggs.
-export default function Kontoflik({ administratorer: initiala = [], duArAgare: initialtAgare = false }) {
+export default function Kontoflik({
+  administratorer: initiala = [],
+  inbjudningar: initialaInbjudningar = [],
+  duArAgare: initialtAgare = false,
+}) {
   const [administratorer, setAdministratorer] = useState(initiala);
+  const [inbjudningar, setInbjudningar] = useState(initialaInbjudningar);
   const [duArAgare, setDuArAgare] = useState(initialtAgare);
   const [fel, setFel] = useState("");
   const [besked, setBesked] = useState("");
@@ -38,6 +43,10 @@ export default function Kontoflik({ administratorer: initiala = [], duArAgare: i
     const body = await res.json().catch(() => ({}));
     setArbetar(false);
 
+    // Listan över inbjudningar kan följa med även ett fel — inbjudan kan vara
+    // sparad fast mejlet inte gick iväg.
+    if (body.inbjudningar) setInbjudningar(body.inbjudningar);
+
     if (!res.ok) {
       setFel(body.error || "Något gick fel. Försök igen.");
       return false;
@@ -48,11 +57,17 @@ export default function Kontoflik({ administratorer: initiala = [], duArAgare: i
     return true;
   }
 
-  async function laggTill(e) {
+  async function bjudIn(e) {
     e.preventDefault();
-    if (await anropa("/api/mina-sidor/konto/anvandare", "POST", { epost: nyEpost })) {
-      setBesked(`${nyEpost} är nu administratör.`);
+    if (await anropa("/api/mina-sidor/konto/inbjudan", "POST", { epost: nyEpost })) {
+      setBesked(`Inbjudan skickad till ${nyEpost}.`);
       setNyEpost("");
+    }
+  }
+
+  async function aterkalla(inbjudan) {
+    if (await anropa("/api/mina-sidor/konto/inbjudan", "DELETE", { inbjudanId: inbjudan.id })) {
+      setBesked(`Inbjudan till ${inbjudan.epost} är återkallad.`);
     }
   }
 
@@ -129,10 +144,31 @@ export default function Kontoflik({ administratorer: initiala = [], duArAgare: i
           </ul>
         )}
 
+        {duArAgare && inbjudningar.length > 0 && (
+          <>
+            <div className="filter-title" style={{ fontSize: 15, margin: "18px 0 8px" }}>Inbjudna</div>
+            <ul className="admin-lista">
+              {inbjudningar.map((i) => (
+                <li key={i.id}>
+                  <span className="admin-epost">
+                    {i.epost}
+                    <span className="ansokan-flagga">väntar</span>
+                  </span>
+                  <span className="admin-knappar">
+                    <button type="button" className="kontor-ta-bort" disabled={arbetar} onClick={() => aterkalla(i)}>
+                      Återkalla
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
         {duArAgare ? (
-          <form onSubmit={laggTill} style={{ marginTop: 16 }}>
+          <form onSubmit={bjudIn} style={{ marginTop: 16 }}>
             <div className="field">
-              <label htmlFor="ny-admin">Lägg till administratör</label>
+              <label htmlFor="ny-admin">Bjud in en kollega</label>
               <input
                 id="ny-admin"
                 type="email"
@@ -142,12 +178,12 @@ export default function Kontoflik({ administratorer: initiala = [], duArAgare: i
                 required
               />
               <p className="hint">
-                Kollegan måste ha registrerat ett konto först. Vi skickar ingen inbjudan — ni går i
-                god för kopplingen genom att lägga till adressen här.
+                Kollegan får ett mejl med en länk som gäller i en vecka, och kommer direkt in på Mina sidor
+                utan granskning. Adressen måste ha bolagets domän.
               </p>
             </div>
             <button className="qs-btn" type="submit" disabled={arbetar} style={{ width: "auto", padding: "11px 20px" }}>
-              {arbetar ? "Arbetar…" : "Lägg till"}
+              {arbetar ? "Arbetar…" : "Skicka inbjudan"}
             </button>
           </form>
         ) : (

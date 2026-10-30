@@ -1,113 +1,101 @@
 "use client";
 
-import { useState } from "react";
-import ProfilEditor from "@/components/admin/ProfilEditor";
-import InquiriesList from "@/components/admin/InquiriesList";
-import PremiumManageButton from "@/components/admin/PremiumManageButton";
-import Kontoflik from "@/components/admin/Kontoflik";
-import OfficesManager from "@/components/admin/OfficesManager";
-import Sammanslagning from "@/components/admin/Sammanslagning";
-import LoggaUtKnapp from "@/components/admin/LoggaUtKnapp";
+import { createContext, useContext, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-export default function MinaSidorTabs({ company, inquiries, hasMore, premiumStatus, offices, officeStatus, arAgare, administratorer, arenden }) {
-  const [tab, setTab] = useState(premiumStatus ? "profil" : officeStatus ? "kontor" : "forfragningar");
-  // Fliken räknar bara det som väntar på svar. Alla inlästa förfrågningar,
-  // besvarade inräknade, säger inget om vad som behöver göras.
-  const [obesvarade, setObesvarade] = useState(
-    () => inquiries.filter((inq) => inq.status === "pending").length
-  );
+// Flikarna var tidigare ett useState, så omladdning och bakåtknappen tog alltid
+// tillbaka till Förfrågningar och det gick inte att länka till en flik. Nu är
+// varje flik en egen sida, och raden här är bara länkar. Sidan som är öppen
+// avgörs av adressen.
+//
+// Utloggningen finns bara i huvudmenyn. En andra knapp i flikraden gav två
+// "Logga ut" på samma sida på desktop.
+const FLIKAR = [
+  { href: "/mina-sidor", namn: "Förfrågningar" },
+  { href: "/mina-sidor/profil", namn: "Profil" },
+  { href: "/mina-sidor/kontor", namn: "Kontor" },
+  { href: "/mina-sidor/konto", namn: "Konto" },
+];
+
+function arAktiv(pathname, href) {
+  // En enskild förfrågan (/mina-sidor/forfragningar/<id>) hör till första fliken.
+  if (href === "/mina-sidor") return pathname === href || pathname.startsWith("/mina-sidor/forfragningar");
+  return pathname === href || pathname.startsWith(href + "/");
+}
+
+// Låter förfrågningslistan ändra räknaren på fliken när bolaget svarar, utan
+// omladdning. Listan ligger i sidan och räknaren här, så de når varandra
+// genom kontexten och inte genom props.
+const ObesvaradeKontext = createContext(null);
+
+export function useAndraObesvarade() {
+  return useContext(ObesvaradeKontext);
+}
+
+const BESKED = {
+  premium: {
+    klart: { ok: true, text: "Tack! Betalningen är mottagen och premium aktiveras inom kort." },
+    avbrutet: { ok: false, text: "Uppgraderingen avbröts — inget drogs från kortet." },
+  },
+  kontor: {
+    klart: { ok: true, text: "Tack! Betalningen är mottagen och kontoret aktiveras inom kort." },
+    avbrutet: { ok: false, text: "Tillägget av kontoret avbröts — inget drogs från kortet." },
+  },
+};
+
+export default function MinaSidorTabs({ obesvarade: initialtObesvarade, antalKontor, premiumStatus, officeStatus, children }) {
+  const pathname = usePathname();
+  // Räknas i databasen och kommer med varje sida, så den stämmer vid varje
+  // flikbyte. Lokalt minskas den bara när bolaget svarar på den här sidan.
+  const [obesvarade, setObesvarade] = useState(initialtObesvarade);
+  const besked = [BESKED.premium[premiumStatus], BESKED.kontor[officeStatus]].filter(Boolean);
+
+  function andraObesvarade(diff) {
+    setObesvarade((n) => Math.max(0, n + diff));
+  }
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 24px 80px" }}>
-      {premiumStatus === "klart" && (
-        <p style={{ background: "#eaf5ee", color: "#1c6b3a", padding: "12px 16px", borderRadius: 8, marginBottom: 20, fontSize: 14 }}>
-          Tack! Betalningen är mottagen och premium aktiveras inom kort.
-        </p>
-      )}
-      {premiumStatus === "avbrutet" && (
-        <p style={{ background: "#fbeceb", color: "#c0392b", padding: "12px 16px", borderRadius: 8, marginBottom: 20, fontSize: 14 }}>
-          Uppgraderingen avbröts — inget drogs från kortet.
-        </p>
-      )}
-      {officeStatus === "klart" && (
-        <p style={{ background: "#eaf5ee", color: "#1c6b3a", padding: "12px 16px", borderRadius: 8, marginBottom: 20, fontSize: 14 }}>
-          Tack! Betalningen är mottagen och kontoret aktiveras inom kort.
-        </p>
-      )}
-      {officeStatus === "avbrutet" && (
-        <p style={{ background: "#fbeceb", color: "#c0392b", padding: "12px 16px", borderRadius: 8, marginBottom: 20, fontSize: 14 }}>
-          Tillägget av kontoret avbröts — inget drogs från kortet.
-        </p>
-      )}
-      <div className="tab-row">
-        <button
-          type="button"
-          className={`tab-btn${tab === "forfragningar" ? " active" : ""}`}
-          onClick={() => setTab("forfragningar")}
+      {besked.map((b) => (
+        <p
+          key={b.text}
+          style={{
+            background: b.ok ? "#eaf5ee" : "#fbeceb",
+            color: b.ok ? "#1c6b3a" : "#c0392b",
+            padding: "12px 16px",
+            borderRadius: 8,
+            marginBottom: 20,
+            fontSize: 14,
+          }}
         >
-          Förfrågningar{obesvarade > 0 ? ` · ${obesvarade} ${obesvarade === 1 ? "ny" : "nya"}` : ""}
-        </button>
-        <button
-          type="button"
-          className={`tab-btn${tab === "profil" ? " active" : ""}`}
-          onClick={() => setTab("profil")}
-        >
-          Profil
-        </button>
-        <button
-          type="button"
-          className={`tab-btn${tab === "kontor" ? " active" : ""}`}
-          onClick={() => setTab("kontor")}
-        >
-          Kontor{offices?.length > 0 ? ` (${offices.length})` : ""}
-        </button>
-        <button
-          type="button"
-          className={`tab-btn${tab === "konto" ? " active" : ""}`}
-          onClick={() => setTab("konto")}
-        >
-          Konto
-        </button>
-        <LoggaUtKnapp />
-      </div>
+          {b.text}
+        </p>
+      ))}
+      <nav className="tab-row" aria-label="Mina sidor">
+        {FLIKAR.map((f) => {
+          const aktiv = arAktiv(pathname, f.href);
+          let namn = f.namn;
+          // Fliken räknar bara det som väntar på svar. Alla förfrågningar,
+          // besvarade inräknade, säger inget om vad som behöver göras.
+          if (f.href === "/mina-sidor" && obesvarade > 0) {
+            namn += ` · ${obesvarade} ${obesvarade === 1 ? "ny" : "nya"}`;
+          }
+          if (f.href === "/mina-sidor/kontor" && antalKontor > 0) namn += ` (${antalKontor})`;
+          return (
+            <Link
+              key={f.href}
+              href={f.href}
+              className={`tab-btn${aktiv ? " active" : ""}`}
+              aria-current={aktiv ? "page" : undefined}
+            >
+              {namn}
+            </Link>
+          );
+        })}
+      </nav>
 
-      {tab === "forfragningar" && (
-        <InquiriesList
-          inquiries={inquiries}
-          initialHasMore={hasMore}
-          andraObesvarade={(diff) => setObesvarade((n) => Math.max(0, n + diff))}
-        />
-      )}
-
-      {/* Hela profilen redigeras av alla verifierade bolag. Fälten är precis det
-          en kund väljer leverantör utifrån, så en betalvägg här gör registret
-          sämre för den sida som flödet börjar hos. Prenumerationen ska i stället
-          knytas till förfrågningarna — knappen nedan finns kvar så länge, så att
-          de som redan betalar kan se och avsluta sin prenumeration. */}
-      {tab === "profil" && (
-        <>
-          <ProfilEditor company={company} />
-          {/* Prenumerationen är ägarens ansvar — knappen leder till Stripes
-              portal, där den som kommer in kan säga upp abonnemanget. */}
-          {company?.is_premium && arAgare && <PremiumManageButton />}
-        </>
-      )}
-
-      {tab === "kontor" && <OfficesManager offices={offices || []} />}
-
-      {/* Sammanslagningen ligger i Konto-fliken och inte i Profil: den handlar
-          inte om vad profilen innehåller utan om huruvida bolaget ska finnas kvar
-          som ett eget kort — samma nivå som ägarskapet och administratörerna. */}
-      {tab === "konto" && (
-        <>
-          <Kontoflik administratorer={administratorer} duArAgare={arAgare} />
-          <Sammanslagning
-            arenden={arenden || []}
-            duArAgare={arAgare}
-            bolagsnamn={company?.name || ""}
-          />
-        </>
-      )}
+      <ObesvaradeKontext.Provider value={andraObesvarade}>{children}</ObesvaradeKontext.Provider>
     </div>
   );
 }

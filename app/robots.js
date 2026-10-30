@@ -10,6 +10,7 @@ const STANGDA = [
   "/logga-in",
   "/glomt-losenord",
   "/aterstall-losenord",
+  "/inbjudan/",
   "/auth/",
   "/api/",
   "/coming-soon",

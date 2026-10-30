@@ -147,8 +147,8 @@ export async function POST(request) {
     client_reference_id: office.id,
     metadata: { officeId: office.id, companyId: String(company.id) },
     subscription_data: { metadata: { officeId: office.id, companyId: String(company.id) } },
-    success_url: `${origin}/mina-sidor?kontor=klart`,
-    cancel_url: `${origin}/mina-sidor?kontor=avbrutet`,
+    success_url: `${origin}/mina-sidor/kontor?kontor=klart`,
+    cancel_url: `${origin}/mina-sidor/kontor?kontor=avbrutet`,
   });
 
   return NextResponse.json({ url: session.url });
