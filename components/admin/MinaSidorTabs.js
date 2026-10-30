@@ -3,12 +3,14 @@
 import { createContext, useContext, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import LoggaUtKnapp from "@/components/admin/LoggaUtKnapp";
 
 // Flikarna var tidigare ett useState, så omladdning och bakåtknappen tog alltid
 // tillbaka till Förfrågningar och det gick inte att länka till en flik. Nu är
 // varje flik en egen sida, och raden här är bara länkar. Sidan som är öppen
 // avgörs av adressen.
+//
+// Utloggningen finns bara i huvudmenyn. En andra knapp i flikraden gav två
+// "Logga ut" på samma sida på desktop.
 const FLIKAR = [
   { href: "/mina-sidor", namn: "Förfrågningar" },
   { href: "/mina-sidor/profil", namn: "Profil" },
@@ -91,7 +93,6 @@ export default function MinaSidorTabs({ obesvarade: initialtObesvarade, antalKon
             </Link>
           );
         })}
-        <LoggaUtKnapp />
       </nav>
 
       <ObesvaradeKontext.Provider value={andraObesvarade}>{children}</ObesvaradeKontext.Provider>

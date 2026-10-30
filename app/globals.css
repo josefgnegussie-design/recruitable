@@ -1023,13 +1023,11 @@ a:hover{color:var(--color-accent)}
 a.tab-btn{text-decoration:none;display:inline-block;}
 /* Förfrågan som en mejllänk pekar på. */
 .forfragan-markerad{border-color:var(--color-accent);box-shadow:0 0 0 2px var(--color-accent),var(--shadow-card);scroll-margin-top:96px;}
-/* På 375 px fick tre flikar med 24 px marginal plus utloggningen inte plats:
-   raden bröts i två och "Logga ut" skars av mot högerkanten. Utloggningen finns
-   redan i huvudmenyn, så flikraden behöver den inte på små skärmar. */
+/* På 375 px får fyra flikar med 24 px marginal inte plats, så de delar på
+   bredden i stället. */
 @media (max-width:640px){
   .tab-row{gap:0;justify-content:space-between;}
   .tab-btn{margin-right:0;font-size:11.5px;letter-spacing:0.2px;white-space:nowrap;}
-  .tab-row .utloggning{display:none;}
 }
 
 /* ===== Snabbval i bolagslistan (/rekrytera/resultat) ===== */
@@ -1198,7 +1196,6 @@ a.tab-btn{text-decoration:none;display:inline-block;}
 .utloggning .link-btn:disabled{color:var(--color-muted);cursor:default;text-decoration:none;}
 .utloggning-fel{font-size:12.5px;color:var(--color-error);}
 /* I flikraden på Mina sidor: längst ut till höger, i linje med flikarna. */
-.tab-row .utloggning{margin-left:auto;padding:12px 0;}
 /* I den interna toppraden ärver knappen radens mono-stil, annars ser den
    inklistrad ut mitt i "Internt · adress ·". */
 .admin-topp .utloggning .link-btn{font-family:var(--font-mono);font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase;}
