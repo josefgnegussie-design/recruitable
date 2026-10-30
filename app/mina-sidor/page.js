@@ -17,7 +17,7 @@ export default async function MinaSidorPage({ searchParams }) {
   if (STRIPE_UTFALL.has(params?.kontor)) redirect(`/mina-sidor/kontor?kontor=${params.kontor}`);
 
   const konto = await hamtaBolagskonto();
-  if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} />;
+  if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} adminRow={konto.adminRow} />;
 
   const companyId = konto.adminRow.company_id;
   const [raknare, { inquiries, hasMore }] = await Promise.all([

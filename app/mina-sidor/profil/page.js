@@ -8,7 +8,7 @@ export default async function ProfilPage({ searchParams }) {
   const params = await searchParams;
 
   const konto = await hamtaBolagskonto();
-  if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} />;
+  if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} adminRow={konto.adminRow} />;
 
   const { supabase, adminRow } = konto;
   const [raknare, { data: company }] = await Promise.all([

@@ -1346,3 +1346,12 @@ nav.site-nav .utloggning-fel{font-size:12px;color:var(--rust-400);}
    förbrukad. Samma ton som claim-bannern: upplysning, inte larm. */
 .login-notis{margin:0 0 16px;padding:14px 16px;background:var(--color-surface-soft);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);font-size:13.5px;line-height:1.5;color:var(--color-body);}
 .login-notis a{color:var(--color-ink);text-decoration:underline;text-underline-offset:3px;}
+
+/* ===== Mina sidor under granskning ===== */
+.granskning-ruta a{color:var(--color-ink);text-decoration:underline;text-underline-offset:3px;}
+.granskning-steg{margin:4px 0 16px;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--color-body);}
+.granskning-steg li{position:relative;padding-left:26px;line-height:1.45;}
+.granskning-steg li::before{content:"";position:absolute;left:0;top:3px;width:14px;height:14px;border-radius:50%;border:2px solid var(--color-hairline);box-sizing:border-box;}
+.granskning-steg li.klart::before{background:var(--color-success);border-color:var(--color-success);}
+.granskning-steg li.pagar::before{border-color:var(--color-accent);}
+.granskning-steg li.pagar{font-weight:600;color:var(--color-ink);}

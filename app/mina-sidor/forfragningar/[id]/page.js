@@ -11,7 +11,7 @@ export default async function ForfraganPage({ params }) {
   const { id } = await params;
 
   const konto = await hamtaBolagskonto();
-  if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} />;
+  if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} adminRow={konto.adminRow} />;
 
   const companyId = konto.adminRow.company_id;
   const [forfragan, raknare, { inquiries, hasMore }] = await Promise.all([

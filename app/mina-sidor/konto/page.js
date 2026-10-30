@@ -10,7 +10,7 @@ import { hamtaBolagskonto, hamtaFlikraknare } from "@/lib/minaSidor";
 
 export default async function KontoPage() {
   const konto = await hamtaBolagskonto();
-  if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} />;
+  if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} adminRow={konto.adminRow} />;
 
   const { supabase, adminRow } = konto;
   const arAgare = Boolean(adminRow.ar_agare);
