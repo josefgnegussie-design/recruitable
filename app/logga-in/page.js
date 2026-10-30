@@ -17,6 +17,9 @@ export default async function LoggaInPage({ searchParams }) {
   const params = await searchParams;
   const fel = Object.hasOwn(FELMEDDELANDEN, params.fel) ? FELMEDDELANDEN[params.fel] : null;
   const next = sakerSokvag(typeof params.next === "string" ? params.next : null);
+  // ?kod=1 öppnar kodinloggningen direkt. Inbjudan skickar hit den kollega som
+  // valde att inte sätta något lösenord.
+  const startlage = params.kod === "1" ? "kod" : "losenord";
 
   return (
     <div id="view-logga-in">
@@ -32,7 +35,7 @@ export default async function LoggaInPage({ searchParams }) {
             {fel}
           </p>
         )}
-        <LoginForm next={next} />
+        <LoginForm next={next} startlage={startlage} />
         <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--color-hairline)" }}>
           <h2 style={{ fontSize: 17, margin: "0 0 8px" }}>Kan vårt bolag bli listat i registret?</h2>
           <p style={{ fontSize: 14, color: "var(--color-muted)", margin: 0 }}>
