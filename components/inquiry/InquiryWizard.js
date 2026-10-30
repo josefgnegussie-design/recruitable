@@ -8,6 +8,7 @@ import Stepper from "@/components/wizard/Stepper";
 import SelectableCompanyCard from "./SelectableCompanyCard";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
 import SkrappostPaminnelse from "@/components/SkrappostPaminnelse";
+import { arGratisadress } from "@/lib/gratisadresser";
 
 function domainOf(url) {
   try {
@@ -16,6 +17,54 @@ function domainOf(url) {
   } catch {
     return null;
   }
+}
+
+const EPOST_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function domanUrEpost(epost) {
+  return String(epost || "").split("@")[1]?.trim().toLowerCase() || "";
+}
+
+// Det som står i e-postfältet, granskat när fältet lämnas. Samma regler som
+// när man trycker Skicka, men med ett besked som säger vad som är fel.
+function epostFel(epost) {
+  const adress = String(epost || "").trim();
+  if (!adress) return "";
+  if (!EPOST_RE.test(adress)) return "Det ser inte ut som en e-postadress.";
+  const doman = domanUrEpost(adress);
+  if (arGratisadress(doman)) {
+    return `Använd din jobbadress på företagets egen domän. Bolagen ser att förfrågan är äkta genom att adressen och er webbplats har samma domän, och det går inte att visa med en ${doman}-adress.`;
+  }
+  return "";
+}
+
+function webbplatsFel(webbplats, epost) {
+  const epostDoman = domanUrEpost(epost);
+  const webbDoman = domainOf(String(webbplats || "").trim());
+  if (!webbplats.trim() || !epostDoman || epostFel(epost)) return "";
+  if (!webbDoman || webbDoman !== epostDoman) {
+    return `Webbplatsen måste ha samma domän som din e-post (${epostDoman}).`;
+  }
+  return "";
+}
+
+// Det företagsuppslaget söker på: domänen utan toppdomän, "nordic-staffing.se"
+// blir "nordic staffing". Ett namn ur registret är bara ett förslag, så en
+// gissning som slår fel kostar en rättning, inte en felaktig förfrågan.
+function sokordUrDoman(doman) {
+  const delar = String(doman || "").split(".");
+  return (delar.length > 1 ? delar.slice(0, -1).join(" ") : delar[0]).replace(/[-_]/g, " ").trim();
+}
+
+// Domäner skrivs utan å, ä och ö, så "Företaget AB" ska känna igen sig i
+// "foretag.se".
+function forenkla(text) {
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\b(ab|aktiebolag|hb|kb|publ)\b/g, "")
+    .replace(/[^\p{L}\p{N}]/gu, "");
 }
 
 // Filtret följer med tillbaka till /rekrytera, så att den som vill ändra ort eller
@@ -28,6 +77,17 @@ function filterHref(filters) {
   if (filters.ort) params.set("ort", filters.ort);
   const query = params.toString();
   return query ? `/rekrytera?${query}` : "/rekrytera";
+}
+
+// Listan kommer rangordnad efter relevans. Att förvälja alla träffar, upp till
+// hundra, gjorde det enklare att skicka till för många än till rätt bolag.
+const FORVALDA = 10;
+// Över så här många valda bolag påminner formuläret om att förfrågan blir
+// bredare än den behöver vara. "Välj alla" går fortfarande.
+const VARNA_OVER = 15;
+
+function forval(results) {
+  return new Set(results.slice(0, FORVALDA).map((c) => c.id));
 }
 
 function serializeDraft(draft) {
@@ -61,7 +121,7 @@ export default function InquiryWizard({ filters, results, totalt }) {
     "forfragan",
     {
       step: 1,
-      selected: new Set(results.map((c) => c.id)),
+      selected: forval(results),
       filterSignature,
       name: "",
       email: "",
@@ -80,7 +140,7 @@ export default function InquiryWizard({ filters, results, totalt }) {
     if (!restored || appliedSignature.current) return;
     appliedSignature.current = true;
     if (draft.filterSignature !== filterSignature) {
-      patch({ selected: new Set(results.map((c) => c.id)), filterSignature, step: 1 });
+      patch({ selected: forval(results), filterSignature, step: 1 });
     }
   }, [restored, draft.filterSignature, filterSignature, results, patch]);
 
@@ -91,6 +151,9 @@ export default function InquiryWizard({ filters, results, totalt }) {
   // Kvittosteget ligger utanför utkastet: en skickad förfrågan ska inte kunna
   // återuppstå som ett halvfyllt formulär nästa gång sidan öppnas.
   const [sent, setSent] = useState(false);
+  // Uppföljningssidan för just den här förfrågan. Samma länk som i
+  // bekräftelsemejlet; null om servern inte kunde skapa någon.
+  const [uppfoljning, setUppfoljning] = useState(null);
   const handleTurnstileVerify = useCallback((token) => setTurnstileToken(token), []);
 
   function toggleCompany(id) {
@@ -124,9 +187,98 @@ export default function InquiryWizard({ filters, results, totalt }) {
     patch({ step: 1 });
   }
 
+  // Fel per fält, visade när fältet lämnas. Formuläret kontrollerar samma sak
+  // igen vid Skicka, och servern en gång till.
+  const [faltfel, setFaltfel] = useState({ email: "", website: "" });
+  // Företag i registret som kan vara avsändarens, från uppslaget på domänen.
+  const [forslag, setForslag] = useState([]);
+  // Värden formuläret självt fyllt i. Bara de skrivs över när e-posten ändras,
+  // aldrig något besökaren skrivit själv.
+  const autofyllt = useRef({ website: "", company: "", city: "" });
+  const senastUppslag = useRef("");
+
+  function fyllOmTomt(falt, varde, nuvarande) {
+    const tomt = !nuvarande.trim() || nuvarande === autofyllt.current[falt];
+    if (!tomt || !varde) return {};
+    autofyllt.current[falt] = varde;
+    return { [falt]: varde };
+  }
+
+  async function slaUppForetag(doman) {
+    if (senastUppslag.current === doman) return;
+    senastUppslag.current = doman;
+    setForslag([]);
+
+    const sokord = sokordUrDoman(doman);
+    if (sokord.length < 2) return;
+
+    try {
+      const res = await fetch(`/api/foretag/sok?q=${encodeURIComponent(sokord)}`);
+      if (!res.ok) return;
+      const { traffar = [] } = await res.json();
+      // Svaret kan komma efter att e-posten bytts igen.
+      if (senastUppslag.current !== doman) return;
+
+      const lista = traffar.slice(0, 3);
+      setForslag(lista);
+
+      // Fyll bara i av sig själv när namnet tydligt hör ihop med domänen:
+      // samma ord, med högst ett par bokstäver till eller från ("foretag" och
+      // "Företaget AB"). "Företagshuset i Norr" ligger kvar som förslag att
+      // klicka på, liksom allt annat uppslaget hittar.
+      const nyckel = forenkla(sokord);
+      const sakert = lista.find((t) => {
+        const namn = forenkla(t.namn);
+        if (!namn || !nyckel || Math.abs(namn.length - nyckel.length) > 3) return false;
+        return namn.startsWith(nyckel) || nyckel.startsWith(namn);
+      });
+      if (sakert) valjForslag(sakert, { barTomma: true });
+    } catch {
+      // Uppslaget är en genväg. Fälten går alltid att fylla i för hand.
+    }
+  }
+
+  function valjForslag(traff, { barTomma = false } = {}) {
+    setDraft((prev) => {
+      if (!barTomma) {
+        autofyllt.current.company = traff.namn;
+        if (traff.postort) autofyllt.current.city = traff.postort;
+        return { ...prev, company: traff.namn, city: traff.postort || prev.city };
+      }
+      return {
+        ...prev,
+        ...fyllOmTomt("company", traff.namn, prev.company),
+        ...fyllOmTomt("city", traff.postort, prev.city),
+      };
+    });
+  }
+
+  function lamnaEpost() {
+    const fel = epostFel(draft.email);
+    const doman = domanUrEpost(draft.email);
+    if (fel || !doman) {
+      setFaltfel((f) => ({ ...f, email: fel }));
+      return;
+    }
+    const andring = fyllOmTomt("website", doman, draft.website);
+    patch(andring);
+    setFaltfel({ email: "", website: webbplatsFel(andring.website ?? draft.website, draft.email) });
+    slaUppForetag(doman);
+  }
+
+  function lamnaWebbplats() {
+    setFaltfel((f) => ({ ...f, website: webbplatsFel(draft.website, draft.email) }));
+  }
+
   function openConfirm(e) {
     e.preventDefault();
     setError("");
+
+    const felEpost = epostFel(draft.email);
+    if (felEpost) {
+      setFaltfel((f) => ({ ...f, email: felEpost }));
+      return;
+    }
 
     const websiteDomain = domainOf(draft.website.trim());
     const emailDomain = draft.email.split("@")[1]?.toLowerCase();
@@ -170,6 +322,8 @@ export default function InquiryWizard({ filters, results, totalt }) {
       return;
     }
 
+    const svar = await res.json().catch(() => ({}));
+    setUppfoljning(typeof svar.uppfoljning === "string" ? svar.uppfoljning : null);
     setStatus("success");
     setShowConfirm(false);
     // Förfrågan är skickad — utkastet ska inte ligga kvar till nästa gång.
@@ -209,8 +363,10 @@ export default function InquiryWizard({ filters, results, totalt }) {
                 <p className="hero-sub">
                   Visar {results.length}
                   {totalt > results.length ? ` av ${totalt}` : ""} bolag för{" "}
-                  {filters.omrade || "alla yrkesområden"} · {filters.ort || "alla orter"}. Bocka ur de ni
-                  inte vill skicka förfrågan till.
+                  {filters.omrade || "alla yrkesområden"} · {filters.ort || "alla orter"}.{" "}
+                  {results.length > FORVALDA
+                    ? `De ${FORVALDA} mest relevanta är förvalda. Lägg till eller bocka ur efter behov.`
+                    : "Bocka ur de ni inte vill skicka förfrågan till."}
                   {totalt > results.length && " Snäva in filtret om ni vill se fler."}
                 </p>
               )}
@@ -229,6 +385,11 @@ export default function InquiryWizard({ filters, results, totalt }) {
                 )}
               </div>
             </div>
+            {selected.size > VARNA_OVER && (
+              <p className="urvalsvarning" role="status">
+                {`Ni har valt ${selected.size} bolag. Med fler än ${VARNA_OVER} blir det ofta fler samtal att hantera än svar att välja bland. Bocka gärna ur de minst relevanta.`}
+              </p>
+            )}
             {results.length === 0 ? (
               <p>Inga bolag matchar filtret. <Link href={filterHref(filters)}>Justera filtret</Link>.</p>
             ) : (
@@ -253,30 +414,95 @@ export default function InquiryWizard({ filters, results, totalt }) {
           <div className="eyebrow">Steg 2 av 3</div>
           <h1 className="hero-title" style={{ fontSize: 32 }}>Verifiera <em>dig själv</em></h1>
           <p className="hero-sub">
-            Din e-postadress måste matcha er webbplats, så bolagen vet att förfrågan är äkta.
+            Börja med din jobbadress. Den måste ha samma domän som er webbplats, så att bolagen vet att förfrågan är
+            äkta, och vi fyller i det vi kan utifrån den.
           </p>
           <form className="auth-panel" onSubmit={openConfirm} style={{ marginTop: 24 }}>
             <div className="field">
-              <label htmlFor="inq-name">Namn</label>
-              <input id="inq-name" value={draft.name} onChange={(e) => patch({ name: e.target.value })} required />
-            </div>
-            <div className="field">
-              <label htmlFor="inq-company">Företag</label>
-              <input id="inq-company" value={draft.company} onChange={(e) => patch({ company: e.target.value })} required />
-            </div>
-            <div className="field">
-              <label htmlFor="inq-role">Din roll</label>
-              <input id="inq-role" value={draft.role} onChange={(e) => patch({ role: e.target.value })} required />
-            </div>
-            <div className="field">
-              <label htmlFor="inq-email">E-post</label>
+              <label htmlFor="inq-email">E-post (jobb)</label>
               <input
                 id="inq-email"
                 type="email"
                 value={draft.email}
-                onChange={(e) => patch({ email: e.target.value })}
+                onChange={(e) => {
+                  patch({ email: e.target.value });
+                  if (faltfel.email) setFaltfel((f) => ({ ...f, email: "" }));
+                }}
+                onBlur={lamnaEpost}
+                placeholder="anna@foretag.se"
+                autoComplete="email"
+                aria-invalid={Boolean(faltfel.email)}
+                aria-describedby={faltfel.email ? "inq-email-fel" : undefined}
                 required
               />
+              {faltfel.email && <p id="inq-email-fel" className="field-error">{faltfel.email}</p>}
+            </div>
+            <div className="field">
+              <label htmlFor="inq-website">Webbplats (företag)</label>
+              <input
+                id="inq-website"
+                value={draft.website}
+                onChange={(e) => {
+                  patch({ website: e.target.value });
+                  if (faltfel.website) setFaltfel((f) => ({ ...f, website: "" }));
+                }}
+                onBlur={lamnaWebbplats}
+                placeholder="foretag.se"
+                aria-invalid={Boolean(faltfel.website)}
+                aria-describedby={faltfel.website ? "inq-website-fel" : undefined}
+                required
+              />
+              {faltfel.website ? (
+                <p id="inq-website-fel" className="field-error">{faltfel.website}</p>
+              ) : (
+                <p style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 6 }}>
+                  Fylls i från din e-post. Ändra om webbplatsen har en annan adress med samma domän.
+                </p>
+              )}
+            </div>
+            <div className="field">
+              <label htmlFor="inq-company">Företag</label>
+              <input id="inq-company" value={draft.company} onChange={(e) => patch({ company: e.target.value })} required />
+              {forslag.length > 0 && (
+                <div className="foretagsforslag">
+                  <span>Förslag från registret:</span>
+                  {forslag.map((t) => (
+                    <button
+                      type="button"
+                      key={t.orgnr}
+                      className={`chip${draft.company === t.namn ? " on" : ""}`}
+                      onClick={() => valjForslag(t)}
+                    >
+                      {t.namn}
+                      {t.postort ? `, ${t.postort}` : ""}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="field">
+              <label htmlFor="inq-city">Ort</label>
+              <input
+                id="inq-city"
+                list="inq-city-list"
+                value={draft.city}
+                onChange={(e) => patch({ city: e.target.value })}
+                autoComplete="off"
+                required
+              />
+              <datalist id="inq-city-list">
+                {cities.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
+            <div className="field">
+              <label htmlFor="inq-name">Namn</label>
+              <input id="inq-name" value={draft.name} onChange={(e) => patch({ name: e.target.value })} autoComplete="name" required />
+            </div>
+            <div className="field">
+              <label htmlFor="inq-role">Din roll</label>
+              <input id="inq-role" value={draft.role} onChange={(e) => patch({ role: e.target.value })} required />
             </div>
             <div className="field">
               <label className="checkbox-row" htmlFor="inq-wants-call">
@@ -298,35 +524,6 @@ export default function InquiryWizard({ filters, results, totalt }) {
                   style={{ marginTop: 10 }}
                 />
               )}
-            </div>
-            <div className="field">
-              <label htmlFor="inq-city">Ort</label>
-              <input
-                id="inq-city"
-                list="inq-city-list"
-                value={draft.city}
-                onChange={(e) => patch({ city: e.target.value })}
-                autoComplete="off"
-                required
-              />
-              <datalist id="inq-city-list">
-                {cities.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-            </div>
-            <div className="field">
-              <label htmlFor="inq-website">Webbplats (företag)</label>
-              <input
-                id="inq-website"
-                value={draft.website}
-                onChange={(e) => patch({ website: e.target.value })}
-                placeholder="www.erabolag.se"
-                required
-              />
-              <p style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 6 }}>
-                Måste matcha samma domän som din e-postadress.
-              </p>
             </div>
             <Turnstile onVerify={handleTurnstileVerify} />
 
@@ -387,9 +584,18 @@ export default function InquiryWizard({ filters, results, totalt }) {
             <p>
               {`Er förfrågan skickades till granskning hos Recruitable. Så snart den är godkänd ser de ${selected.size} valda bolagen den under sina Mina sidor och kan höra av sig direkt till dig på ${draft.email}.`}
             </p>
-            <Link className="qs-btn" href="/" style={{ display: "inline-block", textDecoration: "none" }}>
-              Till startsidan
-            </Link>
+            {uppfoljning ? (
+              <>
+                <p>Följ förfrågan på en egen sida: där ser du vilka bolag som är intresserade, har tackat nej eller inte svarat än. Länken finns också i bekräftelsemejlet.</p>
+                <Link className="qs-btn" href={uppfoljning} style={{ display: "inline-block", textDecoration: "none" }}>
+                  Följ förfrågan
+                </Link>
+              </>
+            ) : (
+              <Link className="qs-btn" href="/" style={{ display: "inline-block", textDecoration: "none" }}>
+                Till startsidan
+              </Link>
+            )}
           </div>
           <SkrappostPaminnelse adress={draft.email} />
         </div>
