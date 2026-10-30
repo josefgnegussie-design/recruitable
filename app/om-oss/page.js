@@ -136,14 +136,6 @@ export default function OmOssPage() {
         </div>
       </section>
 
-      <footer className="site-footer">
-        <div className="footer-inner">
-          <div>RECRUITABLE — BEMANNING &amp; REKRYTERING</div>
-          <Link href="/integritetspolicy">Integritetspolicy</Link>
-          <Link href="/kontakt">Kontakt</Link>
-          <div>Data kontrollerad augusti 2026 · Prototyp</div>
-        </div>
-      </footer>
     </div>
   );
 }
