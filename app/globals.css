@@ -568,7 +568,7 @@ a:hover{color:var(--color-accent)}
      bredd hade kartan blivit högre än skärmen. */
   .registerkarta{margin:0;display:flex;flex-direction:column;align-items:center;gap:20px;}
   .registerkarta svg{display:block;width:100%;max-width:300px;height:auto;max-height:520px;}
-  .karta-bolag{fill:var(--color-accent);fill-opacity:0.78;stroke:var(--color-canvas);stroke-width:0.6;}
+  .karta-bolag{fill:var(--color-accent);}
   .registerkarta figcaption{display:flex;align-items:baseline;gap:10px;max-width:300px;font-size:14px;line-height:1.45;color:var(--color-muted);}
   .registerkarta-tal{font-family:var(--font-display);font-size:30px;font-weight:600;color:var(--color-ink);letter-spacing:-0.01em;flex-shrink:0;}
 

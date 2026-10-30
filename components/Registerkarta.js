@@ -13,11 +13,18 @@ import { BREDD, HOJD, MARGINAL, landPath, x, y } from "@/components/Sverigekarta
 const LAT_STEG = 0.15;
 const LNG_STEG = 0.3;
 
-// Logaritmisk storlek: Stockholm har hundratals bolag, de flesta orter ett
-// eller två. Linjärt hade Stockholm täckt halva Svealand och resten blivit
-// osynligt.
+// Rutorna ligger knappt tre bildpunkter isär, så en prick får inte växa
+// mycket innan den täcker grannarna. Med hela registret (runt 400 rutor med
+// bolag) blev södra Sverige en enda orange fläck när storstäderna fick radie 9.
+// Nu växer prickarna bara lite och antalet syns i stället i hur mättad färgen
+// är: en ensam byrå är blek, Stockholm är full orange. Logaritmiskt, eftersom
+// Stockholm har hundratals bolag och de flesta orter ett eller två.
 function radie(antal) {
-  return Math.min(9, 1.7 + 1.25 * Math.log2(antal));
+  return Math.min(2.1, 1.2 + 0.2 * Math.log2(antal));
+}
+
+function tathet(antal) {
+  return Math.min(1, 0.5 + 0.1 * Math.log2(antal));
 }
 
 export default function Registerkarta({ punkter = [], antalBolag }) {
@@ -51,6 +58,7 @@ export default function Registerkarta({ punkter = [], antalBolag }) {
             cx={x(p.lng).toFixed(1)}
             cy={y(p.lat).toFixed(1)}
             r={radie(p.antal).toFixed(2)}
+            fillOpacity={tathet(p.antal).toFixed(2)}
           />
         ))}
       </svg>
