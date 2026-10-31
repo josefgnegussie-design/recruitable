@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { INDUSTRY_NEWS } from "@/lib/industryNews";
+import { hamtaSenasteNyheter } from "@/lib/branschnyheterRepo";
 import { hamtaKoordinater, hamtaUrval, raknaBolag } from "@/lib/companiesRepo";
 import NearbyCompanies from "@/components/NearbyCompanies";
 import PreviewCompanies from "@/components/PreviewCompanies";
@@ -33,7 +33,12 @@ const STEG = [
 ];
 
 export default async function LandingPage() {
-  const [urval, punkter, antalBolag] = await Promise.all([hamtaUrval(3), hamtaKoordinater(), raknaBolag()]);
+  const [urval, punkter, antalBolag, nyheter] = await Promise.all([
+    hamtaUrval(3),
+    hamtaKoordinater(),
+    raknaBolag(),
+    hamtaSenasteNyheter(),
+  ]);
 
   return (
     <div id="view-landing">
@@ -103,7 +108,7 @@ export default async function LandingPage() {
       <section className="l-section">
         <h2>Från branschen</h2>
         <div className="news-list">
-          {INDUSTRY_NEWS.map((n) => (
+          {nyheter.map((n) => (
             <a className="news-item" href={n.url} target="_blank" rel="noopener noreferrer" key={n.url}>
               <div className="news-meta">{n.source} · {n.date}</div>
               <div className="news-title">{n.title}</div>
