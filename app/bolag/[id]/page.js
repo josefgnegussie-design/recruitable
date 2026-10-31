@@ -152,7 +152,7 @@ export default async function ProfilePage({ params }) {
             <strong>Den här profilen är sammanställd ur offentliga register.</strong> Uppgifterna kommer
             från Bolagsverket och årsredovisningar. Bolaget har inte själv fyllt i något här.
           </p>
-          <Link className="qs-btn" href="/for-bolag/registrera">
+          <Link className="qs-btn" href={`/for-bolag/registrera?bolag=${c.slug}`}>
             Är detta ert bolag? Ta över profilen
           </Link>
         </div>

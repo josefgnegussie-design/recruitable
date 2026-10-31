@@ -5,8 +5,10 @@ import { useState } from "react";
 // Granskningskön för kontoansökningar. Matchar ansökans org.nummer mot registret
 // så att det vanliga fallet blir ett klick — bolaget finns oftast redan bland de
 // importerade. Saknas det går det att söka fram, eller skapa bolaget ur ansökan.
-export default function KontoansokanKo({ ansokningar }) {
+export default function KontoansokanKo({ ansokningar, automatiska: initialaAutomatiska = [], vantande = [] }) {
   const [kvar, setKvar] = useState(ansokningar);
+  const [automatiska, setAutomatiska] = useState(initialaAutomatiska);
+  const [anledning, setAnledning] = useState("");
   const [arbetar, setArbetar] = useState(null);
   const [fel, setFel] = useState("");
 
@@ -43,6 +45,7 @@ export default function KontoansokanKo({ ansokningar }) {
 
   async function oppnaBekraftelse(ansokan, beslut, bolag) {
     setBekraftar({ ansokan, beslut, bolag: bolag ?? null });
+    setAnledning("");
     setLiknande(null);
     setFel("");
 
@@ -73,7 +76,7 @@ export default function KontoansokanKo({ ansokningar }) {
     const res = await fetch("/api/admin/kontoansokan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ansokanId: ansokan.id, beslut, companyId: bolag?.id ?? null }),
+      body: JSON.stringify({ ansokanId: ansokan.id, beslut, companyId: bolag?.id ?? null, anledning }),
     });
 
     setArbetar(null);
@@ -87,15 +90,18 @@ export default function KontoansokanKo({ ansokningar }) {
 
     setBekraftar(null);
     setKvar((prev) => prev.filter((a) => a.id !== ansokan.id));
-  }
-
-  if (!kvar.length) {
-    return <div className="auth-panel"><p style={{ margin: 0 }}>Inga ansökningar väntar på granskning.</p></div>;
+    setAutomatiska((prev) => prev.filter((a) => a.id !== ansokan.id));
   }
 
   return (
     <div>
       {fel && <p style={{ color: "#c0392b", fontSize: 13 }}>{fel}</p>}
+
+      {!kvar.length && (
+        <div className="auth-panel" style={{ marginBottom: 18 }}>
+          <p style={{ margin: 0 }}>Inga ansökningar väntar på granskning.</p>
+        </div>
+      )}
 
       {kvar.map((a) => (
         <div className="auth-panel" key={a.id} style={{ marginBottom: 18 }}>
@@ -112,6 +118,7 @@ export default function KontoansokanKo({ ansokningar }) {
           <div className="side-fact">
             <span className="k">Ansökt av</span>
             <span className="v">
+              {a.full_name ? `${a.full_name}, ` : ""}
               {a.epost || <em style={{ color: "var(--color-error)" }}>kontot hittades inte</em>}
               {a.epost && !a.epostBekraftad && (
                 <span className="ansokan-flagga varning">adressen inte bekräftad</span>
@@ -119,9 +126,9 @@ export default function KontoansokanKo({ ansokningar }) {
             </span>
           </div>
           <div className="side-fact">
-            <span className="k">Webbplats</span>
+            <span className="k">{a.registretsWebbplats ? "Webbplats i registret" : "Uppgiven webbplats"}</span>
             <span className="v">
-              {a.claimed_website}
+              {a.registretsWebbplats || a.claimed_website || "saknas"}
               <span className={`ansokan-flagga ${a.domanMatchar ? "ok" : "varning"}`}>
                 {a.domanMatchar ? "domänen matchar mejladressen" : "domänen matchar INTE mejladressen"}
               </span>
@@ -225,6 +232,58 @@ export default function KontoansokanKo({ ansokningar }) {
         </div>
       ))}
 
+      <div className="auth-panel" style={{ marginTop: 28 }}>
+        <div className="filter-title">Automatiska övertaganden</div>
+        {automatiska.length === 0 ? (
+          <p className="note">Inga än.</p>
+        ) : (
+          <ul className="admin-lista">
+            {automatiska.map((a) => (
+              <li key={a.id}>
+                <span className="admin-epost">
+                  {a.companies?.name}: {a.full_name ? `${a.full_name}, ` : ""}
+                  {a.epost || "okänd adress"}
+                  {a.godkand_at ? ` · ${new Date(a.godkand_at).toLocaleDateString("sv-SE")}` : ""}
+                </span>
+                <span className="admin-knappar">
+                  <button
+                    type="button"
+                    className="kontor-ta-bort"
+                    disabled={arbetar !== null}
+                    onClick={() =>
+                      oppnaBekraftelse(
+                        { id: a.id, epost: a.epost, claimed_company_name: a.companies?.name },
+                        "aterkalla"
+                      )
+                    }
+                  >
+                    Återkalla
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {vantande.length > 0 && (
+          <>
+            <div className="filter-title" style={{ fontSize: 15, margin: "18px 0 8px" }}>
+              Väntar på att bekräfta mejlet
+            </div>
+            <ul className="admin-lista">
+              {vantande.map((v) => (
+                <li key={v.id}>
+                  <span className="admin-epost">
+                    {v.claimed_company_name}
+                    {v.full_name ? `: ${v.full_name}` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+
       {bekraftar && (
         <div
           className="confirm-overlay"
@@ -233,14 +292,34 @@ export default function KontoansokanKo({ ansokningar }) {
           aria-modal="true"
         >
           <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
-            {bekraftar.beslut === "avsla" ? (
+            {bekraftar.beslut === "aterkalla" || bekraftar.beslut === "avsla" ? (
               <>
-                <h3>Avslå ansökan?</h3>
+                <h3>{bekraftar.beslut === "aterkalla" ? "Återkalla övertagandet?" : "Avslå ansökan?"}</h3>
                 <p className="sub">
-                  Ansökan från <strong>{bekraftar.ansokan.epost}</strong> för{" "}
-                  {bekraftar.ansokan.claimed_company_name} tas bort ur kön. Kontot finns kvar men
-                  kommer inte in på Mina sidor, och vill de försöka igen får de ansöka på nytt.
+                  {bekraftar.beslut === "aterkalla" ? (
+                    <>
+                      Alla administratörer för {bekraftar.ansokan.claimed_company_name} tas bort och profilen
+                      kan tas över igen. Det de redan ändrat i profilen står kvar.
+                    </>
+                  ) : (
+                    <>
+                      Ansökan från <strong>{bekraftar.ansokan.epost}</strong> för{" "}
+                      {bekraftar.ansokan.claimed_company_name} tas bort ur kön. Kontot finns kvar, och
+                      personen kan ansöka på nytt.
+                    </>
+                  )}{" "}
+                  Ett mejl med beskedet går ut.
                 </p>
+                <div className="field">
+                  <label htmlFor="ansokan-anledning">Anledning i mejlet (frivilligt)</label>
+                  <textarea
+                    id="ansokan-anledning"
+                    rows={3}
+                    maxLength={500}
+                    value={anledning}
+                    onChange={(e) => setAnledning(e.target.value)}
+                  />
+                </div>
               </>
             ) : bekraftar.bolag ? (
               <>
@@ -318,7 +397,9 @@ export default function KontoansokanKo({ ansokningar }) {
                   ? "Arbetar..."
                   : bekraftar.beslut === "avsla"
                     ? "Bekräfta avslag"
-                    : bekraftar.bolag
+                    : bekraftar.beslut === "aterkalla"
+                      ? "Bekräfta återkallelse"
+                      : bekraftar.bolag
                       ? "Bekräfta koppling"
                       : "Bekräfta och skapa"}
               </button>

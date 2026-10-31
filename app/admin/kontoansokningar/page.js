@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformAdmin } from "@/lib/platformAdmin";
 import KontoansokanKo from "@/components/admin/KontoansokanKo";
+import { domanMatchar } from "@/lib/overtagande";
 
 export const dynamic = "force-dynamic";
 
@@ -22,28 +23,63 @@ export default async function KontoansokningarPage() {
 
   const { data: ansokningar } = await admin
     .from("company_admins")
-    .select("id, created_at, user_id, claimed_company_name, claimed_org_number, claimed_address, claimed_website, claimed_focus_areas, claimed_services")
+    .select("id, created_at, user_id, full_name, claimed_company_id, claimed_company_name, claimed_org_number, claimed_address, claimed_website, claimed_focus_areas, claimed_services")
     .eq("verified", false)
+    .eq("auto_godkann", false)
     .is("company_id", null)
     .order("created_at", { ascending: true });
 
-  // Ansökans org.nummer matchas mot registret, så att den vanliga vägen blir ett
-  // klick: bolaget finns oftast redan bland de dryga tretusen importerade.
+  // Går igenom utan granskning, men ska synas: det som väntar på att någon
+  // bekräftar sitt mejl, och det som nyligen aktiverats och kan behöva ångras.
+  const { data: vantande } = await admin
+    .from("company_admins")
+    .select("id, created_at, full_name, claimed_company_name")
+    .eq("verified", false)
+    .eq("auto_godkann", true)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const { data: automatiskaRader } = await admin
+    .from("company_admins")
+    .select("id, user_id, godkand_at, full_name, companies(name, slug)")
+    .eq("godkand_av", "automatiskt")
+    .order("godkand_at", { ascending: false })
+    .limit(20);
+
+  const automatiska = await Promise.all(
+    (automatiskaRader ?? []).map(async (r) => {
+      const { data } = await admin.auth.admin.getUserById(r.user_id);
+      return { ...r, epost: data?.user?.email ?? null };
+    })
+  );
+
+  // Ansökans bolag är känt när det valdes ur registret. Annars matchas
+  // org.numret, så att den vanliga vägen blir ett klick: bolaget finns oftast
+  // redan bland de dryga tretusen importerade.
   const orgnummer = (ansokningar ?? [])
     .map((a) => (a.claimed_org_number || "").replace(/\D/g, ""))
     .filter((n) => n.length === 10)
     .map((n) => `${n.slice(0, 6)}-${n.slice(6)}`);
+  const bolagsIdn = (ansokningar ?? []).map((a) => a.claimed_company_id).filter(Boolean);
 
   let traffar = [];
   if (orgnummer.length) {
     const { data } = await admin
       .from("companies")
-      .select("id, name, org_number, city")
+      .select("id, name, org_number, city, link, claimed")
       .in("org_number", orgnummer);
     traffar = data ?? [];
   }
+  if (bolagsIdn.length) {
+    const { data } = await admin
+      .from("companies")
+      .select("id, name, org_number, city, link, claimed")
+      .in("id", bolagsIdn);
+    traffar = [...traffar, ...(data ?? [])];
+  }
 
   const perOrgnr = Object.fromEntries(traffar.map((b) => [b.org_number, b]));
+  const perId = Object.fromEntries(traffar.map((b) => [b.id, b]));
 
   // Vem som ansökt. Mejladressen bor i auth.users och inte i company_admins, så
   // kön visade tidigare bara bolagsuppgifterna — granskaren kunde godkänna att
@@ -63,22 +99,18 @@ export default async function KontoansokningarPage() {
     const konto = perAnsokan[a.id];
     const epost = konto?.email ?? null;
 
-    // Registreringen kräver att mejldomänen matchar den uppgivna webbplatsen.
-    // Kontrollen görs om här och visas, så att granskaren ser grunden för
-    // beslutet i stället för att lita på att den gjordes vid registreringen.
-    const webbdoman = (a.claimed_website || "")
-      .replace(/^https?:\/\//i, "")
-      .replace(/^www\./i, "")
-      .split("/")[0]
-      .toLowerCase();
-    const epostdoman = (epost || "").split("@")[1]?.toLowerCase() || null;
+    const foreslaget = perId[a.claimed_company_id] ?? (nyckel ? perOrgnr[nyckel] ?? null : null);
 
+    // Mot webbplatsen i registret, inte den sökande själv uppgett: en uppgift
+    // från den som ansöker bevisar ingenting. Saknas bolaget i registret finns
+    // bara den uppgivna adressen att jämföra med, vilket kön talar om.
     return {
       ...a,
-      foreslaget: nyckel ? perOrgnr[nyckel] ?? null : null,
+      foreslaget,
       epost,
       epostBekraftad: Boolean(konto?.email_confirmed_at),
-      domanMatchar: Boolean(epostdoman && webbdoman && epostdoman === webbdoman),
+      registretsWebbplats: foreslaget?.link ?? null,
+      domanMatchar: domanMatchar(epost, foreslaget?.link ?? a.claimed_website),
     };
   });
 
@@ -87,10 +119,10 @@ export default async function KontoansokningarPage() {
       <div className="eyebrow">Intern granskning</div>
       <h1 className="hero-title" style={{ fontSize: 34, marginBottom: 8 }}>Kontoansökningar</h1>
       <p className="hero-sub" style={{ marginBottom: 28 }}>
-        Bolag som ansökt om att ta över sin profil. Ett godkännande kopplar dem till rätt bolag i
-        registret och släpper in dem på Mina sidor.
+        Den som har en adress på bolagets domän blir administratör direkt och syns under Automatiska
+        övertaganden. Hit kommer bara de ansökningar som behöver en människa.
       </p>
-      <KontoansokanKo ansokningar={berikade} />
+      <KontoansokanKo ansokningar={berikade} automatiska={automatiska} vantande={vantande ?? []} />
     </div>
   );
 }

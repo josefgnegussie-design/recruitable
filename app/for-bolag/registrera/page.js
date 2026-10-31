@@ -1,28 +1,33 @@
 import RegisterForm from "@/components/admin/RegisterForm";
 import { hamtaBolagMedSlug } from "@/lib/companiesRepo";
+import { bolagsdoman, hinderForOvertagande } from "@/lib/overtagande";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-// ?bolag=<slug> kommer från inbjudningssidan /valkommen/[slug]. Uppgifterna
-// fylls i åt bolaget, och — viktigare — organisationsnumret följer med. Det är
-// det granskningskön matchar på, så en inbjuden ansökan kopplas automatiskt
-// till rätt rad i registret i stället för att granskaren får söka fram den.
+// ?bolag=<slug> kommer från inbjudningssidan /valkommen/[slug] och från
+// profilsidans "Ta över profilen". Då är bolaget redan känt och formuläret kan
+// hoppa direkt till kontot.
 export default async function RegistreraPage({ searchParams }) {
   const params = await searchParams;
   const slug = typeof params?.bolag === "string" ? params.bolag : null;
   const bolag = slug ? await hamtaBolagMedSlug(slug) : null;
 
-  // Ett redan övertaget eller upphört bolag förifylls inte: den vägen leder
-  // bara till en ansökan som blir avslagen.
-  const inbjudet = bolag && !bolag.claimed && !bolag.retiredAt ? bolag : null;
-
-  const forifyllt = inbjudet
-    ? {
-        companyName: inbjudet.name,
-        orgNumber: inbjudet.orgNumber || "",
-        website: inbjudet.link || "",
-      }
+  const hinder = bolag
+    ? hinderForOvertagande({ claimed: bolag.claimed, upphort: Boolean(bolag.retiredAt) })
     : null;
+
+  const forifyllt =
+    bolag && !hinder
+      ? { slug: bolag.slug, namn: bolag.name, doman: bolagsdoman(bolag.link) }
+      : null;
+
+  // Inloggad utan bolag, till exempel efter ett avslag. Kontot finns redan, så
+  // formuläret ska inte be om lösenord.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
     <div id="view-registrera">
@@ -32,17 +37,23 @@ export default async function RegistreraPage({ searchParams }) {
       <section className="hero" style={{ gridTemplateColumns: "1fr", maxWidth: 640, margin: "0 auto", paddingBottom: 28 }}>
         <div>
           <div className="eyebrow">För bemannings- och rekryteringsföretag</div>
-          <h1 className="hero-title">{inbjudet ? `Ta över ${inbjudet.name}` : "Registrera företag"}</h1>
+          <h1 className="hero-title">{forifyllt ? `Ta över ${forifyllt.namn}` : "Ta över ert bolag"}</h1>
           <p className="hero-sub">
-            {inbjudet
-              ? "Bolagsuppgifterna är ifyllda åt er. Det som återstår är ett konto med en mejladress på bolagets egen domän. Den måste matcha webbplatsen, det är så vi vet att det är ni."
-              : "Skapa ett konto för att komplettera er profil med mer information om verksamheten. Din mejladress behöver ha samma domän som bolagets registrerade webbplats."}
+            {forifyllt && !forifyllt.doman
+              ? "Skapa ett konto och bekräfta din adress. Bolaget saknar webbplats i registret, så vi kontrollerar ansökan för hand. Sedan kan du fylla i profilen och bjuda in kollegor."
+              : "Skapa ett konto med en mejladress på bolagets egen domän. Bekräfta adressen, så är du bolagets administratör direkt och kan fylla i profilen och bjuda in kollegor."}
           </p>
         </div>
       </section>
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 24px 80px" }}>
         <div style={{ maxWidth: 480 }}>
-          <RegisterForm forifyllt={forifyllt} />
+          {hinder ? (
+            <div className="auth-panel">
+              <p style={{ margin: 0 }}>{hinder.text}</p>
+            </div>
+          ) : (
+            <RegisterForm forifyllt={forifyllt} inloggadEpost={user?.email ?? null} />
+          )}
         </div>
       </div>
     </div>

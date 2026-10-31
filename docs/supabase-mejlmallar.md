@@ -82,7 +82,7 @@ igenom sökvägar på den egna sajten.
     <h2 style="margin:0 0 16px;font-size:20px;">Välkommen till Recruitable</h2>
     <div style="font-size:15px;line-height:1.6;">
       <p style="margin:0 0 16px;">Bekräfta att <b>{{ .Email }}</b> är er adress, så att vi vet att kontot hör till er.</p>
-      <p style="margin:0;">Därefter granskar vi ansökan och hör av oss när kontot är godkänt. Först då går det att logga in och fylla i profilen.</p>
+      <p style="margin:0;">Matchar adressen bolagets webbplats är du bolagets administratör så fort du klickat på knappen. Annars granskar vi ansökan och hör av oss.</p>
     </div>
     <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/mina-sidor"
        style="display:inline-block;background:#d97b3f;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;font-size:14px;margin-top:22px;">Bekräfta e-postadressen</a>

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { efterBekraftelse } from "@/lib/overtagandeServer";
 import { sakerSokvag } from "@/lib/sakerSokvag";
 
 export const runtime = "nodejs";
@@ -38,13 +40,28 @@ export async function GET(request) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+  const { data, error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
 
   if (error) {
     // Loggas utan token — själva felet säger vad som hände, och en förbrukad
     // eller utgången länk är det normala fallet, inte ett driftfel.
     console.error(`Kunde inte lösa in ${type}-länk:`, error.message);
     return NextResponse.redirect(new URL(FELSIDA[type], origin));
+  }
+
+  // Bekräftelsen är det sista beviset: adressen hör till den som registrerade
+  // sig. Ett fel här får inte hindra inloggningen, Mina sidor försöker igen.
+  if (type === "signup" || type === "email") {
+    try {
+      const utfall = await efterBekraftelse(createAdminClient(), data.user);
+      if (utfall === "aktiverad") {
+        // Sessionen utfärdades före stämpeln som styr menyn.
+        await supabase.auth.refreshSession();
+        return NextResponse.redirect(new URL("/mina-sidor?valkommen=1", origin));
+      }
+    } catch (err) {
+      console.error("Kunde inte aktivera konto efter bekräftelse:", err.message);
+    }
   }
 
   const standard = type === "recovery" ? "/aterstall-losenord" : "/mina-sidor";
