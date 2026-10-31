@@ -9,14 +9,28 @@ import { createPublicClient } from "@/lib/supabase/public";
 export default async function MinaSidorStatus({ tillstand, adminRow }) {
   if (tillstand === "granskas") return <UnderGranskning adminRow={adminRow} />;
 
-  const text = {
-    saknas: "Vi hittar ingen bolagskoppling för det här kontot. Kontakta info@recruitable.se.",
-    okopplad: "Ert konto är godkänt men ännu inte kopplat till ett bolag. Kontakta info@recruitable.se.",
-  }[tillstand];
+  // Ett konto utan ansökan: avslaget, eller ansökan som aldrig blev klar. Kontot
+  // finns kvar, så vägen framåt är en ny ansökan och inte ett nytt konto.
+  if (tillstand === "saknas") {
+    return (
+      <div style={{ maxWidth: 640, margin: "60px auto", padding: "0 24px" }}>
+        <p>Kontot är inte kopplat till något bolag.</p>
+        <p>
+          <Link className="qs-btn" href="/for-bolag/registrera" style={{ display: "inline-block", width: "auto", padding: "11px 20px" }}>
+            Ta över ert bolag
+          </Link>
+        </p>
+        <p className="note">
+          Har en kollega redan tagit över bolaget, be hen bjuda in dig under Konto. Frågor? Mejla{" "}
+          <a href="mailto:info@recruitable.se">info@recruitable.se</a>.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 640, margin: "60px auto", padding: "0 24px" }}>
-      <p>{text}</p>
+      <p>Ert konto är godkänt men ännu inte kopplat till ett bolag. Kontakta info@recruitable.se.</p>
     </div>
   );
 }
@@ -55,11 +69,11 @@ async function UnderGranskning({ adminRow }) {
         </h1>
         <p style={{ fontSize: 14.5 }}>
           {inskickad ? `Ansökan kom in ${inskickad}. ` : ""}
-          Vi kontrollerar att e-postadressen hör till bolaget och kopplar kontot till rätt bolagskort. Det tar
-          vanligtvis en till två arbetsdagar.
+          Adressen kunde inte kopplas till bolaget automatiskt, så en person på Recruitable kontrollerar den
+          och kopplar kontot till rätt bolagskort. Det tar vanligtvis en till två arbetsdagar.
         </p>
         <ol className="granskning-steg">
-          <li className="klart">Konto skapat och ansökan inskickad</li>
+          <li className="klart">Konto skapat, adressen bekräftad och ansökan inskickad</li>
           <li className="pagar">Recruitable granskar ansökan</li>
           <li>Ni får ett mejl när kontot är godkänt, och kan sedan fylla i profilen och svara på förfrågningar här</li>
         </ol>

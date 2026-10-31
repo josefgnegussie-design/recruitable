@@ -153,14 +153,14 @@ export default async function ValkommenPage({ params }) {
         <h2 className="admin-h2">Så går det till</h2>
         <ol className="valkommen-steg">
           <li>
-            <strong>Registrera er</strong> med en mejladress på bolagets egen domän. Den måste matcha
+            <strong>Skapa ett konto</strong> med en mejladress på bolagets egen domän. Den måste matcha
             webbplatsen — det är så vi vet att det är ni.
           </li>
           <li>
-            <strong>Vi granskar</strong> ansökan för hand, oftast samma dag.
+            <strong>Bekräfta adressen</strong> via mejlet. Då är du bolagets administratör direkt.
           </li>
           <li>
-            <strong>Ni fyller i profilen</strong> och börjar ta emot förfrågningar.
+            <strong>Fyll i profilen</strong>, bjud in kollegor och börja ta emot förfrågningar.
           </li>
         </ol>
 
@@ -170,8 +170,8 @@ export default async function ValkommenPage({ params }) {
         {c.claimed ? (
           <div className="valkommen-cta">
             <p>
-              <strong>Profilen är redan övertagen.</strong> Någon hos er har registrerat sig — logga in
-              för att fylla i den och se era förfrågningar.
+              <strong>Profilen är redan övertagen.</strong> Någon hos er har registrerat sig. Har du
+              inget konto, be den personen bjuda in dig under Konto på Mina sidor.
             </p>
             <Link className="qs-btn" href="/logga-in">
               Logga in

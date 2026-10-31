@@ -46,7 +46,11 @@ export default function LoginForm({ next, startlage = "losenord" }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      setError("Fel e-post eller lösenord.");
+      setError(
+        error.code === "email_not_confirmed"
+          ? "Adressen är inte bekräftad än. Klicka på länken i mejlet vi skickade när kontot skapades."
+          : "Fel e-post eller lösenord."
+      );
       return;
     }
     vidareEfterInloggning();

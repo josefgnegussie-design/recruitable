@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformAdmin } from "@/lib/platformAdmin";
 import { unikSlug } from "@/lib/slug";
 import { stamplaBolagsadmin } from "@/lib/bolagsadmin";
-import { sendKontoGodkantTillBolag } from "@/lib/email";
+import { sendKontoAvslagetTillBolag, sendKontoGodkantTillBolag } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,12 +36,63 @@ export async function POST(request) {
   }
 
   const { ansokanId, beslut, companyId } = body;
+  const anledning = typeof body.anledning === "string" ? body.anledning.trim().slice(0, 500) : "";
 
-  if (typeof ansokanId !== "string" || !["godkann", "avsla"].includes(beslut)) {
+  if (typeof ansokanId !== "string" || !["godkann", "avsla", "aterkalla"].includes(beslut)) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
   const admin = createAdminClient();
+
+  async function epostFor(userId) {
+    const { data } = await admin.auth.admin.getUserById(userId);
+    return data?.user?.email ?? null;
+  }
+
+  // Ångrar ett automatiskt övertagande. Alla administratörer för bolaget tas
+  // bort, inte bara ägaren: den som tagit över fel bolag kan ha bjudit in andra.
+  if (beslut === "aterkalla") {
+    const { data: rad } = await admin
+      .from("company_admins")
+      .select("company_id, user_id, godkand_av, companies(name)")
+      .eq("id", ansokanId)
+      .maybeSingle();
+
+    if (!rad?.company_id || rad.godkand_av !== "automatiskt") {
+      return NextResponse.json({ error: "Övertagandet hittades inte." }, { status: 404 });
+    }
+
+    const { data: borttagna, error } = await admin
+      .from("company_admins")
+      .delete()
+      .eq("company_id", rad.company_id)
+      .select("user_id");
+
+    if (error) {
+      console.error("Kunde inte återkalla övertagande:", JSON.stringify(error));
+      return NextResponse.json({ error: "Kunde inte återkalla. Försök igen." }, { status: 500 });
+    }
+
+    await admin.from("companies").update({ claimed: false }).eq("id", rad.company_id);
+    await Promise.all(
+      (borttagna ?? []).map(async (b) => {
+        await admin.auth.admin
+          .updateUserById(b.user_id, { user_metadata: { bolagsadmin: false } })
+          .catch((err) => console.error("Kunde inte ta bort stämpeln:", err.message));
+        const to = await epostFor(b.user_id);
+        if (to) {
+          await sendKontoAvslagetTillBolag({
+            to,
+            companyName: rad.companies?.name || "bolaget",
+            anledning,
+            aterkallad: true,
+          }).catch((err) => console.error("Kunde inte skicka besked om återkallelse:", err.message));
+        }
+      })
+    );
+
+    return NextResponse.json({ ok: true, beslut: "återkallad" });
+  }
 
   const { data: ansokan, error: hamtFel } = await admin
     .from("company_admins")
@@ -63,6 +114,14 @@ export async function POST(request) {
       console.error("Kunde inte avslå ansökan:", JSON.stringify(error));
       return NextResponse.json({ error: "Kunde inte avslå. Försök igen." }, { status: 500 });
     }
+
+    const to = await epostFor(ansokan.user_id);
+    if (to) {
+      await sendKontoAvslagetTillBolag({ to, companyName: ansokan.claimed_company_name, anledning }).catch((err) =>
+        console.error("Kunde inte skicka avslagsbesked:", err.message)
+      );
+    }
+
     return NextResponse.json({ ok: true, beslut: "avslagen" });
   }
 
@@ -141,7 +200,13 @@ export async function POST(request) {
 
   const { error: kopplaFel } = await admin
     .from("company_admins")
-    .update({ company_id: bolagId, verified: true, ar_agare: !agare })
+    .update({
+      company_id: bolagId,
+      verified: true,
+      ar_agare: !agare,
+      godkand_at: new Date().toISOString(),
+      godkand_av: user.email,
+    })
     .eq("id", ansokanId);
 
   if (kopplaFel) {

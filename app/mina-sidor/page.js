@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import MinaSidorTabs from "@/components/admin/MinaSidorTabs";
 import MinaSidorStatus from "@/components/admin/MinaSidorStatus";
@@ -29,6 +30,13 @@ export default async function MinaSidorPage({ searchParams }) {
 
   return (
     <MinaSidorTabs {...raknare}>
+      {params?.valkommen === "1" && (
+        <p className="login-notis" role="status" style={{ marginTop: 20 }}>
+          <strong>Välkommen! Du är nu bolagets administratör.</strong> Börja med att{" "}
+          <Link href="/mina-sidor/profil">fylla i profilen</Link>, och{" "}
+          <Link href="/mina-sidor/konto">bjud in kollegor</Link> som också ska kunna svara på förfrågningar.
+        </p>
+      )}
       <MinaSidorOversikt {...oversikt} />
       <InquiriesList inquiries={inquiries} initialHasMore={hasMore} />
     </MinaSidorTabs>
