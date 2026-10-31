@@ -17,6 +17,7 @@
 with forvantade_tabeller(tabell) as (
   values
     ('bolagsinbjudningar'),
+    ('branschnyheter'),
     ('cancellation_feedback'),
     ('companies'),
     ('company_admins'),

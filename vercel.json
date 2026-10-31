@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/nekanden",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/branschnyheter",
+      "schedule": "0 5 * * *"
     }
   ]
 }
