@@ -59,7 +59,7 @@ export default async function LoggPage() {
 
   return (
     <div style={{ maxWidth: 860, margin: "60px auto", padding: "0 24px 80px" }}>
-      <h1 style={{ fontSize: 24, marginBottom: 8 }}>Loggbok</h1>
+      <h1 className="admin-h1" style={{ marginBottom: 8 }}>Loggbok</h1>
       <p style={{ color: "var(--color-muted)", marginBottom: 32 }}>
         Senaste {inquiries.length} förfrågningarna, med granskningsstatus och varje bolags beslut. Källan är samma
         databastabeller som styr vad bolagen faktiskt ser, aldrig ur synk med verkligheten.

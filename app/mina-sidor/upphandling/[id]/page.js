@@ -9,7 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { hamtaForLeverantor } from "@/lib/upphandlingRepo";
 import { idag } from "@/lib/upphandling";
 
-export const metadata = { robots: { index: false, follow: false } };
+export const metadata = { title: "Upphandling — Mina sidor" };
 
 export default async function LeverantorUpphandlingPage({ params }) {
   const { id } = await params;
@@ -30,7 +30,7 @@ export default async function LeverantorUpphandlingPage({ params }) {
       <div className="upp-staplad">
         <Link href="/mina-sidor/upphandling" style={{ fontSize: 13 }}>&larr; Alla upphandlingar</Link>
         <header>
-          <h1 className="upp-rubrik">{u.title}</h1>
+          <h2 className="upp-rubrik">{u.title}</h2>
           <p className="upp-brod">
             {u.kopare_namn || `${u.buyer_description}. Köparens namn visas när ni har anmält intresse.`}
           </p>

@@ -2,6 +2,12 @@ import Link from "next/link";
 import LoginForm from "@/components/admin/LoginForm";
 import { sakerSokvag } from "@/lib/sakerSokvag";
 
+export const metadata = {
+  title: "Logga in",
+  description: "Logga in på ert bolagskonto hos Recruitable.",
+  alternates: { canonical: "/logga-in" },
+};
+
 // Felkoderna som andra sidor skickar hit med ?fel=. Okända värden ignoreras, så
 // att adressen inte kan användas för att visa godtycklig text på sidan.
 const FELMEDDELANDEN = {
@@ -39,7 +45,7 @@ export default async function LoggaInPage({ searchParams }) {
         <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--color-hairline)" }}>
           <h2 style={{ fontSize: 17, margin: "0 0 8px" }}>Kan vårt bolag bli listat i registret?</h2>
           <p style={{ fontSize: 14, color: "var(--color-muted)", margin: 0 }}>
-            Om ni är ett bemannings- och rekryteringsföretag som vill bli en del av registret går det bra att{" "}
+            Om ni är ett bemannings- eller rekryteringsbolag som vill bli en del av registret går det bra att{" "}
             <Link href="/for-bolag/registrera">skapa konto</Link>.
           </p>
         </div>

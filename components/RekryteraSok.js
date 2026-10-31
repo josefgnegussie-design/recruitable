@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { YRKESOMRADEN, FILTER_DEFS } from "@/lib/taxonomy";
 import { allRegionCities } from "@/lib/helpers";
 import CompanyCard from "@/components/CompanyCard";
@@ -15,19 +15,28 @@ function vidKortklick(e) {
   if (lank) markeraFranTraffar(new URL(lank.href).pathname);
 }
 
-function SokContent({ antalBolag, urval }) {
+export default function RekryteraSok({ antalBolag, urval }) {
   // urval kommer färdigblandat från servern — sex bolag, inget mer.
   const router = useRouter();
-  const searchParams = useSearchParams();
+
+  const [beskrivning, setBeskrivning] = useState("");
+  const [omrade, setOmrade] = useState("");
+  const [service, setService] = useState("");
+  const [ort, setOrt] = useState("");
+  const [error, setError] = useState("");
 
   // Samma parametrar som skickas vidare till resultatsidan läses tillbaka här, så
   // att "Tillbaka till filtret" visar det besökaren redan fyllt i istället för ett
-  // tomt formulär.
-  const [beskrivning, setBeskrivning] = useState(() => searchParams.get("beskrivning") || "");
-  const [omrade, setOmrade] = useState(() => searchParams.get("omrade") || "");
-  const [service, setService] = useState(() => searchParams.get("tjanst") || "");
-  const [ort, setOrt] = useState(() => searchParams.get("ort") || "");
-  const [error, setError] = useState("");
+  // tomt formulär. Adressen läses efter första renderingen: useSearchParams hade
+  // krävt en Suspense-gräns, och då hade serverns HTML saknat hela sidan — rubrik
+  // och bolagskort, det sökmotorerna ska läsa.
+  useEffect(() => {
+    const parametrar = new URLSearchParams(window.location.search);
+    setBeskrivning(parametrar.get("beskrivning") || "");
+    setOmrade(parametrar.get("omrade") || "");
+    setService(parametrar.get("tjanst") || "");
+    setOrt(parametrar.get("ort") || "");
+  }, []);
 
   const cities = useMemo(() => allRegionCities(), []);
 
@@ -51,7 +60,7 @@ function SokContent({ antalBolag, urval }) {
       <section className="hero hero-sok">
         <div>
           <div className="eyebrow">Hitta partners · Sverige</div>
-          <h1 className="hero-title">Rekrytera</h1>
+          <h1 className="hero-title">Hitta rätt bolag för uppdraget</h1>
           <p className="hero-sub">
             Ange ort och yrkesområde och beskriv vad ni söker. Vi visar bemannings- och rekryteringsbolagen
             som passar bäst först.
@@ -126,13 +135,5 @@ function SokContent({ antalBolag, urval }) {
         </div>
       </section>
     </div>
-  );
-}
-
-export default function RekryteraSok(props) {
-  return (
-    <Suspense fallback={null}>
-      <SokContent {...props} />
-    </Suspense>
   );
 }

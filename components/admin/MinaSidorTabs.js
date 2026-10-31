@@ -81,6 +81,8 @@ export default function MinaSidorTabs({ obesvarade: initialtObesvarade, antalKon
           {b.text}
         </p>
       ))}
+      {/* Flikraden är sidans synliga rubrik. Skärmläsare får den i klartext. */}
+      <h1 className="sr-only">Mina sidor</h1>
       <nav className="tab-row" aria-label="Mina sidor">
         {FLIKAR.map((f) => {
           const aktiv = arAktiv(pathname, f.href);

@@ -25,7 +25,7 @@ export default async function AdminUpphandlingarPage() {
 
   return (
     <div style={{ maxWidth: 820, margin: "60px auto", padding: "0 24px 80px" }}>
-      <h1 style={{ fontSize: 24, marginBottom: 8 }}>Granska upphandlingar</h1>
+      <h1 className="admin-h1" style={{ marginBottom: 8 }}>Granska upphandlingar</h1>
       <p style={{ color: "var(--color-muted)", marginBottom: 32 }}>
         Godkännandet publicerar upphandlingen och mejlar bolag som tagit över sin profil och har ett matchande
         yrkesområde. Kontrollera att köparens namn inte står i beskrivningen när namnet ska vara dolt.

@@ -85,7 +85,7 @@ export default async function KontoansokningarPage() {
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 24px 80px" }}>
       <div className="eyebrow">Intern granskning</div>
-      <h1 className="hero-title" style={{ fontSize: 34, marginBottom: 8 }}>Kontoansökningar</h1>
+      <h1 className="admin-h1" style={{ marginBottom: 8 }}>Kontoansökningar</h1>
       <p className="hero-sub" style={{ marginBottom: 28 }}>
         Bolag som ansökt om att ta över sin profil. Ett godkännande kopplar dem till rätt bolag i
         registret och släpper in dem på Mina sidor.

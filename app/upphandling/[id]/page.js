@@ -9,7 +9,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const u = await hamtaPublikUpphandling(createAdminClient(), id);
-  return { title: u ? `${u.title} — Upphandling — Recruitable` : "Upphandling — Recruitable" };
+  return {
+    title: u ? `${u.title} — Upphandling` : "Upphandling",
+    alternates: { canonical: `/upphandling/${id}` },
+  };
 }
 
 export default async function UpphandlingDetaljPage({ params }) {

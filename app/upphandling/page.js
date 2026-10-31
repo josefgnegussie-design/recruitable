@@ -8,9 +8,10 @@ import UpphandlingLista from "@/components/upphandling/UpphandlingLista";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Upphandling — Recruitable",
+  title: "Upphandling",
   description:
     "Lägg ut en upphandling av bemanning eller rekrytering och se direkt vilka leverantörer som kan leverera på era orter.",
+  alternates: { canonical: "/upphandling" },
 };
 
 const STEG = [

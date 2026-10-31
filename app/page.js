@@ -5,6 +5,8 @@ import NearbyCompanies from "@/components/NearbyCompanies";
 import PreviewCompanies from "@/components/PreviewCompanies";
 import Registerkarta from "@/components/Registerkarta";
 
+export const metadata = { alternates: { canonical: "/" } };
+
 export const revalidate = 300;
 
 // Startsidan är byggd för att läsas uppifrån och ner som en sida, inte som en

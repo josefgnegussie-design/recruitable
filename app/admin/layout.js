@@ -8,7 +8,7 @@ import LoggaUtKnapp from "@/components/admin/LoggaUtKnapp";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Recruitable — internt",
+  title: "Internt",
   robots: { index: false, follow: false },
 };
 

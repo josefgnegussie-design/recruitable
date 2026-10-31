@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 // Länken i bekräftelsemejlet är personlig och ska inte hamna i ett sökindex.
 export const metadata = {
-  title: "Recruitable — Er förfrågan",
+  title: "Er förfrågan",
   robots: { index: false, follow: false },
 };
 

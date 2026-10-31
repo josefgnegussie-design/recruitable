@@ -8,6 +8,8 @@ import { hamtaInbjudningar } from "@/lib/inbjudningar";
 import { hamtaArenden } from "@/lib/sammanslagning";
 import { hamtaBolagskonto, hamtaFlikraknare } from "@/lib/minaSidor";
 
+export const metadata = { title: "Konto — Mina sidor" };
+
 export default async function KontoPage() {
   const konto = await hamtaBolagskonto();
   if (konto.tillstand) return <MinaSidorStatus tillstand={konto.tillstand} adminRow={konto.adminRow} />;

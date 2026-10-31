@@ -1,6 +1,13 @@
 import RegisterForm from "@/components/admin/RegisterForm";
 import { hamtaBolagMedSlug } from "@/lib/companiesRepo";
 
+export const metadata = {
+  title: "Registrera ert bolag",
+  description:
+    "Skapa ett konto för ert bemannings- eller rekryteringsbolag, komplettera profilen och ta emot förfrågningar.",
+  alternates: { canonical: "/for-bolag/registrera" },
+};
+
 export const dynamic = "force-dynamic";
 
 // ?bolag=<slug> kommer från inbjudningssidan /valkommen/[slug]. Uppgifterna
@@ -31,8 +38,8 @@ export default async function RegistreraPage({ searchParams }) {
           så de två blocken stod förskjutna mot varandra. */}
       <section className="hero" style={{ gridTemplateColumns: "1fr", maxWidth: 640, margin: "0 auto", paddingBottom: 28 }}>
         <div>
-          <div className="eyebrow">För bemannings- och rekryteringsföretag</div>
-          <h1 className="hero-title">{inbjudet ? `Ta över ${inbjudet.name}` : "Registrera företag"}</h1>
+          <div className="eyebrow">För bemannings- och rekryteringsbolag</div>
+          <h1 className="hero-title">{inbjudet ? `Ta över ${inbjudet.name}` : "Registrera ert bolag"}</h1>
           <p className="hero-sub">
             {inbjudet
               ? "Bolagsuppgifterna är ifyllda åt er. Det som återstår är ett konto med en mejladress på bolagets egen domän. Den måste matcha webbplatsen, det är så vi vet att det är ni."

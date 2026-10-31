@@ -1,6 +1,13 @@
 import { hamtaUrval, raknaBolag } from "@/lib/companiesRepo";
 import RekryteraSok from "@/components/RekryteraSok";
 
+export const metadata = {
+  title: "Hitta bemannings- och rekryteringsbolag",
+  description:
+    "Sök bland Sveriges bemannings- och rekryteringsbolag efter ort, yrkesområde och tjänst, och skicka en förfrågan till dem som passar.",
+  alternates: { canonical: "/rekrytera" },
+};
+
 export const revalidate = 300;
 
 // Sidan hämtar sitt underlag på servern i stället för att importera hela

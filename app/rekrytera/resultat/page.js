@@ -3,6 +3,11 @@ import { hamtaBolag, hamtaBolagMedId, hamtaBolagMedSlug } from "@/lib/companiesR
 import { publikaBolag } from "@/lib/publikBolag";
 import { arId } from "@/lib/slug";
 
+export const metadata = {
+  title: "Välj bolag",
+  description: "Välj vilka bemannings- och rekryteringsbolag ni vill skicka er förfrågan till.",
+};
+
 export const dynamic = "force-dynamic";
 
 // Träfflistan tas fram på servern. Tidigare importerades hela registret i

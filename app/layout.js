@@ -7,9 +7,15 @@ import Sidvisningar from "@/components/Sidvisningar";
 import CookieConsent from "@/components/CookieConsent";
 
 export const metadata = {
-  title: "Recruitable — Bemanning & rekrytering i Sverige",
+  metadataBase: new URL("https://recruitable.se"),
+  // Mallen sätter varumärket sist på varje undersida, så att sidorna skiljer sig
+  // redan i fliken och i sökresultatet. default är startsidans titel.
+  title: {
+    default: "Recruitable — Bemanning & rekrytering i Sverige",
+    template: "%s — Recruitable",
+  },
   description:
-    "Jämför bemannings- och rekryteringsföretag i Sverige utifrån bransch, ort, kollektivavtal och pris.",
+    "Jämför bemannings- och rekryteringsbolag i Sverige utifrån bransch, ort, kollektivavtal och pris.",
 };
 
 export default function RootLayout({ children }) {

@@ -15,7 +15,6 @@ export default function Header() {
   // annars hade varje sidvisning behövt en databasfråga för att avgöra det.
   // Styr bara vad som visas; åtkomsten avgörs alltid på servern.
   const [arBolagsadmin, setArBolagsadmin] = useState(false);
-  const isLanding = pathname === "/";
   const isRekrytera = pathname.startsWith("/rekrytera");
   const isUpphandling = pathname.startsWith("/upphandling");
   const isOmOss = pathname.startsWith("/om-oss");
@@ -87,14 +86,11 @@ export default function Header() {
           <span></span>
         </button>
         <nav className={`site-nav${menuOpen ? " open" : ""}`}>
-          {/* Startsidan och Rekrytera vänder sig till den som söker leverantör.
-              För ett inloggat bolag är de bara förvirrande — de erbjuder att göra
-              det bolaget självt finns i registret för. */}
+          {/* Rekrytera vänder sig till den som söker leverantör. För ett inloggat
+              bolag är den bara förvirrande — den erbjuder att göra det bolaget
+              självt finns i registret för. Hem finns inte: logotypen leder dit. */}
           {!arBolagsadmin && (
-            <>
-              <Link href="/" className={isLanding ? "active" : ""} onClick={closeMenu}>Hem</Link>
-              <Link href="/rekrytera" className={isRekrytera ? "active" : ""} onClick={closeMenu}>Rekrytera</Link>
-            </>
+            <Link href="/rekrytera" className={isRekrytera ? "active" : ""} onClick={closeMenu}>Rekrytera</Link>
           )}
           {/* Upphandling syns för alla: inloggade bolag är leverantörerna där. */}
           <Link href="/upphandling" className={isUpphandling ? "active" : ""} onClick={closeMenu}>Upphandling</Link>
@@ -105,13 +101,13 @@ export default function Header() {
               <LoggaUtKnapp className="nav-utloggning" vidKlick={closeMenu} />
             </>
           ) : (
-            // Beställare har inget konto, så "Logga in" lockade fel besökare.
-            // Länkarna säger nu vem de är till för.
+            // Beställare har inget konto. "För bolag" står närmast före "Logga in"
+            // och säger vem båda länkarna är till för.
             <>
               <Link href="/for-bolag/registrera" className={isForBolag ? "active" : ""} onClick={closeMenu}>
-                För bemanningsbolag
+                För bolag
               </Link>
-              <Link href="/logga-in" className={isLoggaIn ? "active" : ""} onClick={closeMenu}>Bolagsinloggning</Link>
+              <Link href="/logga-in" className={isLoggaIn ? "active" : ""} onClick={closeMenu}>Logga in</Link>
             </>
           )}
         </nav>

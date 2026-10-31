@@ -6,7 +6,7 @@ import InbjudanForm from "@/components/admin/InbjudanForm";
 
 // Länken i inbjudningsmejlet är personlig och ska inte hamna i ett sökindex.
 export const metadata = {
-  title: "Recruitable — Inbjudan",
+  title: "Inbjudan",
   robots: { index: false, follow: false },
 };
 

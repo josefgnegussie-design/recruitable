@@ -1,5 +1,12 @@
 import Link from "next/link";
 
+export const metadata = {
+  title: "Om oss",
+  description:
+    "Recruitable samlar Sveriges bemannings- och rekryteringsbolag på ett ställe, så att det går att jämföra dem och hitta rätt partner.",
+  alternates: { canonical: "/om-oss" },
+};
+
 const FAQ = [
   {
     q: "Varifrån kommer uppgifterna om bolagen?",
@@ -11,7 +18,7 @@ const FAQ = [
   },
   {
     q: "Vilka bolag ingår i registret?",
-    a: "Bemannings- och rekryteringsföretag verksamma i Sverige, inom allt fler branscher och yrkesområden i takt med att registret växer.",
+    a: "Bemannings- och rekryteringsbolag verksamma i Sverige, inom allt fler branscher och yrkesområden i takt med att registret växer.",
   },
   {
     q: "Hur ofta uppdateras informationen?",
@@ -21,7 +28,7 @@ const FAQ = [
     q: "Kan vårt bolag bli listat i registret?",
     a: (
       <>
-        Om ni är ett bemannings- eller rekryteringsföretag som vill bli en del av registret går det bra att{" "}
+        Om ni är ett bemannings- eller rekryteringsbolag som vill bli en del av registret går det bra att{" "}
         <Link href="/for-bolag/registrera">skapa konto</Link>.
       </>
     ),
@@ -55,7 +62,7 @@ export default function OmOssPage() {
             erbjuda. Då är det svårt att veta om man hittat rätt bolag eller bara det första man pratade med.
           </p>
           <p>
-            Recruitable samlar uppgifter om de bemannings- och rekryteringsföretag som är verksamma i Sverige:
+            Recruitable samlar uppgifter om de bemannings- och rekryteringsbolag som är verksamma i Sverige:
             omsättning, storlek, kollektivavtal, auktorisation och vilka områden de arbetar inom. Ni kan jämföra
             innan ni tar kontakt, och lägger mindre tid på möten som inte leder någonstans.
           </p>

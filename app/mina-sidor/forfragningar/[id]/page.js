@@ -5,6 +5,8 @@ import InquiriesList from "@/components/admin/InquiriesList";
 import MinaSidorOversikt from "@/components/admin/MinaSidorOversikt";
 import { hamtaBolagskonto, hamtaFlikraknare, hamtaForfragan, hamtaForfragningar, hamtaOversikt } from "@/lib/minaSidor";
 
+export const metadata = { title: "Förfrågan — Mina sidor" };
+
 // En enskild förfrågan, dit mejlet till bolaget länkar. Visas i den vanliga
 // listan, framscrollad och markerad, så att bolaget kan svara direkt och ändå
 // se resten.

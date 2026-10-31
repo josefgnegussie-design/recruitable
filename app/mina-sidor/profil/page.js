@@ -4,6 +4,8 @@ import ProfilEditor from "@/components/admin/ProfilEditor";
 import PremiumManageButton from "@/components/admin/PremiumManageButton";
 import { hamtaBolagskonto, hamtaFlikraknare } from "@/lib/minaSidor";
 
+export const metadata = { title: "Profil — Mina sidor" };
+
 export default async function ProfilPage({ searchParams }) {
   const params = await searchParams;
 

@@ -1,4 +1,10 @@
 
+export const metadata = {
+  title: "Integritetspolicy",
+  description: "Så hanterar Recruitable personuppgifter och cookies.",
+  alternates: { canonical: "/integritetspolicy" },
+};
+
 export default function IntegritetspolicyPage() {
   return (
     <div id="view-integritetspolicy">
@@ -23,7 +29,7 @@ export default function IntegritetspolicyPage() {
       <section className="l-section tight" style={{ maxWidth: 820 }}>
         <h2>Vilken information vi samlar in</h2>
         <p className="l-section-sub" style={{ marginBottom: 20 }}>
-          Vad vi samlar in beror på om du bara besöker sajten, eller senare skapar ett konto som bemanningsföretag.
+          Vad vi samlar in beror på om du bara besöker sajten, eller senare skapar ett konto som bemannings- eller rekryteringsbolag.
         </p>
         <div className="faq-list">
           <div className="faq-item">

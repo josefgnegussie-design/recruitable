@@ -5,6 +5,8 @@ import InquiriesList from "@/components/admin/InquiriesList";
 import MinaSidorOversikt from "@/components/admin/MinaSidorOversikt";
 import { hamtaBolagskonto, hamtaFlikraknare, hamtaForfragningar, hamtaOversikt } from "@/lib/minaSidor";
 
+export const metadata = { title: "Förfrågningar — Mina sidor" };
+
 const STRIPE_UTFALL = new Set(["klart", "avbrutet"]);
 
 // Förfrågningsfliken. Övriga flikar har egna sidor under /mina-sidor/.

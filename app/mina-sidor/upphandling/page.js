@@ -7,6 +7,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { hamtaUpphandlingarForBolag } from "@/lib/upphandlingRepo";
 import { datumText } from "@/lib/upphandling";
 
+export const metadata = { title: "Upphandlingar — Mina sidor" };
+
 function statusText(a) {
   if (a.vidare) return "Går vidare";
   if (a.avslutad) return "Avslutad";

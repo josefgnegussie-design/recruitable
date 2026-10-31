@@ -45,7 +45,7 @@ export default async function ModereraForfragningarPage() {
 
   return (
     <div style={{ maxWidth: 820, margin: "60px auto", padding: "0 24px 80px" }}>
-      <h1 style={{ fontSize: 24, marginBottom: 8 }}>Godkänn nya förfrågningar</h1>
+      <h1 className="admin-h1" style={{ marginBottom: 8 }}>Godkänn nya förfrågningar</h1>
       <p style={{ color: "var(--color-muted)", marginBottom: 32 }}>
         Ingen förfrågan syns för de valda bolagen förrän du godkänner den här — varken förfrågan själv eller att
         den existerar.

@@ -1,5 +1,11 @@
 import ContactForm from "@/components/ContactForm";
 
+export const metadata = {
+  title: "Kontakt",
+  description: "Hör av er till Recruitable med frågor om registret, er profil eller tjänsten.",
+  alternates: { canonical: "/kontakt" },
+};
+
 export default function KontaktPage() {
   return (
     <div id="view-kontakt">

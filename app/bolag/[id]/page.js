@@ -1,3 +1,4 @@
+import { cache } from "react";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { foljSammanslagning, hamtaBolagMedId, hamtaBolagMedSlug } from "@/lib/companiesRepo";
@@ -24,13 +25,37 @@ export function generateStaticParams() {
   return [];
 }
 
+// Parametern är antingen ett id eller en slug, och formen avgör vilket. Att
+// prova det ena och sedan det andra hade gjort två databasfrågor av varje
+// sidvisning. cache gör att titeln och sidan delar samma hämtning.
+const hamtaBolagForSidan = cache((id) => (arId(id) ? hamtaBolagMedId(id) : hamtaBolagMedSlug(id)));
+
+const BESKRIVNING_MAX = 155;
+
+function kortBeskrivning(text) {
+  if (text.length <= BESKRIVNING_MAX) return text;
+  return `${text.slice(0, BESKRIVNING_MAX - 1).replace(/\s+\S*$/, "")}…`;
+}
+
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const c = await hamtaBolagForSidan(id);
+  if (!c) notFound();
+
+  const ort = c.city ? `, ${c.city}` : "";
+  const reserv = `${c.name}${ort} i Recruitables register över bemannings- och rekryteringsbolag.`;
+
+  return {
+    title: `${c.name}${ort}`,
+    description: kortBeskrivning((c.desc || c.verksamhetsbeskrivning || reserv).trim()),
+    alternates: { canonical: bolagsUrl(c) },
+  };
+}
+
 export default async function ProfilePage({ params }) {
   const { id } = await params;
 
-  // Parametern är antingen ett id eller en slug, och formen avgör vilket. Att
-  // prova det ena och sedan det andra hade gjort två databasfrågor av varje
-  // sidvisning.
-  const c = arId(id) ? await hamtaBolagMedId(id) : await hamtaBolagMedSlug(id);
+  const c = await hamtaBolagForSidan(id);
   if (!c) notFound();
 
   // Bolaget har gått upp i ett annat — efter en fusion, en avregistrering, eller
@@ -162,7 +187,7 @@ export default async function ProfilePage({ params }) {
           <div className="profile-ident">
             {c.logo && <img src={c.logo} alt="" className="profile-logo" />}
             <div>
-              <h2>{c.name}</h2>
+              <h1>{c.name}</h1>
               <div className="sub">{(c.officeCities?.length > 1 ? "Flera orter" : c.city).toUpperCase()} · GRUNDAT {c.founded}</div>
               <div className="tags">
                 {c.focus.concat(c.services).map((t) => (

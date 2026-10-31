@@ -3,6 +3,8 @@ import MinaSidorStatus from "@/components/admin/MinaSidorStatus";
 import OfficesManager from "@/components/admin/OfficesManager";
 import { hamtaBolagskonto, hamtaFlikraknare } from "@/lib/minaSidor";
 
+export const metadata = { title: "Kontor — Mina sidor" };
+
 export default async function KontorPage({ searchParams }) {
   const params = await searchParams;
 

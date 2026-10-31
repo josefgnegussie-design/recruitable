@@ -18,10 +18,10 @@ export const revalidate = 300;
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   const bolag = await hamtaBolagMedSlug(slug);
-  if (!bolag) return { title: "Recruitable" };
+  if (!bolag) return { title: { absolute: "Recruitable" } };
 
   return {
-    title: `${bolag.name} på Recruitable`,
+    title: { absolute: `${bolag.name} på Recruitable` },
     description: `${bolag.name} finns i Recruitables register. Ta över profilen och ta emot förfrågningar från företag som söker bemanning och rekrytering.`,
     // Inbjudningar ska inte indexeras: de är adresserade till ett bolag och hör
     // inte hemma i sökresultat. Profilen är den publika sidan.

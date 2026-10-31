@@ -1,7 +1,7 @@
 import "./coming-soon.css";
 
 export const metadata = {
-  title: "Recruitable — Snart tillbaka",
+  title: "Snart tillbaka",
   robots: { index: false, follow: false },
 };
 
