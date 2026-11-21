@@ -1493,7 +1493,9 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .upp-pagaende-lista .upp-brod{margin:0 0 8px;}
 .upp-pagaende-lista .upp-not{margin:0;}
 .upp-pagaende-lista li{position:relative;}
-.upp-exempel-tagg{display:inline-block;margin-bottom:8px;}
+.upp-pagaende-huvud{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.upp-pagaende-huvud h3{margin:0;font-size:17px;font-weight:600;color:var(--color-ink);}
+.upp-exempel-tagg{flex:none;}
 .upp-adressrad input:first-child{flex:2;}
 .upp-adressrad input:nth-child(2){flex:1;max-width:140px;}
 .upp-rad-tat{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}

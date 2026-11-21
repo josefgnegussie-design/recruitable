@@ -436,7 +436,7 @@ export default function SkapaUpphandling() {
               <label className="upp-kryssrad upp-exempelval">
                 <input type="checkbox" checked={d.visaSomExempel} onChange={(e) => patch({ visaSomExempel: e.target.checked })} />
                 <span>
-                  Får visas anonymt bland pågående upphandlingar, som en mening om tjänst, yrkesområden, län och start.
+                  Får visas anonymt bland pågående upphandlingar, med ort, tjänst, yrkesområden och start.
                   Utan ert namn, er beskrivning och era adresser.
                 </span>
               </label>

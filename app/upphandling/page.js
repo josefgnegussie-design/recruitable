@@ -84,7 +84,10 @@ export default async function UpphandlingPage() {
                 ].filter(Boolean);
                 return (
                   <li key={i} className="auth-panel">
-                    {u.exempel && <span className="tag upp-exempel-tagg">Exempel</span>}
+                    <div className="upp-pagaende-huvud">
+                      <h3>{u.rubrik}</h3>
+                      {u.exempel && <span className="tag upp-exempel-tagg">Exempel</span>}
+                    </div>
                     <p className="upp-brod">{u.mening}</p>
                     {fakta.length > 0 && <p className="upp-not">{fakta.join(" · ")}</p>}
                   </li>
