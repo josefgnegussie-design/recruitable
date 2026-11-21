@@ -1,20 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { VARNA_VID_BOLAG } from "@/lib/upphandlingInbjudan";
 
-// Hur många bolag som syns innan "Visa fler". Resten finns i svaret, men en lång
-// lista överst i ett formulär trycker ner allt köparen ska fylla i härnäst.
-const FORST = 6;
+// Hur många bolag som syns innan "Visa fler": lika många som är förvalda, så att
+// köparen ser exakt vilka som får inbjudan. Resten finns ett klick bort.
+const FORST = 10;
 
 function avstandText(t) {
   if (t.niva === "ort") return t.ort;
   return `${t.ort} (${t.km < 10 ? `${t.km} km` : `${Math.round(t.km / 10)} mil`})`;
 }
 
-// Bolagen i registret som passar det köparen fyllt i hittills. Uppdateras medan
-// formuläret fylls i, med en kort fördröjning så att varje tangent inte blir en
-// fråga. Visar bara det som redan står på de publika profilerna.
-export default function RelevantaBolag({ tjanst, omraden, orter, krav, vidResultat }) {
+// Bolagen i registret som passar det köparen fyllt i hittills, med en kryssruta
+// var. De valda får inbjudan. Uppdateras medan formuläret fylls i, med en kort
+// fördröjning så att varje tangent inte blir en fråga. Visar bara det som redan
+// står på de publika profilerna.
+export default function RelevantaBolag({ tjanst, omraden, orter, krav, vidResultat, valda, vaxla, valjAlla, valjInga }) {
   const [svar, setSvar] = useState(null);
   const [laddar, setLaddar] = useState(false);
   const [allaSynliga, setAllaSynliga] = useState(false);
@@ -55,7 +57,7 @@ export default function RelevantaBolag({ tjanst, omraden, orter, krav, vidResult
   if (!komplett || !svar) {
     return (
       <section className="auth-panel upp-match">
-        <h2 className="upp-rubrik-liten">Relevanta bolag</h2>
+        <h2 className="upp-rubrik-liten">3. Välj bolag att bjuda in</h2>
         <p className="upp-brod">
           Välj minst ett yrkesområde och en ort ovan, så visar vi direkt vilka bemannings- och rekryteringsbolag i
           registret som kan leverera.
@@ -69,14 +71,13 @@ export default function RelevantaBolag({ tjanst, omraden, orter, krav, vidResult
   return (
     <section className={`auth-panel upp-match${laddar ? " laddar" : ""}`} aria-live="polite" aria-busy={laddar}>
       <div className="upp-match-huvud">
-        <h2 className="upp-rubrik-liten">
-          {svar.totalt === 0 ? "Inga bolag matchar än" : `${svar.totalt} relevanta bolag`}
-        </h2>
+        <h2 className="upp-rubrik-liten">3. Välj bolag att bjuda in</h2>
         {svar.totalt > 0 && (
           <span className="upp-not">
+            {svar.totalt} relevanta bolag,{" "}
             {svar.aktiva === 0
-              ? "Inget av dem är aktivt på Recruitable än"
-              : `${svar.aktiva} ${svar.aktiva === 1 ? "är aktivt" : "är aktiva"} på Recruitable`}
+              ? "inget av dem aktivt på Recruitable än"
+              : `${svar.aktiva} ${svar.aktiva === 1 ? "aktivt" : "aktiva"} på Recruitable`}
           </span>
         )}
       </div>
@@ -98,32 +99,47 @@ export default function RelevantaBolag({ tjanst, omraden, orter, krav, vidResult
 
       {svar.totalt === 0 ? (
         <p className="upp-brod">
-          Prova fler yrkesområden, en annan tjänst eller en större ort i närheten. Ni kan ändå lägga ut upphandlingen:
-          bolag som registrerar sig senare ser den också.
+          Inga bolag i registret matchar. Prova fler yrkesområden, en annan tjänst eller en större ort i närheten.
         </p>
       ) : (
         <>
           <p className="upp-not" style={{ marginTop: 0 }}>
             Sorterade efter hur många av era orter bolaget finns på, därefter yrkesområden och krav som går att läsa i
-            profilen.
+            profilen. De {Math.min(FORST, svar.bolag.length)} översta är förvalda.
           </p>
+          <div className="upp-valrad">
+            <strong>
+              {valda.size} av {svar.bolag.length} valda
+            </strong>
+            <span className="upp-rad-tat">
+              <button type="button" className="link-btn" onClick={valjAlla}>Välj alla</button>
+              <button type="button" className="link-btn" onClick={valjInga}>Avmarkera alla</button>
+            </span>
+          </div>
+          {valda.size > VARNA_VID_BOLAG && (
+            <p className="upp-varning">
+              Ni har valt {valda.size} bolag. Det blir ofta fler samtal att hantera än svar att välja bland.
+            </p>
+          )}
           <ol className="upp-matchlista">
             {synliga.map((b) => (
-              <li key={b.id}>
+              <li key={b.id} className={valda.has(b.id) ? "vald" : ""}>
                 <div className="upp-match-rad">
-                  <div className="upp-match-namn">
+                  <label className="upp-match-namn">
+                    <input type="checkbox" checked={valda.has(b.id)} onChange={() => vaxla(b.id)} aria-label={`Bjud in ${b.namn}`} />
                     {b.logo && (
                       // En extern logga som inte längre finns ska inte lämna en trasig bild.
                       <img src={b.logo} alt="" onError={(e) => (e.currentTarget.style.display = "none")} />
                     )}
                     <div>
-                      <a href={b.profil} target="_blank" rel="noopener noreferrer">{b.namn}</a>
+                      <span className="namn">{b.namn}</span>
                       <div className="upp-match-ort">
                         {b.ort}
-                        {b.medarbetare ? ` · ${b.medarbetare} medarbetare` : ""}
+                        {b.medarbetare ? ` · ${b.medarbetare} medarbetare` : ""} ·{" "}
+                        <a href={b.profil} target="_blank" rel="noopener noreferrer">Profil ↗</a>
                       </div>
                     </div>
-                  </div>
+                  </label>
                   <span className={`upp-status ${b.aktiv ? "aktiv" : ""}`}>
                     {b.aktiv ? "Aktiv på Recruitable" : "Inte aktiv än"}
                   </span>

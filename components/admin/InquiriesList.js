@@ -20,6 +20,37 @@ const MANAD = new Date().toLocaleDateString("sv-SE", { month: "long" });
 
 // markeradId är förfrågan som en mejllänk pekar på. Den scrollas fram och
 // markeras, och visas även om den ligger utanför månadsfiltret.
+// Det en upphandling har utöver en vanlig förfrågan. Köparen är beskriven, inte
+// namngiven: namnet blir rubrik först när förfrågan accepterats, som för alla
+// förfrågningar.
+function UpphandlingFakta({ u }) {
+  const rader = [
+    ["Orter", u.orter?.join(", ")],
+    ["Yrkesområden", u.omraden?.join(", ")],
+    ["Kompetenser", u.kompetenser?.join(", ")],
+    ["Krav", [...(u.krav || []), u.ovrigaKrav].filter(Boolean).join(", ")],
+    ["Avtalstid", u.avtalstid],
+    ["Volym", u.volym],
+    [
+      "Svar önskas senast",
+      u.svaraSenast &&
+        new Date(`${u.svaraSenast}T12:00:00`).toLocaleDateString("sv-SE", { day: "numeric", month: "long", year: "numeric" }),
+    ],
+    ["Köpare", u.kopare],
+  ].filter(([, v]) => v);
+
+  return (
+    <dl className="upp-fakta" style={{ marginTop: 12 }}>
+      {rader.map(([k, v]) => (
+        <div key={k} style={{ display: "contents" }}>
+          <dt>{k}</dt>
+          <dd>{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 export default function InquiriesList({ inquiries: initialInquiries, initialHasMore, markeradId }) {
   // Får skillnaden i antal obesvarade när bolaget svarar, så att räknaren på
   // fliken följer med utan omladdning.
@@ -201,13 +232,17 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
 
             {(inq.focus_area || inq.service || inq.search_role) && (
               <div className="tag-row" style={{ marginTop: 10 }}>
-                {inq.search_role && <span className="tag">{inq.search_role}</span>}
+                {inq.upphandling && <span className="tag tag-upphandling">Upphandling</span>}
+                {/* En upphandlings rubrik står redan som rubrik ovan. */}
+                {inq.search_role && !inq.upphandling && <span className="tag">{inq.search_role}</span>}
                 {inq.focus_area && <span className="tag">{inq.focus_area}</span>}
                 {inq.service && <span className="tag">{inq.service}</span>}
               </div>
             )}
 
             <p style={{ marginTop: 12, marginBottom: 0, fontSize: 14.5, lineHeight: 1.5 }}>{inq.description}</p>
+
+            {inq.upphandling && <UpphandlingFakta u={inq.upphandling} />}
 
             <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
               {unlocked ? (

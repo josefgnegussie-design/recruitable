@@ -11,9 +11,11 @@ import { usePathname } from "next/navigation";
 //
 // Utloggningen finns bara i huvudmenyn. En andra knapp i flikraden gav två
 // "Logga ut" på samma sida på desktop.
+//
+// Fliken Upphandlingar är borta: en upphandling är numera en inbjudan som
+// landar bland förfrågningarna, och bolagen anmäler inte längre intresse själva.
 const FLIKAR = [
   { href: "/mina-sidor", namn: "Förfrågningar" },
-  { href: "/mina-sidor/upphandling", namn: "Upphandlingar" },
   { href: "/mina-sidor/profil", namn: "Profil" },
   { href: "/mina-sidor/kontor", namn: "Kontor" },
   { href: "/mina-sidor/konto", namn: "Konto" },

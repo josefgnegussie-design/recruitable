@@ -7,12 +7,14 @@ const SIDOR = [
   { href: "/admin", etikett: "Översikt" },
   { href: "/admin/fakturering", etikett: "Faktureringsunderlag" },
   { href: "/admin/moderera-forfragningar", etikett: "Granska förfrågningar", ko: "forfragningar" },
-  { href: "/admin/upphandlingar", etikett: "Granska upphandlingar", ko: "upphandlingar" },
   { href: "/admin/kontoansokningar", etikett: "Kontoansökningar", ko: "ansokningar" },
   { href: "/admin/sammanslagningar", etikett: "Sammanslagningar", ko: "sammanslagningar" },
   { href: "/admin/logg", etikett: "Loggbok" },
 ];
 
+// Inbjudningar från Upphandling granskas bland förfrågningarna, så den egna
+// kön för upphandlingar är borttagen ur menyn.
+//
 // Navigering mellan de interna sidorna. De tre som fanns sedan tidigare gick
 // bara att nå genom att skriva adressen för hand — de hänger nu ihop med
 // resten, med antalet obehandlade ärenden synligt hela tiden.
