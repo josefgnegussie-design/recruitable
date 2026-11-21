@@ -1493,9 +1493,10 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .upp-pagaende-lista .upp-brod{margin:0 0 8px;}
 .upp-pagaende-lista .upp-not{margin:0;}
 .upp-pagaende-lista li{position:relative;}
-.upp-pagaende-huvud{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
-.upp-pagaende-huvud h3{margin:0;font-size:17px;font-weight:600;color:var(--color-ink);}
-.upp-exempel-tagg{flex:none;}
+.upp-pagaende-huvud{margin-bottom:12px;}
+.upp-pagaende-huvud h3{margin:0;font-size:16px;font-weight:600;line-height:1.3;color:var(--color-ink);}
+.upp-pagaende-ort{margin:3px 0 0;font-size:13px;letter-spacing:.02em;color:var(--color-accent);font-weight:600;}
+.upp-exempel-tagg{display:inline-block;margin-bottom:10px;}
 .upp-adressrad input:first-child{flex:2;}
 .upp-adressrad input:nth-child(2){flex:1;max-width:140px;}
 .upp-rad-tat{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
