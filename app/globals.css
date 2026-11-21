@@ -1492,6 +1492,8 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .upp-pagaende-lista li{margin:0;}
 .upp-pagaende-lista .upp-brod{margin:0 0 8px;}
 .upp-pagaende-lista .upp-not{margin:0;}
+.upp-pagaende-lista li{position:relative;}
+.upp-exempel-tagg{display:inline-block;margin-bottom:8px;}
 .upp-adressrad input:first-child{flex:2;}
 .upp-adressrad input:nth-child(2){flex:1;max-width:140px;}
 .upp-rad-tat{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}

@@ -71,22 +71,25 @@ export default async function UpphandlingPage() {
           <section className="upp-pagaende" aria-labelledby="upp-pagaende-rubrik">
             <h2 id="upp-pagaende-rubrik" className="upp-rubrik-liten">Pågående upphandlingar</h2>
             <p className="upp-not" style={{ marginTop: 0 }}>
-              Ett urval av inbjudningar som skickats via Recruitable. Köparna visas inte.
+              {pagaende.some((u) => !u.exempel)
+                ? "Ett urval av inbjudningar som skickats via Recruitable. Köparna visas inte."
+                : "Så här visas inbjudningar som skickats via Recruitable, utan köparens namn."}
+              {pagaende.some((u) => u.exempel) && pagaende.some((u) => !u.exempel) && " Kort märkta Exempel visar hur det kan se ut."}
             </p>
             <ul className="upp-pagaende-lista">
-              {pagaende.map((u, i) => (
-                <li key={i} className="auth-panel">
-                  <p className="upp-brod">{u.mening}</p>
-                  <p className="upp-not">
-                    {[
-                      u.inbjudna > 0 && `${u.inbjudna} ${u.inbjudna === 1 ? "bolag inbjudet" : "bolag inbjudna"}`,
-                      u.svaraSenast && `svar senast ${formateraDatum(u.svaraSenast)}`,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </p>
-                </li>
-              ))}
+              {pagaende.map((u, i) => {
+                const fakta = [
+                  u.inbjudna > 0 && `${u.inbjudna} ${u.inbjudna === 1 ? "bolag inbjudet" : "bolag inbjudna"}`,
+                  u.svaraSenast && `Svar senast ${formateraDatum(u.svaraSenast)}`,
+                ].filter(Boolean);
+                return (
+                  <li key={i} className="auth-panel">
+                    {u.exempel && <span className="tag upp-exempel-tagg">Exempel</span>}
+                    <p className="upp-brod">{u.mening}</p>
+                    {fakta.length > 0 && <p className="upp-not">{fakta.join(" · ")}</p>}
+                  </li>
+                );
+              })}
             </ul>
           </section>
         )}
