@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { hamtaPagaendeUpphandlingar } from "@/lib/pagaendeUpphandlingar";
-import { formateraDatum } from "@/lib/upphandlingInbjudan";
 
 // Pågående upphandlingar ändras när en inbjudan godkänns, inte per besök.
 export const revalidate = 300;
@@ -77,23 +76,24 @@ export default async function UpphandlingPage() {
               {pagaende.some((u) => u.exempel) && pagaende.some((u) => !u.exempel) && " Kort märkta Exempel visar hur det kan se ut."}
             </p>
             <ul className="upp-pagaende-lista">
-              {pagaende.map((u, i) => {
-                const fakta = [
-                  u.inbjudna > 0 && `${u.inbjudna} ${u.inbjudna === 1 ? "bolag inbjudet" : "bolag inbjudna"}`,
-                  u.svaraSenast && `Svar senast ${formateraDatum(u.svaraSenast)}`,
-                ].filter(Boolean);
-                return (
-                  <li key={i} className="auth-panel">
-                    <div className="upp-pagaende-huvud">
-                      {u.exempel && <span className="tag upp-exempel-tagg">Exempel</span>}
-                      <h3>{u.rubrik}</h3>
-                      {u.orter && <p className="upp-pagaende-ort">{u.orter}</p>}
-                    </div>
-                    <p className="upp-brod">{u.mening}</p>
-                    {fakta.length > 0 && <p className="upp-not">{fakta.join(" · ")}</p>}
-                  </li>
-                );
-              })}
+              {pagaende.map((u, i) => (
+                <li key={i} className="auth-panel upp-pagaende-kort">
+                  {u.exempel && <span className="tag upp-exempel-tagg">Exempel</span>}
+                  {u.orter && <p className="upp-pagaende-ort">{u.orter}</p>}
+                  <h3>{u.rubrik}</h3>
+                  <p className="upp-pagaende-text">{u.mening}</p>
+                  {/* Upphandlingens fyra steg, alla med datum intill. */}
+                  <ol className="upp-tidslinje" aria-label="Upphandlingens steg">
+                    {u.tidslinje.map((t) => (
+                      <li key={t.steg}>
+                        <span className="punkt" aria-hidden="true" />
+                        <span className="steg">{t.steg}</span>
+                        <span className="datum">{t.datum ?? "–"}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </li>
+              ))}
             </ul>
           </section>
         )}
