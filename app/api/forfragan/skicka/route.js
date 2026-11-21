@@ -3,6 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { YRKESOMRADEN, GILTIGA_TJANSTER } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { arGratisadress } from "@/lib/gratisadresser";
+import { domanTarEmotMejl } from "@/lib/automatiskGranskning";
 import { clientIp } from "@/lib/requestIp";
 import { sparaOchSkickaForfragan } from "@/lib/forfraganSkickas";
 
@@ -99,10 +101,26 @@ export async function POST(request) {
   const websiteDomain = domainOf(requesterWebsite.trim());
   const emailDomain = requesterEmail.split("@")[1]?.toLowerCase();
 
+  // Formuläret säger samma sak redan när fältet lämnas, men servern får inte
+  // lita på det: en gmail.com-adress med gmail.com som webbplats gick annars
+  // igenom domänkontrollen nedan.
+  if (arGratisadress(emailDomain)) {
+    return NextResponse.json({ error: "Använd din jobbadress på företagets egen domän." }, { status: 403 });
+  }
+
   if (!websiteDomain || emailDomain !== websiteDomain) {
     return NextResponse.json(
       { error: `E-postadressen måste matcha er webbplats (${websiteDomain || "okänd domän"}).` },
       { status: 403 }
+    );
+  }
+
+  // Bekräftelsemejlet måste kunna komma fram, annars kan förfrågan aldrig
+  // skickas vidare. Bättre att säga det nu än att låta avsändaren vänta.
+  if (!(await domanTarEmotMejl(emailDomain))) {
+    return NextResponse.json(
+      { error: `Vi kan inte skicka mejl till ${emailDomain}. Kontrollera att adressen är rätt stavad.` },
+      { status: 400 }
     );
   }
 

@@ -1580,3 +1580,8 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 }
 /* Ett steg som inte hänt ännu: ofylld punkt på linjen. */
 .upp-tidslinje .punkt.tom{background:var(--color-canvas,#fff);border:2px solid var(--color-accent);box-sizing:border-box;}
+
+/* Granskningskön: varför en förfrågan inte godkändes automatiskt. */
+.granskning-orsaker{margin-top:12px;padding:10px 14px;border-radius:var(--radius-md, 10px);background:#fdf6e7;border:1px solid #f0dcae;}
+.auth-panel .granskning-orsaker p{margin:0 0 4px;font-size:12.5px;font-weight:600;color:#7a5a12;}
+.granskning-orsaker ul{margin:0;padding-left:18px;font-size:13px;color:#5c4510;line-height:1.5;}

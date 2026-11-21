@@ -3,7 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformAdmin } from "@/lib/platformAdmin";
 
-const MODERATION_LABEL = { pending: "Väntar granskning", approved: "Godkänd", rejected: "Nekad av Recruitable" };
+const MODERATION_LABEL = {
+  unconfirmed: "Väntar på avsändarens bekräftelse",
+  pending: "Väntar granskning",
+  approved: "Godkänd",
+  rejected: "Nekad av Recruitable",
+};
 const STATUS_LABEL = { pending: "Väntar", accepted: "Accepterad", declined: "Tackat nej" };
 
 function formatDateTime(iso) {

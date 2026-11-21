@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hamtaUppfoljning } from "@/lib/uppfoljning";
+import BekraftaForfragan from "@/components/inquiry/BekraftaForfragan";
 
 // Läses vid varje besök, så att ett bolags svar syns så fort beställaren
 // laddar om sidan.
@@ -14,6 +15,7 @@ export const metadata = {
 };
 
 const STATUS = {
+  obekraftad: { text: "Inte skickad än", klass: "" },
   granskas: { text: "Väntar på granskning", klass: "" },
   vantar: { text: "Väntar på svar", klass: "" },
   intresserad: { text: "Intresserad", klass: "accepted" },
@@ -25,7 +27,12 @@ function datum(iso) {
   return new Date(iso).toLocaleDateString("sv-SE", { day: "numeric", month: "long", timeZone: "Europe/Stockholm" });
 }
 
-function sammanfattning(f) {
+function sammanfattning(f, kanBekrafta) {
+  if (f.granskning === "unconfirmed") {
+    return kanBekrafta
+      ? "Bekräfta att det är ni som skickat förfrågan, så går den vidare till bolagen."
+      : "Förfrågan har inte gått vidare än. Bekräfta den med knappen i mejlet vi skickade, så når den bolagen.";
+  }
   if (f.granskning === "rejected") {
     return "Recruitable godkände inte förfrågan, så den gick inte vidare till bolagen. Hör av er till info@recruitable.se om ni undrar varför.";
   }
@@ -40,13 +47,18 @@ function sammanfattning(f) {
   return delar.length ? `${delar.join(", ")}.` : "Alla bolag har svarat.";
 }
 
-export default async function UppfoljningPage({ params }) {
+export default async function UppfoljningPage({ params, searchParams }) {
   const { token } = await params;
+  const { bekrafta } = await searchParams;
   const forfragan = await hamtaUppfoljning(createAdminClient(), token);
 
   // Felformad och okänd token ger samma svar, så att adressen inte avslöjar
   // något om vilka förfrågningar som finns.
   if (!forfragan) notFound();
+
+  // Bekräftelsetoken kommer bara från knappen i mejlet. Om den stämmer avgör
+  // servern när knappen trycks; här räcker det att den finns.
+  const kanBekrafta = forfragan.granskning === "unconfirmed" && typeof bekrafta === "string" && bekrafta.length > 0;
 
   return (
     <div id="view-uppfoljning">
@@ -57,11 +69,12 @@ export default async function UppfoljningPage({ params }) {
             {forfragan.fornamn ? `Hej ${forfragan.fornamn}, ` : ""}
             <em>så här går det</em>
           </h1>
-          <p className="hero-sub">{sammanfattning(forfragan)}</p>
+          <p className="hero-sub">{sammanfattning(forfragan, kanBekrafta)}</p>
         </div>
       </section>
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 24px 60px", display: "flex", flexDirection: "column", gap: 16 }}>
+        {kanBekrafta && <BekraftaForfragan token={token} bekrafta={bekrafta} antal={forfragan.bolag.length} />}
         <div className="auth-panel">
           {forfragan.taggar.length > 0 && (
             <div className="tag-row" style={{ marginBottom: 10 }}>
