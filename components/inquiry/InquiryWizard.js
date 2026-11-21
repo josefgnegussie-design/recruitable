@@ -128,7 +128,6 @@ export default function InquiryWizard({ filters, results, totalt }) {
       website: "",
       role: "",
       company: "",
-      visaSomExempel: true,
       city: "",
       wantsCall: false,
       phone: "",
@@ -311,8 +310,6 @@ export default function InquiryWizard({ filters, results, totalt }) {
         requesterCompany: draft.company,
         requesterCity: draft.city,
         requesterPhone: draft.wantsCall ? draft.phone : "",
-        // Äldre utkast saknar fältet: då gäller förvalet.
-        visaSomExempel: draft.visaSomExempel !== false,
         turnstileToken,
       }),
     });
@@ -528,18 +525,6 @@ export default function InquiryWizard({ filters, results, totalt }) {
                 />
               )}
             </div>
-            <label className="upp-kryssrad upp-exempelval" htmlFor="inq-visa-exempel">
-              <input
-                id="inq-visa-exempel"
-                type="checkbox"
-                checked={draft.visaSomExempel !== false}
-                onChange={(e) => patch({ visaSomExempel: e.target.checked })}
-              />
-              <span>
-                Får visas anonymt bland pågående förfrågningar, med ort, tjänst och yrkesområde. Utan ert namn, ert
-                företag och er beskrivning.
-              </span>
-            </label>
             <Turnstile onVerify={handleTurnstileVerify} />
 
             {error && <p style={{ color: "#c0392b", fontSize: 13 }}>{error}</p>}

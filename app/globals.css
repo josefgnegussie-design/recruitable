@@ -1486,8 +1486,6 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .upp-ortfilter:focus-visible{outline:2px solid var(--color-accent,#c2410c);outline-offset:2px;}
 .upp-ortstapel li.vald{outline:2px solid var(--color-ink);}
 .upp-pagaende{margin-top:40px;}
-.upp-exempelval{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.45;color:var(--color-ink-soft,inherit);margin:4px 0 14px;}
-.upp-exempelval input{margin-top:2px;flex:none;}
 .upp-pagaende-lista{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
 .upp-pagaende-lista li{margin:0;}
 .upp-pagaende-kort{display:flex;flex-direction:column;}
