@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { MAX_ORD_I_SVAR, raknaOrd } from "@/lib/inquiries";
 import { useAndraObesvarade } from "@/components/admin/MinaSidorTabs";
+import { arbetsstalleText, formateraDatum, tidplanRader } from "@/lib/upphandlingInbjudan";
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString("sv-SE", { year: "numeric", month: "short", day: "numeric" });
@@ -23,19 +24,19 @@ const MANAD = new Date().toLocaleDateString("sv-SE", { month: "long" });
 // Det en upphandling har utöver en vanlig förfrågan. Köparen är beskriven, inte
 // namngiven: namnet blir rubrik först när förfrågan accepterats, som för alla
 // förfrågningar.
-function UpphandlingFakta({ u }) {
+function UpphandlingFakta({ u, unlocked }) {
+  const arbetsstallen = u.arbetsstallen?.length
+    ? u.arbetsstallen.map((a) => arbetsstalleText(a, true)).join("; ") +
+      (unlocked ? "" : " (gatuadressen visas när ni tackat ja)")
+    : u.orter?.join(", ");
   const rader = [
-    ["Orter", u.orter?.join(", ")],
+    [u.arbetsstallen?.length ? "Arbetsställen" : "Orter", arbetsstallen],
     ["Yrkesområden", u.omraden?.join(", ")],
     ["Kompetenser", u.kompetenser?.join(", ")],
     ["Krav", [...(u.krav || []), u.ovrigaKrav].filter(Boolean).join(", ")],
     ["Avtalstid", u.avtalstid],
     ["Volym", u.volym],
-    [
-      "Svar önskas senast",
-      u.svaraSenast &&
-        new Date(`${u.svaraSenast}T12:00:00`).toLocaleDateString("sv-SE", { day: "numeric", month: "long", year: "numeric" }),
-    ],
+    ...tidplanRader(u).map(([k, v]) => [k, formateraDatum(v)]),
     ["Köpare", u.kopare],
   ].filter(([, v]) => v);
 
@@ -242,7 +243,7 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
 
             <p style={{ marginTop: 12, marginBottom: 0, fontSize: 14.5, lineHeight: 1.5 }}>{inq.description}</p>
 
-            {inq.upphandling && <UpphandlingFakta u={inq.upphandling} />}
+            {inq.upphandling && <UpphandlingFakta u={inq.upphandling} unlocked={unlocked} />}
 
             <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
               {unlocked ? (

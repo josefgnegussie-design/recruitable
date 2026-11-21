@@ -1482,6 +1482,8 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .upp-rad{display:flex;gap:8px;align-items:stretch;}
 .upp-rad .btn{flex:none;}
 .upp-rad input{min-width:0;}
+.upp-adressrad input:first-child{flex:2;}
+.upp-adressrad input:nth-child(2){flex:1;max-width:140px;}
 .upp-rad-tat{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .upp-kravrad{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--color-hairline-soft);padding:8px 0;font-size:14px;color:var(--color-ink);}
 .upp-kravrad select{font-family:var(--font-body);font-size:13px;border:1px solid var(--color-hairline);border-radius:var(--radius-md);background:var(--color-canvas);padding:8px 10px;min-height:38px;}
@@ -1554,4 +1556,7 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
   .upp-matchlista .upp-fakta{grid-template-columns:minmax(0,1fr);gap:0 12px;}
   .upp-matchlista .upp-fakta dd{margin-bottom:4px;}
   .upp-ortstapel li{flex:1 1 40%;}
+  .upp-adressrad{flex-wrap:wrap;}
+  .upp-adressrad input:first-child{flex:1 1 100%;}
+  .upp-adressrad input:nth-child(2){flex:1;max-width:none;}
 }

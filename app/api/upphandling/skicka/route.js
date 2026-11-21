@@ -6,6 +6,7 @@ import { clientIp } from "@/lib/requestIp";
 import { arGratisadress } from "@/lib/gratisadresser";
 import { sparaOchSkickaForfragan } from "@/lib/forfraganSkickas";
 import { valideraInbjudan } from "@/lib/upphandlingInbjudan";
+import { arbetsstalleFran } from "@/lib/arbetsstalle";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,7 +35,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ogiltig förfrågan." }, { status: 400 });
   }
 
-  const { fel, rad, companyIds, extra, reserv, mejl } = valideraInbjudan(body);
+  const { fel, rad, companyIds, extra, reserv, mejl } = valideraInbjudan(body, arbetsstalleFran);
   if (fel) return NextResponse.json({ error: fel }, { status: 400 });
 
   if (!(await verifyTurnstile(body.turnstileToken, clientIp(request)))) {

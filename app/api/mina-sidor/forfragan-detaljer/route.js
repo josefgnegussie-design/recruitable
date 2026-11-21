@@ -42,7 +42,7 @@ export async function POST(request) {
   const { data: recipient } = await createAdminClient()
     .from("inquiry_recipients")
     .select(
-      "company_id, status, inquiries(moderation_status, requester_name, requester_email, " +
+      "company_id, inquiry_id, status, inquiries(moderation_status, requester_name, requester_email, " +
         "requester_role, requester_phone, requester_company, requester_city, requester_website)"
     )
     .eq("id", recipientId)
@@ -70,7 +70,17 @@ export async function POST(request) {
     return NextResponse.json({ error: "Kontaktuppgifterna låses upp först när förfrågan accepterats." }, { status: 403 });
   }
 
+  // En inbjudan från Upphandling har arbetsställen vars gatuadresser hölls inne
+  // före accept (mapInquiryRow). Hämtas för sig: saknas kolumnen, för att
+  // migration_upphandling_inbjudan.sql inte körts, ska kontaktuppgifterna ändå
+  // komma fram.
+  const { data: upp } = await createAdminClient()
+    .from("inquiries")
+    .select("upphandling")
+    .eq("id", recipient.inquiry_id)
+    .maybeSingle();
+
   // moderation_status hämtades bara för grinden ovan och hör inte hemma i svaret.
   const { moderation_status, ...kontaktuppgifter } = recipient.inquiries;
-  return NextResponse.json(kontaktuppgifter);
+  return NextResponse.json(upp?.upphandling ? { ...kontaktuppgifter, upphandling: upp.upphandling } : kontaktuppgifter);
 }

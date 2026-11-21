@@ -7,23 +7,29 @@ import { VARNA_VID_BOLAG } from "@/lib/upphandlingInbjudan";
 // köparen ser exakt vilka som får inbjudan. Resten finns ett klick bort.
 const FORST = 10;
 
+// Avståndet till närmaste kontor eller adress, räknat från arbetsstället.
 function avstandText(t) {
-  if (t.niva === "ort") return t.ort;
-  return `${t.ort} (${t.km < 10 ? `${t.km} km` : `${Math.round(t.km / 10)} mil`})`;
+  // Bolagens platser är ofta bara en postort, så korta avstånd avrundas.
+  return `${t.ort} (${t.km < 5 ? "under 5" : t.km} km)`;
 }
 
 // Bolagen i registret som passar det köparen fyllt i hittills, med en kryssruta
 // var. De valda får inbjudan. Uppdateras medan formuläret fylls i, med en kort
 // fördröjning så att varje tangent inte blir en fråga. Visar bara det som redan
 // står på de publika profilerna.
-export default function RelevantaBolag({ tjanst, omraden, orter, krav, vidResultat, valda, vaxla, valjAlla, valjInga }) {
+export default function RelevantaBolag({ tjanst, omraden, arbetsstallen, krav, vidResultat, valda, vaxla, valjAlla, valjInga }) {
   const [svar, setSvar] = useState(null);
   const [laddar, setLaddar] = useState(false);
   const [allaSynliga, setAllaSynliga] = useState(false);
-  const nyckel = JSON.stringify({ tjanst, omraden, orter, krav });
-  // Utan yrkesområde och ort finns inget att matcha på. Ett gammalt svar får då
+  const nyckel = JSON.stringify({
+    tjanst,
+    omraden,
+    arbetsstallen: arbetsstallen.map(({ adress, postnummer }) => ({ adress, postnummer })),
+    krav,
+  });
+  // Utan yrkesområde och arbetsställe finns inget att matcha på. Ett gammalt svar får då
   // inte stå kvar, så det döljs här i stället för att nollställas i effekten.
-  const komplett = omraden.length > 0 && orter.length > 0;
+  const komplett = omraden.length > 0 && arbetsstallen.length > 0;
 
   useEffect(() => {
     if (!komplett) return;
@@ -59,7 +65,7 @@ export default function RelevantaBolag({ tjanst, omraden, orter, krav, vidResult
       <section className="auth-panel upp-match">
         <h2 className="upp-rubrik-liten">3. Välj bolag att bjuda in</h2>
         <p className="upp-brod">
-          Välj minst ett yrkesområde och en ort ovan, så visar vi direkt vilka bemannings- och rekryteringsbolag i
+          Välj minst ett yrkesområde och lägg till ett arbetsställe ovan, så visar vi direkt vilka bemannings- och rekryteringsbolag i
           registret som kan leverera.
         </p>
       </section>
@@ -89,8 +95,8 @@ export default function RelevantaBolag({ tjanst, omraden, orter, krav, vidResult
               <span className="ort">{o.ort}</span>
               <span className="tal">
                 {o.paOrten + o.nara === 0
-                  ? "Inga bolag i närheten"
-                  : `${o.paOrten} på orten${o.nara ? `, ${o.nara} i närheten` : ""}`}
+                  ? "Inga bolag inom 75 km"
+                  : `${o.paOrten} inom 25 km${o.nara ? `, ${o.nara} inom 75 km` : ""}`}
               </span>
             </li>
           ))}
@@ -99,12 +105,12 @@ export default function RelevantaBolag({ tjanst, omraden, orter, krav, vidResult
 
       {svar.totalt === 0 ? (
         <p className="upp-brod">
-          Inga bolag i registret matchar. Prova fler yrkesområden, en annan tjänst eller en större ort i närheten.
+          Inga bolag i registret matchar. Prova fler yrkesområden eller en annan tjänst.
         </p>
       ) : (
         <>
           <p className="upp-not" style={{ marginTop: 0 }}>
-            Sorterade efter hur många av era orter bolaget finns på, därefter yrkesområden och krav som går att läsa i
+            Sorterade efter hur nära era arbetsställen bolaget finns, därefter yrkesområden och krav som går att läsa i
             profilen. De {Math.min(FORST, svar.bolag.length)} översta är förvalda.
           </p>
           <div className="upp-valrad">

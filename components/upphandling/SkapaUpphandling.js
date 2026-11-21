@@ -2,9 +2,9 @@
 
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { allRegionCities, kanoniskOrt } from "@/lib/helpers";
+import { allRegionCities } from "@/lib/helpers";
 import { TJANSTER, YRKESOMRADEN } from "@/lib/taxonomy";
-import { MAX_KOMPETENSER, MAX_OMRADEN, MAX_ORTER } from "@/lib/upphandling";
+import { idag, MAX_KOMPETENSER, MAX_OMRADEN, MAX_ORTER } from "@/lib/upphandling";
 import { FORVALDA_BOLAG, KRAV_VAL, MAX_BESKRIVNING } from "@/lib/upphandlingInbjudan";
 import { arGratisadress } from "@/lib/gratisadresser";
 import { useSessionDraft } from "@/lib/useSessionDraft";
@@ -20,7 +20,8 @@ import RelevantaBolag from "@/components/upphandling/RelevantaBolag";
 const TOMT = {
   tjanst: "",
   omraden: [],
-  orter: [],
+  // { adress, postnummer, postort } — postorten kommer ur postnummerregistret.
+  arbetsstallen: [],
   kompetenser: [],
   krav: [],
   ovrigaKrav: "",
@@ -33,6 +34,8 @@ const TOMT = {
   volym: "",
   beskrivning: "",
   svaraSenast: "",
+  beskedSenast: "",
+  startdatum: "",
   epost: "",
   webbplats: "",
   foretag: "",
@@ -51,7 +54,11 @@ function domanUrUrl(url) {
   }
 }
 
-// Chips med kryss, samma fält för orter och kompetenser.
+function arbetsstalleEtikett(a) {
+  return `${a.adress}, ${a.postnummer} ${a.postort}`;
+}
+
+// Chips med kryss, samma fält för arbetsställen och kompetenser.
 function Taggar({ lista, taBort }) {
   if (!lista.length) return null;
   return (
@@ -67,7 +74,8 @@ function Taggar({ lista, taBort }) {
 
 export default function SkapaUpphandling() {
   const { state: d, patch, restored, clearDraft } = useSessionDraft("upphandling-inbjudan", TOMT);
-  const [nyOrt, setNyOrt] = useState("");
+  const [nyAdress, setNyAdress] = useState("");
+  const [nyttPostnummer, setNyttPostnummer] = useState("");
   const [nyKompetens, setNyKompetens] = useState("");
   const [ortfel, setOrtfel] = useState("");
   const [fel, setFel] = useState("");
@@ -78,14 +86,15 @@ export default function SkapaUpphandling() {
   const vidVerifiering = useCallback((t) => setTurnstileToken(t), []);
 
   const orter = useMemo(() => allRegionCities(), []);
+  const idagLokalt = useMemo(() => idag(), []);
   const omraden = useMemo(() => Object.keys(YRKESOMRADEN), []);
 
   // Matchningen gäller bara så länge det finns något att matcha på.
-  const traffar = d.omraden.length && d.orter.length ? matchning : null;
+  const traffar = d.omraden.length && d.arbetsstallen.length ? matchning : null;
   const listade = useMemo(() => traffar?.bolag ?? [], [traffar]);
 
   // De valda, alltid bland bolagen som listas just nu. Ett bolag som föll bort
-  // när köparen ändrade orter ska inte få en inbjudan de inte längre ser.
+  // när köparen ändrade arbetsställen ska inte få en inbjudan de inte längre ser.
   const valda = useMemo(() => {
     const ids = new Set(listade.map((b) => b.id));
     const bas = d.valda ?? listade.slice(0, FORVALDA_BOLAG).map((b) => b.id);
@@ -99,12 +108,22 @@ export default function SkapaUpphandling() {
     patch({ valda: [...nya] });
   }
 
-  function laggTillOrt() {
-    const ort = kanoniskOrt(nyOrt);
-    if (!ort) return setOrtfel("Välj en svensk kommun ur listan.");
+  // Postnumret slås upp innan arbetsstället läggs till, så att köparen ser
+  // postorten och ett felskrivet nummer fångas här och inte vid skicka.
+  async function laggTillArbetsstalle() {
+    const adress = nyAdress.trim();
+    if (!adress) return setOrtfel("Skriv gatuadressen till arbetsstället.");
+    if (nyttPostnummer.replace(/\D/g, "").length !== 5) return setOrtfel("Skriv ett postnummer med fem siffror.");
+    if (d.arbetsstallen.length >= MAX_ORTER) return setOrtfel(`Högst ${MAX_ORTER} arbetsställen.`);
+    const res = await fetch(`/api/postnummer/sok?q=${encodeURIComponent(nyttPostnummer)}`).catch(() => null);
+    const svar = res?.ok ? await res.json().catch(() => null) : null;
+    if (!svar?.exakt) return setOrtfel("Hittar inte postnumret. Kontrollera det och försök igen.");
+    const nytt = { adress, postnummer: svar.exakt.postnummer, postort: svar.exakt.postort };
     setOrtfel("");
-    setNyOrt("");
-    if (!d.orter.includes(ort) && d.orter.length < MAX_ORTER) patch({ orter: [...d.orter, ort] });
+    setNyAdress("");
+    setNyttPostnummer("");
+    const finns = d.arbetsstallen.some((a) => arbetsstalleEtikett(a).toLowerCase() === arbetsstalleEtikett(nytt).toLowerCase());
+    if (!finns) patch({ arbetsstallen: [...d.arbetsstallen, nytt] });
   }
 
   function laggTillKompetens() {
@@ -152,7 +171,7 @@ export default function SkapaUpphandling() {
       body: JSON.stringify({
         tjanst: d.tjanst,
         omraden: d.omraden,
-        orter: d.orter,
+        arbetsstallen: d.arbetsstallen.map(({ adress, postnummer }) => ({ adress, postnummer })),
         kompetenser: d.kompetenser,
         krav: d.krav,
         ovrigaKrav: d.ovrigaKrav,
@@ -162,6 +181,8 @@ export default function SkapaUpphandling() {
         volym: d.volym,
         beskrivning: d.beskrivning,
         svaraSenast: d.svaraSenast,
+        beskedSenast: d.beskedSenast,
+        startdatum: d.startdatum,
         companyIds: [...valda],
         turnstileToken,
         kontakt: {
@@ -244,18 +265,21 @@ export default function SkapaUpphandling() {
                 </div>
               </div>
               <div className="field">
-                <label htmlFor="upp-ny-ort">Orter (högst {MAX_ORTER})</label>
-                <div className="upp-rad">
-                  <input id="upp-ny-ort" list="upp-orter" value={nyOrt} autoComplete="off" onChange={(e) => setNyOrt(e.target.value)} onKeyDown={vidEnter(laggTillOrt)} />
-                  <button type="button" className="btn btn-ghost" onClick={laggTillOrt}>Lägg till</button>
+                <label htmlFor="upp-ny-adress">Arbetsställen (högst {MAX_ORTER})</label>
+                <div className="upp-rad upp-adressrad">
+                  <input id="upp-ny-adress" value={nyAdress} maxLength={80} autoComplete="off" placeholder="Gatuadress" aria-label="Gatuadress" onChange={(e) => { setNyAdress(e.target.value); setOrtfel(""); }} onKeyDown={vidEnter(laggTillArbetsstalle)} />
+                  <input id="upp-ny-postnummer" value={nyttPostnummer} inputMode="numeric" maxLength={6} autoComplete="off" placeholder="Postnummer" aria-label="Postnummer" onChange={(e) => { setNyttPostnummer(e.target.value); setOrtfel(""); }} onKeyDown={vidEnter(laggTillArbetsstalle)} />
+                  <button type="button" className="btn btn-ghost" onClick={laggTillArbetsstalle}>Lägg till</button>
                 </div>
-                <datalist id="upp-orter">
-                  {orter.map((o) => (
-                    <option key={o} value={o} />
-                  ))}
-                </datalist>
+                <p className="hint">
+                  Där konsulterna ska arbeta. Avståndet räknas härifrån, som i kollektivavtalet: inom 25 km räknas ett bolag
+                  som på orten, inom 75 km som i närheten. Gatuadressen visas för bolagen först när de tackat ja.
+                </p>
                 {ortfel && <p className="field-error">{ortfel}</p>}
-                <Taggar lista={d.orter} taBort={(v) => patch({ orter: d.orter.filter((x) => x !== v) })} />
+                <Taggar
+                  lista={d.arbetsstallen.map(arbetsstalleEtikett)}
+                  taBort={(v) => patch({ arbetsstallen: d.arbetsstallen.filter((x) => arbetsstalleEtikett(x) !== v) })}
+                />
               </div>
               <div className="field" style={{ marginBottom: 0 }}>
                 <label htmlFor="upp-ny-kompetens">Kompetenser (valfritt, högst {MAX_KOMPETENSER})</label>
@@ -287,7 +311,7 @@ export default function SkapaUpphandling() {
             <RelevantaBolag
               tjanst={d.tjanst}
               omraden={d.omraden}
-              orter={d.orter}
+              arbetsstallen={d.arbetsstallen}
               krav={kravRelevanta}
               vidResultat={setMatchning}
               valda={valda}
@@ -317,9 +341,21 @@ export default function SkapaUpphandling() {
                 <textarea id="upp-beskrivning" rows={5} value={d.beskrivning} maxLength={MAX_BESKRIVNING} onChange={(e) => patch({ beskrivning: e.target.value })} required />
                 <p className="hint">Visas för bolagen innan de tagit ställning. Ert företagsnamn tar vi från fältet nedan.</p>
               </div>
-              <div className="field" style={{ marginBottom: 0, maxWidth: 260 }}>
-                <label htmlFor="upp-svar">Svar önskas senast (valfritt)</label>
-                <input id="upp-svar" type="date" value={d.svaraSenast} onChange={(e) => patch({ svaraSenast: e.target.value })} />
+              <h3 className="upp-underrubrik" style={{ marginTop: 18 }}>Tidplan</h3>
+              <p className="upp-not" style={{ marginTop: 0 }}>Står i inbjudan, så att bolagen vet när de behöver svara och när uppdraget börjar.</p>
+              <div className="field-row upp-tidplan-rad" style={{ marginBottom: 0 }}>
+                <div className="field">
+                  <label htmlFor="upp-svar">Svar önskas senast</label>
+                  <input id="upp-svar" type="date" value={d.svaraSenast} min={idagLokalt} onChange={(e) => patch({ svaraSenast: e.target.value })} />
+                </div>
+                <div className="field">
+                  <label htmlFor="upp-besked">Besked till bolagen</label>
+                  <input id="upp-besked" type="date" value={d.beskedSenast} min={d.svaraSenast || idagLokalt} onChange={(e) => patch({ beskedSenast: e.target.value })} />
+                </div>
+                <div className="field">
+                  <label htmlFor="upp-start">Planerad start</label>
+                  <input id="upp-start" type="date" value={d.startdatum} min={d.beskedSenast || d.svaraSenast || idagLokalt} onChange={(e) => patch({ startdatum: e.target.value })} />
+                </div>
               </div>
             </section>
 
@@ -368,6 +404,11 @@ export default function SkapaUpphandling() {
                 <div className="field">
                   <label htmlFor="upp-ort">Ort</label>
                   <input id="upp-ort" list="upp-orter" value={d.ort} autoComplete="off" onChange={(e) => patch({ ort: e.target.value })} required />
+                  <datalist id="upp-orter">
+                    {orter.map((o) => (
+                      <option key={o} value={o} />
+                    ))}
+                  </datalist>
                 </div>
                 <div className="field">
                   <label htmlFor="upp-telefon">Telefon (valfritt)</label>
@@ -385,7 +426,9 @@ export default function SkapaUpphandling() {
                 <div><dt>Relevanta bolag</dt><dd>{traffar ? traffar.totalt : "–"}</dd></div>
                 <div><dt>Varav aktiva på Recruitable</dt><dd>{traffar ? traffar.aktiva : "–"}</dd></div>
                 <div><dt>Valda att bjuda in</dt><dd>{valda.size}</dd></div>
-                <div><dt>Orter</dt><dd>{d.orter.length}</dd></div>
+                <div><dt>Arbetsställen</dt><dd>{d.arbetsstallen.length}</dd></div>
+                <div><dt>Svar senast</dt><dd>{d.svaraSenast || "–"}</dd></div>
+                <div><dt>Planerad start</dt><dd>{d.startdatum || "–"}</dd></div>
                 <div><dt>Krav</dt><dd>{d.krav.length + (d.ovrigaKrav.trim() ? 1 : 0)}</dd></div>
               </dl>
               <Turnstile onVerify={vidVerifiering} />
