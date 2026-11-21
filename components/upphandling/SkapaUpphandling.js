@@ -14,7 +14,7 @@ import RelevantaBolag from "@/components/upphandling/RelevantaBolag";
 
 // Köparen beskriver behovet, ser direkt vilka bolag som passar, väljer vilka som
 // ska bjudas in och skickar. Inbjudan går sedan samma väg som en förfrågan från
-// Rekrytera: Recruitable granskar, bolagen accepterar eller tackar nej på Mina
+// Rekrytera: avsändaren bekräftar via mejl, bolagen accepterar eller tackar nej på Mina
 // sidor, och köparens namn och kontaktuppgifter syns för bolaget först vid accept.
 
 const TOMT = {
@@ -201,7 +201,7 @@ export default function SkapaUpphandling() {
 
     if (!res.ok) return setFel(svar.error || "Något gick fel. Försök igen.");
     clearDraft();
-    setSkickad({ antal: svar.count, uppfoljning: svar.uppfoljning, epost: d.epost });
+    setSkickad({ antal: svar.count, uppfoljning: svar.uppfoljning, epost: d.epost, masteBekrafta: svar.masteBekrafta !== false });
   }
 
   if (!restored) return null;
@@ -210,17 +210,28 @@ export default function SkapaUpphandling() {
     return (
       <div style={{ maxWidth: 520, margin: "48px auto 60px", padding: "0 24px", textAlign: "center" }}>
         <div className="auth-panel">
-          <h1 className="upp-rubrik">Tack!</h1>
-          <p className="upp-brod">
-            Inbjudan till {skickad.antal} bolag granskas nu av Recruitable. När den är godkänd får bolagen den och tar
-            ställning till om de vill gå vidare. Era kontaktuppgifter visas bara för dem som tackar ja.
-          </p>
-          {skickad.uppfoljning && (
+          <h1 className="upp-rubrik">{skickad.masteBekrafta ? "Ett steg kvar" : "Tack!"}</h1>
+          {skickad.masteBekrafta ? (
+            <p className="upp-brod">
+              Vi har skickat ett mejl till {skickad.epost}. Tryck på &quot;Bekräfta och skicka&quot; i mejlet, så går
+              inbjudan vidare till {skickad.antal} bolag. Era kontaktuppgifter visas bara för dem som tackar ja.
+            </p>
+          ) : (
+            <p className="upp-brod">
+              Inbjudan till {skickad.antal} bolag granskas nu av Recruitable. När den är godkänd får bolagen den och tar
+              ställning till om de vill gå vidare. Era kontaktuppgifter visas bara för dem som tackar ja.
+            </p>
+          )}
+          {skickad.uppfoljning && !skickad.masteBekrafta && (
             <Link className="qs-btn upp-lank-knapp" href={skickad.uppfoljning}>Följ svaren</Link>
           )}
-          <p className="upp-not">Länken finns också i bekräftelsemejlet till {skickad.epost}.</p>
+          <p className="upp-not">
+            {skickad.masteBekrafta
+              ? "Samma mejl har en länk där ni sedan följer bolagens svar."
+              : `Länken finns också i bekräftelsemejlet till ${skickad.epost}.`}
+          </p>
         </div>
-        <SkrappostPaminnelse adress={skickad.epost} />
+        <SkrappostPaminnelse adress={skickad.epost} bekrafta={skickad.masteBekrafta ? "inbjudan" : undefined} />
       </div>
     );
   }
@@ -437,7 +448,7 @@ export default function SkapaUpphandling() {
                 {skickar ? "Skickar..." : valda.size ? `Skicka inbjudan till ${valda.size} bolag` : "Välj bolag att bjuda in"}
               </button>
               <p className="upp-not">
-                Recruitable granskar inbjudan innan bolagen får den. Ni följer deras svar på en egen sida, utan konto.
+                Ni bekräftar inbjudan via mejl innan bolagen får den. Ni följer deras svar på en egen sida, utan konto.
               </p>
             </section>
           </aside>

@@ -154,6 +154,9 @@ export default function InquiryWizard({ filters, results, totalt }) {
   // Uppföljningssidan för just den här förfrågan. Samma länk som i
   // bekräftelsemejlet; null om servern inte kunde skapa någon.
   const [uppfoljning, setUppfoljning] = useState(null);
+  // Förfrågan går vidare först när avsändaren bekräftat via mejlet. False bara
+  // om servern saknar migrationen och granskar manuellt som förut.
+  const [masteBekrafta, setMasteBekrafta] = useState(true);
   const handleTurnstileVerify = useCallback((token) => setTurnstileToken(token), []);
 
   function toggleCompany(id) {
@@ -324,6 +327,7 @@ export default function InquiryWizard({ filters, results, totalt }) {
 
     const svar = await res.json().catch(() => ({}));
     setUppfoljning(typeof svar.uppfoljning === "string" ? svar.uppfoljning : null);
+    setMasteBekrafta(svar.masteBekrafta !== false);
     setStatus("success");
     setShowConfirm(false);
     // Förfrågan är skickad — utkastet ska inte ligga kvar till nästa gång.
@@ -550,7 +554,7 @@ export default function InquiryWizard({ filters, results, totalt }) {
           <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
             <h3>{`Skicka till ${selected.size} bolag?`}</h3>
             <p className="sub">
-              Dessa bolag får se er förfrågan så snart Recruitable har granskat och godkänt den:
+              Dessa bolag får se er förfrågan så snart du bekräftat den via mejlet vi skickar:
             </p>
             <ul className="confirm-company-list">
               {results
@@ -580,11 +584,13 @@ export default function InquiryWizard({ filters, results, totalt }) {
       {visibleStep === 3 && (
         <div style={{ maxWidth: 480, margin: "20px auto 60px", padding: "0 24px", textAlign: "center" }}>
           <div className="auth-panel">
-            <h2 style={{ marginTop: 0 }}>Tack!</h2>
+            <h2 style={{ marginTop: 0 }}>{masteBekrafta ? "Ett steg kvar" : "Tack!"}</h2>
             <p>
-              {`Er förfrågan skickades till granskning hos Recruitable. Så snart den är godkänd ser de ${selected.size} valda bolagen den under sina Mina sidor och kan höra av sig direkt till dig på ${draft.email}.`}
+              {masteBekrafta
+                ? `Vi har skickat ett mejl till ${draft.email}. Tryck på "Bekräfta och skicka" i mejlet, så går förfrågan vidare till de ${selected.size} valda bolagen. De kan sedan höra av sig direkt till dig.`
+                : `Er förfrågan skickades till granskning hos Recruitable. Så snart den är godkänd ser de ${selected.size} valda bolagen den under sina Mina sidor och kan höra av sig direkt till dig på ${draft.email}.`}
             </p>
-            {uppfoljning ? (
+            {uppfoljning && !masteBekrafta ? (
               <>
                 <p>Följ förfrågan på en egen sida: där ser du vilka bolag som är intresserade, har tackat nej eller inte svarat än. Länken finns också i bekräftelsemejlet.</p>
                 <Link className="qs-btn" href={uppfoljning} style={{ display: "inline-block", textDecoration: "none" }}>
@@ -597,7 +603,7 @@ export default function InquiryWizard({ filters, results, totalt }) {
               </Link>
             )}
           </div>
-          <SkrappostPaminnelse adress={draft.email} />
+          <SkrappostPaminnelse adress={draft.email} bekrafta={masteBekrafta ? "förfrågan" : undefined} />
         </div>
       )}
     </div>

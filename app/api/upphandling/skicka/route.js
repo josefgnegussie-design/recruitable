@@ -4,6 +4,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { clientIp } from "@/lib/requestIp";
 import { arGratisadress } from "@/lib/gratisadresser";
+import { domanTarEmotMejl } from "@/lib/automatiskGranskning";
 import { sparaOchSkickaForfragan } from "@/lib/forfraganSkickas";
 import { valideraInbjudan } from "@/lib/upphandlingInbjudan";
 import { arbetsstalleFran } from "@/lib/arbetsstalle";
@@ -23,7 +24,7 @@ function domainOf(url) {
 
 // Köparen bjuder in de bolag den valt ut. Inget konto krävs, och samma spärrar
 // som för en förfrågan från Rekrytera gäller: Turnstile, e-post på företagets
-// egen domän och granskning innan bolagen får något. Därefter går inbjudan
+// egen domän och bekräftelse via mejl innan bolagen får något. Därefter går inbjudan
 // samma väg som en förfrågan, se lib/forfraganSkickas.js.
 export async function POST(request) {
   const limited = await rateLimit(request, "upphandling-skicka", 5, 3600);
@@ -52,6 +53,12 @@ export async function POST(request) {
     return NextResponse.json(
       { error: `E-postadressen måste matcha er webbplats (${webbDoman || "okänd domän"}).` },
       { status: 403 }
+    );
+  }
+  if (!(await domanTarEmotMejl(epostDoman))) {
+    return NextResponse.json(
+      { error: `Vi kan inte skicka mejl till ${epostDoman}. Kontrollera att adressen är rätt stavad.` },
+      { status: 400 }
     );
   }
 

@@ -14,7 +14,12 @@ import { useEffect, useRef, useState } from "react";
 // Rutan öppnas av sig själv, för den som redan fått mejlet i inkorgen klickar
 // bort den på en sekund — medan den som inte fått det annars hade dragit
 // slutsatsen att ingenting skickades.
-export default function SkrappostPaminnelse({ adress }) {
+//
+// Med `bekrafta` ("förfrågan" eller "inbjudan") gäller rutan ett utskick som
+// inte går vidare förrän avsändaren tryckt på knappen i mejlet. Då är det inte
+// bara en påminnelse: hittar avsändaren inte mejlet når utskicket aldrig
+// bolagen, och det ska stå i klartext.
+export default function SkrappostPaminnelse({ adress, bekrafta }) {
   const [open, setOpen] = useState(true);
   const knappRef = useRef(null);
 
@@ -42,18 +47,32 @@ export default function SkrappostPaminnelse({ adress }) {
         aria-modal="true"
         aria-labelledby="skrappost-rubrik"
       >
-        <h3 id="skrappost-rubrik">Håll utkik i skräpposten</h3>
-        <p className="sub">
+        {bekrafta ? (
+          <>
+            <h3 id="skrappost-rubrik">Bekräfta {bekrafta === "inbjudan" ? "inbjudan" : "förfrågan"} i mejlet</h3>
+            <p className="sub">
+              Är det första gången du använder Recruitable? Håll då utkik efter vårt mejl i inkorgen och i
+              skräpposten. Det kommer från <b>recruitable.se</b>
+              {adress ? <> och skickas till <b>{adress}</b></> : null}.
+            </p>
+            <p className="sub">
+              Tryck på <b>Bekräfta och skicka</b> i mejlet. Först då når {bekrafta === "inbjudan" ? "inbjudan" : "förfrågan"} bolagen.
+            </p>
+          </>
+        ) : (
+          <h3 id="skrappost-rubrik">Håll utkik i skräpposten</h3>
+        )}
+        {!bekrafta && <p className="sub">
           Bekräftelsen är skickad{adress ? <> till <b>{adress}</b></> : null}. Håll utkik i skräpposten
           ifall den inte kommit fram till inkorgen — mejlet kommer från <b>recruitable.se</b>.
-        </p>
+        </p>}
         <p className="note" style={{ fontSize: 12.5, marginTop: -4 }}>
           Hittar du det där: markera det som &quot;inte skräppost&quot;, så hamnar kommande mejl från oss
           rätt direkt.
         </p>
         <div className="confirm-actions">
           <button type="button" className="qs-btn" ref={knappRef} onClick={() => setOpen(false)}>
-            Okej
+            {bekrafta ? "Jag förstår" : "Okej"}
           </button>
         </div>
       </div>

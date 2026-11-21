@@ -6,8 +6,12 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString("sv-SE", { year: "numeric", month: "short", day: "numeric" });
 }
 
-export default function ModerationQueue({ initialQueue }) {
+export default function ModerationQueue({ initialQueue, initialGodkanda = [] }) {
   const [queue, setQueue] = useState(initialQueue);
+  const [godkanda, setGodkanda] = useState(initialGodkanda);
+  // Tillbakadragningen har ett andra klick: den tar bort förfrågan från bolag
+  // som kanske redan svarat, och går inte att ångra härifrån.
+  const [bekraftaDra, setBekraftaDra] = useState(null);
   const [decidingId, setDecidingId] = useState(null);
   const [errorId, setErrorId] = useState(null);
   const [kvitto, setKvitto] = useState("");
@@ -17,6 +21,7 @@ export default function ModerationQueue({ initialQueue }) {
   // fick något mejl — de allra flesta i registret har ännu inte tagit över sin
   // profil, och det är en uppgift om verkligheten, inte ett fel.
   function kvittotext(decision, data) {
+    if (decision === "withdrawn") return "Förfrågan dragen tillbaka. Den syns inte längre för bolagen.";
     if (decision !== "approved") return "Förfrågan nekad. Inget bolag har informerats.";
     const mejlade = data?.mejlade ?? 0;
     const utan = data?.utanMottagare ?? 0;
@@ -49,6 +54,8 @@ export default function ModerationQueue({ initialQueue }) {
       const data = await res.json().catch(() => null);
       setKvitto(kvittotext(decision, data));
       setQueue((prev) => prev.filter((item) => item.inquiryId !== inquiryId));
+      setGodkanda((prev) => prev.filter((item) => item.inquiryId !== inquiryId));
+      setBekraftaDra(null);
     } else {
       setErrorId(inquiryId);
     }
@@ -59,81 +66,128 @@ export default function ModerationQueue({ initialQueue }) {
     <p style={{ fontSize: 13, color: "var(--color-body)", margin: "0 0 18px" }}>{kvitto}</p>
   ) : null;
 
-  if (queue.length === 0) {
+  function kort(item, knappar) {
     return (
-      <>
-        {kvittoRad}
-        <p style={{ color: "var(--color-muted)" }}>Inget att granska just nu.</p>
-      </>
+      <div className="auth-panel" key={item.inquiryId}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: 16 }}>
+              {item.requesterName} · {item.requesterCompany}
+            </p>
+            <p style={{ margin: "2px 0 0", fontSize: 13, color: "var(--color-muted)", overflowWrap: "anywhere" }}>
+              {item.requesterRole} · {item.requesterCity} ·{" "}
+              <a href={`mailto:${item.requesterEmail}`}>{item.requesterEmail}</a> ·{" "}
+              <a href={`https://${item.requesterWebsite.replace(/^https?:\/\//, "")}`} target="_blank" rel="noreferrer">
+                {item.requesterWebsite}
+              </a>
+              {item.requesterPhone && (
+                <>
+                  {" · "}
+                  <a href={`tel:${item.requesterPhone}`}>{item.requesterPhone}</a>
+                </>
+              )}
+            </p>
+          </div>
+          <span style={{ fontSize: 12, color: "var(--color-muted)", whiteSpace: "nowrap" }}>
+            {formatDate(item.moderatedAt || item.createdAt)}
+          </span>
+        </div>
+
+        {item.orsaker?.length > 0 && (
+          <div className="granskning-orsaker">
+            <p>Godkändes inte automatiskt:</p>
+            <ul>
+              {item.orsaker.map((o) => (
+                <li key={o}>{o}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {(item.upphandling || item.searchRole || item.focusArea || item.service) && (
+          <div className="tag-row" style={{ marginTop: 10 }}>
+            {item.upphandling && <span className="tag">Upphandling</span>}
+            {item.searchRole && <span className="tag">{item.searchRole}</span>}
+            {item.focusArea && <span className="tag">{item.focusArea}</span>}
+            {item.service && <span className="tag">{item.service}</span>}
+          </div>
+        )}
+
+        <p style={{ marginTop: 12, marginBottom: 0, fontSize: 14.5, lineHeight: 1.5 }}>{item.description}</p>
+
+        <p style={{ marginTop: 12, marginBottom: 0, fontSize: 13, color: "var(--color-muted)" }}>
+          {knappar === "godkand" ? "Skickad till" : "Skickas till"}: <b>{item.companies.join(", ") || "—"}</b>
+          {knappar === "godkand" && ` · ${item.automatiskt ? "godkänd automatiskt" : "godkänd av Recruitable"}`}
+        </p>
+
+        <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          {knappar === "godkand" ? (
+            bekraftaDra === item.inquiryId ? (
+              <>
+                <span style={{ fontSize: 13 }}>Förfrågan försvinner från bolagens Mina sidor.</span>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={decidingId === item.inquiryId}
+                  onClick={() => decide(item.inquiryId, "withdrawn")}
+                >
+                  {decidingId === item.inquiryId ? "..." : "Dra tillbaka"}
+                </button>
+                <button type="button" className="btn btn-ghost" onClick={() => setBekraftaDra(null)}>
+                  Avbryt
+                </button>
+              </>
+            ) : (
+              <button type="button" className="btn btn-ghost" onClick={() => setBekraftaDra(item.inquiryId)}>
+                Dra tillbaka
+              </button>
+            )
+          ) : (
+            <>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={decidingId === item.inquiryId}
+                onClick={() => decide(item.inquiryId, "approved")}
+              >
+                {decidingId === item.inquiryId ? "..." : "Godkänn"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={decidingId === item.inquiryId}
+                onClick={() => decide(item.inquiryId, "rejected")}
+              >
+                Neka
+              </button>
+            </>
+          )}
+          {errorId === item.inquiryId && (
+            <span style={{ color: "#c0392b", fontSize: 12.5 }}>Något gick fel, försök igen.</span>
+          )}
+        </div>
+      </div>
     );
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {kvittoRad}
-      {queue.map((item) => (
-        <div className="auth-panel" key={item.inquiryId}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-            <div>
-              <p style={{ margin: 0, fontWeight: 600, fontSize: 16 }}>
-                {item.requesterName} · {item.requesterCompany}
-              </p>
-              <p style={{ margin: "2px 0 0", fontSize: 13, color: "var(--color-muted)" }}>
-                {item.requesterRole} · {item.requesterCity} ·{" "}
-                <a href={`mailto:${item.requesterEmail}`}>{item.requesterEmail}</a> ·{" "}
-                <a href={`https://${item.requesterWebsite.replace(/^https?:\/\//, "")}`} target="_blank" rel="noreferrer">
-                  {item.requesterWebsite}
-                </a>
-                {item.requesterPhone && (
-                  <>
-                    {" · "}
-                    <a href={`tel:${item.requesterPhone}`}>{item.requesterPhone}</a>
-                  </>
-                )}
-              </p>
-            </div>
-            <span style={{ fontSize: 12, color: "var(--color-muted)", whiteSpace: "nowrap" }}>
-              {formatDate(item.createdAt)}
-            </span>
-          </div>
+      {queue.length === 0 ? (
+        <p style={{ color: "var(--color-muted)", margin: 0 }}>Inget att granska just nu.</p>
+      ) : (
+        queue.map((item) => kort(item, "ko"))
+      )}
 
-          {(item.searchRole || item.focusArea || item.service) && (
-            <div className="tag-row" style={{ marginTop: 10 }}>
-              {item.searchRole && <span className="tag">{item.searchRole}</span>}
-              {item.focusArea && <span className="tag">{item.focusArea}</span>}
-              {item.service && <span className="tag">{item.service}</span>}
-            </div>
-          )}
-
-          <p style={{ marginTop: 12, marginBottom: 0, fontSize: 14.5, lineHeight: 1.5 }}>{item.description}</p>
-
-          <p style={{ marginTop: 12, marginBottom: 0, fontSize: 13, color: "var(--color-muted)" }}>
-            Skickas till: <b>{item.companies.join(", ") || "—"}</b>
+      {godkanda.length > 0 && (
+        <>
+          <h2 style={{ fontSize: 18, margin: "28px 0 0" }}>Skickade de senaste 14 dagarna</h2>
+          <p style={{ color: "var(--color-muted)", fontSize: 13.5, margin: 0 }}>
+            Har något slunkit igenom som inte borde, kan du dra tillbaka det här.
           </p>
-
-          <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "center" }}>
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={decidingId === item.inquiryId}
-              onClick={() => decide(item.inquiryId, "approved")}
-            >
-              {decidingId === item.inquiryId ? "..." : "Godkänn"}
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost"
-              disabled={decidingId === item.inquiryId}
-              onClick={() => decide(item.inquiryId, "rejected")}
-            >
-              Neka
-            </button>
-            {errorId === item.inquiryId && (
-              <span style={{ color: "#c0392b", fontSize: 12.5 }}>Något gick fel, försök igen.</span>
-            )}
-          </div>
-        </div>
-      ))}
+          {godkanda.map((item) => kort(item, "godkand"))}
+        </>
+      )}
     </div>
   );
 }
