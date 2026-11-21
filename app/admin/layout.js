@@ -26,9 +26,8 @@ export default async function AdminLayout({ children }) {
   if (!isPlatformAdmin(user.email)) redirect("/");
 
   const admin = createAdminClient();
-  const [forfragningar, upphandlingar, ansokningar, sammanslagningar, avregistrerade] = await Promise.all([
+  const [forfragningar, ansokningar, sammanslagningar, avregistrerade] = await Promise.all([
     admin.from("inquiries").select("id", { count: "exact", head: true }).eq("moderation_status", "pending"),
-    admin.from("procurements").select("id", { count: "exact", head: true }).eq("moderation_status", "pending"),
     admin
       .from("company_admins")
       .select("id", { count: "exact", head: true })
@@ -59,7 +58,6 @@ export default async function AdminLayout({ children }) {
         <AdminNav
           koer={{
             forfragningar: forfragningar.count ?? 0,
-            upphandlingar: upphandlingar.count ?? 0,
             ansokningar: ansokningar.count ?? 0,
             sammanslagningar: (sammanslagningar.count ?? 0) + (avregistrerade.count ?? 0),
           }}

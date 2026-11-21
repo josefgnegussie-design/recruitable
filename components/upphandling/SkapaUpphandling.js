@@ -43,6 +43,7 @@ const TOMT = {
   namn: "",
   roll: "",
   telefon: "",
+  visaSomExempel: true,
 };
 
 function domanUrUrl(url) {
@@ -183,6 +184,7 @@ export default function SkapaUpphandling() {
         svaraSenast: d.svaraSenast,
         beskedSenast: d.beskedSenast,
         startdatum: d.startdatum,
+        visaSomExempel: d.visaSomExempel,
         companyIds: [...valda],
         turnstileToken,
         kontakt: {
@@ -431,6 +433,13 @@ export default function SkapaUpphandling() {
                 <div><dt>Planerad start</dt><dd>{d.startdatum || "–"}</dd></div>
                 <div><dt>Krav</dt><dd>{d.krav.length + (d.ovrigaKrav.trim() ? 1 : 0)}</dd></div>
               </dl>
+              <label className="upp-kryssrad upp-exempelval">
+                <input type="checkbox" checked={d.visaSomExempel} onChange={(e) => patch({ visaSomExempel: e.target.checked })} />
+                <span>
+                  Får visas anonymt bland pågående upphandlingar, med yrkesprofiler, ort, tjänst och start.
+                  Utan ert namn, er beskrivning och era adresser.
+                </span>
+              </label>
               <Turnstile onVerify={vidVerifiering} />
               {fel && <p className="field-error" role="alert">{fel}</p>}
               <button className="qs-btn" type="submit" disabled={skickar || !klar || !valda.size}>

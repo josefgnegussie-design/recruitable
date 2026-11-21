@@ -12,8 +12,7 @@ const SIDOR = [
   { href: "/admin/logg", etikett: "Loggbok" },
 ];
 
-// Inbjudningar från Upphandling granskas bland förfrågningarna, så den egna
-// kön för upphandlingar är borttagen ur menyn.
+// Inbjudningar från Upphandling granskas bland förfrågningarna.
 //
 // Navigering mellan de interna sidorna. De tre som fanns sedan tidigare gick
 // bara att nå genom att skriva adressen för hand — de hänger nu ihop med
