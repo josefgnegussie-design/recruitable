@@ -4,9 +4,7 @@ import { YRKESOMRADEN, GILTIGA_TJANSTER } from "@/lib/taxonomy";
 import { rateLimit } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { clientIp } from "@/lib/requestIp";
-import { sendInquiryConfirmationToRequester, sendModerationAlertToAdmins } from "@/lib/email";
-import { upphordaAv } from "@/lib/sammanslagning";
-import { nyUppfoljningstoken, uppfoljningsSokvag } from "@/lib/uppfoljning";
+import { sparaOchSkickaForfragan } from "@/lib/forfraganSkickas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -110,37 +108,6 @@ export async function POST(request) {
 
   const supabase = createAdminClient();
 
-  // Slå upp de valda bolagen. Det här är både existenskontrollen och källan till
-  // namnen i mejlen — tidigare hämtades namnen ur den statiska filen, som inte
-  // känner till bolag som tillkommit i registret sedan senaste driftsättning.
-  const { data: valdaBolag, error: bolagError } = await supabase
-    .from("companies")
-    .select("id, name")
-    .in("id", companyIds);
-
-  if (bolagError) {
-    console.error("Kunde inte slå upp valda bolag:", JSON.stringify(bolagError));
-    return NextResponse.json({ error: "Kunde inte spara förfrågan. Försök igen." }, { status: 500 });
-  }
-
-  if (!valdaBolag || valdaBolag.length !== companyIds.length) {
-    return NextResponse.json(
-      { error: "Ett eller flera av de valda bolagen finns inte längre i registret." },
-      { status: 400 }
-    );
-  }
-
-  // Ett bolag som slagits ihop eller avregistrerats försvinner ur sökningen, men
-  // en sida som stått öppen sedan före dess har kryssrutan kvar. Utan kontrollen
-  // landar förfrågan hos ett bolag som inte finns kvar, och blir aldrig besvarad.
-  const upphorda = await upphordaAv(supabase, companyIds);
-  if (upphorda.length) {
-    return NextResponse.json(
-      { error: "Ett eller flera av de valda bolagen finns inte längre i registret. Ladda om sidan och sök på nytt." },
-      { status: 400 }
-    );
-  }
-
   const forfraganRad = {
     search_role: searchRole || null,
     focus_area: focusArea || null,
@@ -157,43 +124,7 @@ export async function POST(request) {
     requester_phone: requesterPhone?.trim() || null,
   };
 
-  // Uppföljningslänken till beställaren. Saknas kolumnen har migrationen inte
-  // körts: förfrågan sparas då utan länk i stället för att gå förlorad, och
-  // beställaren får mejlet som förut.
-  const uppfoljning = nyUppfoljningstoken();
-  let { data: inquiry, error: inquiryError } = await supabase
-    .from("inquiries")
-    .insert({ ...forfraganRad, uppfoljning_token_hash: uppfoljning.tokenHash })
-    .select("id")
-    .single();
-
-  let uppfoljningsLank = uppfoljningsSokvag(uppfoljning.token);
-  if (inquiryError && (inquiryError.code === "42703" || inquiryError.code === "PGRST204")) {
-    console.error("inquiries saknar uppfoljning_token_hash — kör supabase/migration_uppfoljning.sql.");
-    uppfoljningsLank = null;
-    ({ data: inquiry, error: inquiryError } = await supabase
-      .from("inquiries")
-      .insert(forfraganRad)
-      .select("id")
-      .single());
-  }
-
-  if (inquiryError || !inquiry) {
-    console.error("Kunde inte spara förfrågan:", JSON.stringify(inquiryError));
-    return NextResponse.json({ error: "Kunde inte spara förfrågan. Försök igen." }, { status: 500 });
-  }
-
-  const recipients = companyIds.map((companyId) => ({ inquiry_id: inquiry.id, company_id: companyId }));
-  const { error: recipientsError } = await supabase.from("inquiry_recipients").insert(recipients);
-
-  if (recipientsError) {
-    console.error("Kunde inte spara mottagare:", JSON.stringify(recipientsError));
-    return NextResponse.json({ error: "Kunde inte spara förfrågan. Försök igen." }, { status: 500 });
-  }
-
-  const companyNames = valdaBolag.map((c) => c.name);
-
-  const inquiryForEmail = {
+  const mejl = {
     requesterName: requesterName.trim(),
     requesterEmail: requesterEmail.trim(),
     requesterRole: requesterRole.trim(),
@@ -206,21 +137,11 @@ export async function POST(request) {
     searchRole: searchRole || "",
     focusArea: focusArea || "",
     service: service || "",
-    companyNames,
-    uppfoljningsLank,
   };
 
-  // Bekräftelse till avsändaren och granskningsnotis till plattformsadmin
-  // skickas alltid — best effort, misslyckas aldrig hela requesten.
-  // Bolagen som valts får inget mejl härifrån: det skickas när förfrågan
-  // godkänns i /api/admin/moderera-forfragan, annars hade granskningen varit
-  // meningslös.
-  await Promise.allSettled([
-    sendInquiryConfirmationToRequester(inquiryForEmail),
-    sendModerationAlertToAdmins(inquiryForEmail),
-  ]);
-
-  // Länken går också tillbaka till webbläsaren, så att tacksidan kan visa den.
-  // Det är beställarens egen förfrågan, och token är samma som i mejlet.
-  return NextResponse.json({ ok: true, count: recipients.length, uppfoljning: uppfoljningsLank });
+  // Resten — bolagen, mottagarna, uppföljningslänken och mejlen — delas med
+  // inbjudningarna från Upphandling. Se lib/forfraganSkickas.js.
+  const { svar, fel, status } = await sparaOchSkickaForfragan(supabase, { rad: forfraganRad, companyIds, mejl });
+  if (fel) return NextResponse.json({ error: fel }, { status });
+  return NextResponse.json(svar);
 }

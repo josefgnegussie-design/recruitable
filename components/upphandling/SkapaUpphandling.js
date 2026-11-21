@@ -2,38 +2,40 @@
 
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { allRegionCities, kanoniskOrt } from "@/lib/helpers";
+import { allRegionCities } from "@/lib/helpers";
 import { TJANSTER, YRKESOMRADEN } from "@/lib/taxonomy";
-import { KRAV_MALL, MAX_KOMPETENSER, MAX_KRAV, MAX_OMRADEN, MAX_ORTER } from "@/lib/upphandling";
+import { idag, MAX_KOMPETENSER, MAX_OMRADEN, MAX_ORTER } from "@/lib/upphandling";
+import { forvaldaBolag, KRAV_VAL, MAX_BESKRIVNING } from "@/lib/upphandlingInbjudan";
 import { arGratisadress } from "@/lib/gratisadresser";
 import { useSessionDraft } from "@/lib/useSessionDraft";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
 import SkrappostPaminnelse from "@/components/SkrappostPaminnelse";
+import RelevantaBolag from "@/components/upphandling/RelevantaBolag";
 
-const NIVAER = [
-  { varde: "ska", namn: "Ska-krav" },
-  { varde: "bor", namn: "Bör-krav" },
-  { varde: "inget", namn: "Inget krav" },
-];
+// Köparen beskriver behovet, ser direkt vilka bolag som passar, väljer vilka som
+// ska bjudas in och skickar. Inbjudan går sedan samma väg som en förfrågan från
+// Rekrytera: Recruitable granskar, bolagen accepterar eller tackar nej på Mina
+// sidor, och köparens namn och kontaktuppgifter syns för bolaget först vid accept.
 
 const TOMT = {
-  kopartyp: "privat",
+  tjanst: "",
+  omraden: [],
+  // { adress, postnummer, postort } — postorten kommer ur postnummerregistret.
+  arbetsstallen: [],
+  kompetenser: [],
+  krav: [],
+  ovrigaKrav: "",
+  // null tills köparen själv kryssat: då gäller de översta i matchningen. Annars
+  // hade förvalet behövt skrivas in i utkastet varje gång listan ändrades.
+  valda: null,
   titel: "",
   kopare: "",
-  tjanst: "",
   avtalstid: "",
   volym: "",
   beskrivning: "",
-  orter: [],
-  kompetenser: [],
-  omraden: [],
-  nivaer: Object.fromEntries(KRAV_MALL.map((k) => [k.id, k.niva])),
-  egnaKrav: [],
-  sistaFraga: "",
-  sistaIntresse: "",
-  besked: "",
-  avtalsstart: "",
-  synlighet: "efter_intresse",
+  svaraSenast: "",
+  beskedSenast: "",
+  startdatum: "",
   epost: "",
   webbplats: "",
   foretag: "",
@@ -52,7 +54,11 @@ function domanUrUrl(url) {
   }
 }
 
-// Chips med kryss, samma fält för orter och kompetenser.
+function arbetsstalleEtikett(a) {
+  return `${a.adress}, ${a.postnummer} ${a.postort}`;
+}
+
+// Chips med kryss, samma fält för arbetsställen och kompetenser.
 function Taggar({ lista, taBort }) {
   if (!lista.length) return null;
   return (
@@ -67,26 +73,57 @@ function Taggar({ lista, taBort }) {
 }
 
 export default function SkapaUpphandling() {
-  const { state: d, patch, restored, clearDraft } = useSessionDraft("upphandling", TOMT);
-  const [nyOrt, setNyOrt] = useState("");
+  const { state: d, patch, restored, clearDraft } = useSessionDraft("upphandling-inbjudan", TOMT);
+  const [nyAdress, setNyAdress] = useState("");
+  const [nyttPostnummer, setNyttPostnummer] = useState("");
   const [nyKompetens, setNyKompetens] = useState("");
-  const [nyttKrav, setNyttKrav] = useState("");
   const [ortfel, setOrtfel] = useState("");
   const [fel, setFel] = useState("");
   const [skickar, setSkickar] = useState(false);
-  const [lank, setLank] = useState(null);
+  const [skickad, setSkickad] = useState(null);
+  const [matchning, setMatchning] = useState(null);
   const [turnstileToken, setTurnstileToken] = useState("");
   const vidVerifiering = useCallback((t) => setTurnstileToken(t), []);
 
   const orter = useMemo(() => allRegionCities(), []);
+  const idagLokalt = useMemo(() => idag(), []);
   const omraden = useMemo(() => Object.keys(YRKESOMRADEN), []);
 
-  function laggTillOrt() {
-    const ort = kanoniskOrt(nyOrt);
-    if (!ort) return setOrtfel("Välj en svensk kommun ur listan.");
+  // Matchningen gäller bara så länge det finns något att matcha på.
+  const traffar = d.omraden.length && d.arbetsstallen.length ? matchning : null;
+  const listade = useMemo(() => traffar?.bolag ?? [], [traffar]);
+
+  // De valda, alltid bland bolagen som listas just nu. Ett bolag som föll bort
+  // när köparen ändrade arbetsställen ska inte få en inbjudan de inte längre ser.
+  const valda = useMemo(() => {
+    const ids = new Set(listade.map((b) => b.id));
+    const bas = d.valda ?? forvaldaBolag(listade, traffar?.perOrt ?? []);
+    return new Set(bas.filter((id) => ids.has(id)));
+  }, [d.valda, listade, traffar]);
+
+  function vaxlaBolag(id) {
+    const nya = new Set(valda);
+    if (nya.has(id)) nya.delete(id);
+    else nya.add(id);
+    patch({ valda: [...nya] });
+  }
+
+  // Postnumret slås upp innan arbetsstället läggs till, så att köparen ser
+  // postorten och ett felskrivet nummer fångas här och inte vid skicka.
+  async function laggTillArbetsstalle() {
+    const adress = nyAdress.trim();
+    if (!adress) return setOrtfel("Skriv gatuadressen till arbetsstället.");
+    if (nyttPostnummer.replace(/\D/g, "").length !== 5) return setOrtfel("Skriv ett postnummer med fem siffror.");
+    if (d.arbetsstallen.length >= MAX_ORTER) return setOrtfel(`Högst ${MAX_ORTER} arbetsställen.`);
+    const res = await fetch(`/api/postnummer/sok?q=${encodeURIComponent(nyttPostnummer)}`).catch(() => null);
+    const svar = res?.ok ? await res.json().catch(() => null) : null;
+    if (!svar?.exakt) return setOrtfel("Hittar inte postnumret. Kontrollera det och försök igen.");
+    const nytt = { adress, postnummer: svar.exakt.postnummer, postort: svar.exakt.postort };
     setOrtfel("");
-    setNyOrt("");
-    if (!d.orter.includes(ort) && d.orter.length < MAX_ORTER) patch({ orter: [...d.orter, ort] });
+    setNyAdress("");
+    setNyttPostnummer("");
+    const finns = d.arbetsstallen.some((a) => arbetsstalleEtikett(a).toLowerCase() === arbetsstalleEtikett(nytt).toLowerCase());
+    if (!finns) patch({ arbetsstallen: [...d.arbetsstallen, nytt] });
   }
 
   function laggTillKompetens() {
@@ -97,16 +134,13 @@ export default function SkapaUpphandling() {
     if (!finns && d.kompetenser.length < MAX_KOMPETENSER) patch({ kompetenser: [...d.kompetenser, k] });
   }
 
-  function laggTillKrav() {
-    const text = nyttKrav.trim();
-    if (!text) return;
-    setNyttKrav("");
-    patch({ egnaKrav: [...d.egnaKrav, { id: `egen-${Date.now()}`, text, niva: "ska", profil: null }] });
-  }
-
   function vaxlaOmrade(o) {
     if (d.omraden.includes(o)) return patch({ omraden: d.omraden.filter((x) => x !== o) });
     if (d.omraden.length < MAX_OMRADEN) patch({ omraden: [...d.omraden, o] });
+  }
+
+  function vaxlaKrav(id) {
+    patch({ krav: d.krav.includes(id) ? d.krav.filter((x) => x !== id) : [...d.krav, id] });
   }
 
   function vidEnter(handling) {
@@ -118,15 +152,11 @@ export default function SkapaUpphandling() {
     };
   }
 
-  const krav = [
-    ...KRAV_MALL.filter((k) => d.nivaer[k.id] !== "inget").map((k) => ({ ...k, niva: d.nivaer[k.id] })),
-    ...d.egnaKrav,
-  ];
-
   async function skicka(e) {
     e.preventDefault();
     setFel("");
 
+    if (!valda.size) return setFel("Välj minst ett bolag att bjuda in.");
     if (arGratisadress(d.epost.split("@")[1])) {
       return setFel("Använd din jobbadress på företagets egen domän.");
     }
@@ -139,8 +169,21 @@ export default function SkapaUpphandling() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        ...d,
-        krav,
+        tjanst: d.tjanst,
+        omraden: d.omraden,
+        arbetsstallen: d.arbetsstallen.map(({ adress, postnummer }) => ({ adress, postnummer })),
+        kompetenser: d.kompetenser,
+        krav: d.krav,
+        ovrigaKrav: d.ovrigaKrav,
+        titel: d.titel,
+        kopare: d.kopare,
+        avtalstid: d.avtalstid,
+        volym: d.volym,
+        beskrivning: d.beskrivning,
+        svaraSenast: d.svaraSenast,
+        beskedSenast: d.beskedSenast,
+        startdatum: d.startdatum,
+        companyIds: [...valda],
         turnstileToken,
         kontakt: {
           namn: d.namn,
@@ -158,67 +201,50 @@ export default function SkapaUpphandling() {
 
     if (!res.ok) return setFel(svar.error || "Något gick fel. Försök igen.");
     clearDraft();
-    setLank(svar.lank);
+    setSkickad({ antal: svar.count, uppfoljning: svar.uppfoljning, epost: d.epost });
   }
 
   if (!restored) return null;
 
-  if (lank) {
+  if (skickad) {
     return (
       <div style={{ maxWidth: 520, margin: "48px auto 60px", padding: "0 24px", textAlign: "center" }}>
         <div className="auth-panel">
           <h1 className="upp-rubrik">Tack!</h1>
           <p className="upp-brod">
-            Upphandlingen är skickad till granskning hos Recruitable. På er egen sida följer ni vilka leverantörer som
-            anmäler sig. Länken finns också i bekräftelsemejlet till {d.epost}.
+            Inbjudan till {skickad.antal} bolag granskas nu av Recruitable. När den är godkänd får bolagen den och tar
+            ställning till om de vill gå vidare. Era kontaktuppgifter visas bara för dem som tackar ja.
           </p>
-          <Link className="qs-btn upp-lank-knapp" href={lank}>Öppna er upphandling</Link>
+          {skickad.uppfoljning && (
+            <Link className="qs-btn upp-lank-knapp" href={skickad.uppfoljning}>Följ svaren</Link>
+          )}
+          <p className="upp-not">Länken finns också i bekräftelsemejlet till {skickad.epost}.</p>
         </div>
-        <SkrappostPaminnelse adress={d.epost} />
+        <SkrappostPaminnelse adress={skickad.epost} />
       </div>
     );
   }
 
-  const antalKomb = d.orter.length * d.kompetenser.length;
   const klar = !TURNSTILE_SITE_KEY || Boolean(turnstileToken);
+  const kravRelevanta = KRAV_VAL.filter((k) => k.profil && d.krav.includes(k.id)).map((k) => k.id);
 
   return (
     <div id="view-upphandling">
       <Link className="back-link" href="/upphandling">&larr; Upphandling</Link>
       <div className="upp-sida">
         <header className="upp-huvud">
-          <h1 className="hero-title">Lägg ut en upphandling</h1>
-          <p className="hero-sub">Börja med det ni vet. Ett fullständigt förfrågningsunderlag behövs inte i det här steget.</p>
+          <h1 className="hero-title">Hitta bolag för er upphandling</h1>
+          <p className="hero-sub">
+            Beskriv vad ni behöver och var, så ser ni direkt vilka bemannings- och rekryteringsbolag som kan leverera.
+            Välj de som verkar intressanta och skicka en inbjudan. Bolagen tar ställning till den precis som till en
+            förfrågan.
+          </p>
         </header>
 
         <form className="upp-kolumner" onSubmit={skicka}>
           <main>
             <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Vem köper?</h2>
-              <div className="upp-chips">
-                {[["privat", "Privat bolag"], ["offentlig", "Offentlig verksamhet"]].map(([v, namn]) => (
-                  <button type="button" key={v} className={`chip${d.kopartyp === v ? " on" : ""}`} aria-pressed={d.kopartyp === v} onClick={() => patch({ kopartyp: v })}>
-                    {namn}
-                  </button>
-                ))}
-              </div>
-              {d.kopartyp === "offentlig" && (
-                <p className="upp-varning">
-                  Annonsen blir en marknadsdialog. Den ersätter inte annonsering av upphandlingen i en registrerad annonsdatabas.
-                </p>
-              )}
-              <div className="field" style={{ marginTop: 16, marginBottom: 0 }}>
-                <label htmlFor="upp-kopare">Beskriv er utan namn</label>
-                <input id="upp-kopare" value={d.kopare} maxLength={120} onChange={(e) => patch({ kopare: e.target.value })} placeholder="Industribolag, cirka 1 200 anställda" required />
-              </div>
-            </section>
-
-            <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Vad ska köpas?</h2>
-              <div className="field">
-                <label htmlFor="upp-titel">Rubrik</label>
-                <input id="upp-titel" value={d.titel} maxLength={120} onChange={(e) => patch({ titel: e.target.value })} placeholder="Ramavtal lager och produktion" required />
-              </div>
+              <h2 className="upp-rubrik-liten">1. Vad behöver ni?</h2>
               <div className="field">
                 <label htmlFor="upp-tjanst">Tjänst</label>
                 <select id="upp-tjanst" value={d.tjanst} onChange={(e) => patch({ tjanst: e.target.value })} required>
@@ -228,50 +254,8 @@ export default function SkapaUpphandling() {
                   ))}
                 </select>
               </div>
-              <div className="field-row">
-                <div className="field">
-                  <label htmlFor="upp-avtal">Avtalstid</label>
-                  <input id="upp-avtal" value={d.avtalstid} maxLength={80} onChange={(e) => patch({ avtalstid: e.target.value })} placeholder="2 år + 1 år option" />
-                </div>
-                <div className="field">
-                  <label htmlFor="upp-volym">Ungefärlig volym</label>
-                  <input id="upp-volym" value={d.volym} maxLength={120} onChange={(e) => patch({ volym: e.target.value })} placeholder="Cirka 60 konsulter samtidigt" />
-                </div>
-              </div>
-              <div className="field" style={{ marginBottom: 0 }}>
-                <label htmlFor="upp-beskrivning">Kort beskrivning</label>
-                <textarea id="upp-beskrivning" rows={4} value={d.beskrivning} maxLength={1500} onChange={(e) => patch({ beskrivning: e.target.value })} required />
-                <p className="hint">Skriv inte ert bolagsnamn här om ni vill vara anonyma.</p>
-              </div>
-            </section>
-
-            <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Var och vilka kompetenser?</h2>
               <div className="field">
-                <label htmlFor="upp-ny-ort">Orter (högst {MAX_ORTER})</label>
-                <div className="upp-rad">
-                  <input id="upp-ny-ort" list="upp-orter" value={nyOrt} autoComplete="off" onChange={(e) => setNyOrt(e.target.value)} onKeyDown={vidEnter(laggTillOrt)} />
-                  <button type="button" className="btn btn-ghost" onClick={laggTillOrt}>Lägg till</button>
-                </div>
-                <datalist id="upp-orter">
-                  {orter.map((o) => (
-                    <option key={o} value={o} />
-                  ))}
-                </datalist>
-                {ortfel && <p className="field-error">{ortfel}</p>}
-                <Taggar lista={d.orter} taBort={(v) => patch({ orter: d.orter.filter((x) => x !== v) })} />
-              </div>
-              <div className="field">
-                <label htmlFor="upp-ny-kompetens">Kompetenser (högst {MAX_KOMPETENSER})</label>
-                <div className="upp-rad">
-                  <input id="upp-ny-kompetens" value={nyKompetens} maxLength={40} placeholder="Till exempel truckförare" onChange={(e) => setNyKompetens(e.target.value)} onKeyDown={vidEnter(laggTillKompetens)} />
-                  <button type="button" className="btn btn-ghost" onClick={laggTillKompetens}>Lägg till</button>
-                </div>
-                <Taggar lista={d.kompetenser} taBort={(v) => patch({ kompetenser: d.kompetenser.filter((x) => x !== v) })} />
-              </div>
-              <div className="field" style={{ marginBottom: 0 }}>
-                <label>Yrkesområden (högst {MAX_OMRADEN})</label>
-                <p className="hint" style={{ marginTop: 0 }}>Bolag med dessa områden i sin profil får besked om upphandlingen.</p>
+                <label>Bransch och yrkesområden (högst {MAX_OMRADEN})</label>
                 <div className="upp-chips">
                   {omraden.map((o) => (
                     <button type="button" key={o} className={`chip${d.omraden.includes(o) ? " on" : ""}`} aria-pressed={d.omraden.includes(o)} onClick={() => vaxlaOmrade(o)}>
@@ -280,81 +264,122 @@ export default function SkapaUpphandling() {
                   ))}
                 </div>
               </div>
-            </section>
-
-            <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Krav</h2>
-              <p className="upp-not">Den som inte uppfyller alla ska-krav kan inte anmäla sig.</p>
-              {KRAV_MALL.map((k) => (
-                <div className="upp-kravrad" key={k.id}>
-                  <label htmlFor={`upp-krav-${k.id}`}>{k.text}</label>
-                  <select id={`upp-krav-${k.id}`} value={d.nivaer[k.id]} onChange={(e) => patch({ nivaer: { ...d.nivaer, [k.id]: e.target.value } })}>
-                    {NIVAER.map((n) => (
-                      <option key={n.varde} value={n.varde}>{n.namn}</option>
-                    ))}
-                  </select>
+              <div className="field">
+                <label htmlFor="upp-ny-adress">Arbetsställen (högst {MAX_ORTER})</label>
+                <div className="upp-rad upp-adressrad">
+                  <input id="upp-ny-adress" value={nyAdress} maxLength={80} autoComplete="off" placeholder="Gatuadress" aria-label="Gatuadress" onChange={(e) => { setNyAdress(e.target.value); setOrtfel(""); }} onKeyDown={vidEnter(laggTillArbetsstalle)} />
+                  <input id="upp-ny-postnummer" value={nyttPostnummer} inputMode="numeric" maxLength={6} autoComplete="off" placeholder="Postnummer" aria-label="Postnummer" onChange={(e) => { setNyttPostnummer(e.target.value); setOrtfel(""); }} onKeyDown={vidEnter(laggTillArbetsstalle)} />
+                  <button type="button" className="btn btn-ghost" onClick={laggTillArbetsstalle}>Lägg till</button>
                 </div>
-              ))}
-              {d.egnaKrav.map((k) => (
-                <div className="upp-kravrad" key={k.id}>
-                  <span>{k.text}</span>
-                  <div className="upp-rad-tat">
-                    <select aria-label={`Nivå för ${k.text}`} value={k.niva} onChange={(e) => patch({ egnaKrav: d.egnaKrav.map((x) => (x.id === k.id ? { ...x, niva: e.target.value } : x)) })}>
-                      <option value="ska">Ska-krav</option>
-                      <option value="bor">Bör-krav</option>
-                    </select>
-                    <button type="button" className="link-btn" onClick={() => patch({ egnaKrav: d.egnaKrav.filter((x) => x.id !== k.id) })}>Ta bort</button>
-                  </div>
-                </div>
-              ))}
-              {krav.length < MAX_KRAV && (
-                <div className="field" style={{ marginTop: 14, marginBottom: 0 }}>
-                  <label htmlFor="upp-nytt-krav">Eget krav</label>
-                  <div className="upp-rad">
-                    <input id="upp-nytt-krav" value={nyttKrav} maxLength={160} onChange={(e) => setNyttKrav(e.target.value)} onKeyDown={vidEnter(laggTillKrav)} />
-                    <button type="button" className="btn btn-ghost" onClick={laggTillKrav}>Lägg till</button>
-                  </div>
-                </div>
-              )}
-            </section>
-
-            <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Tidplan och synlighet</h2>
-              <div className="field-row">
-                <div className="field">
-                  <label htmlFor="upp-d1">Sista dag för frågor</label>
-                  <input id="upp-d1" type="date" value={d.sistaFraga} onChange={(e) => patch({ sistaFraga: e.target.value })} required />
-                </div>
-                <div className="field">
-                  <label htmlFor="upp-d2">Sista dag att anmäla intresse</label>
-                  <input id="upp-d2" type="date" value={d.sistaIntresse} onChange={(e) => patch({ sistaIntresse: e.target.value })} required />
-                </div>
-              </div>
-              <div className="field-row">
-                <div className="field">
-                  <label htmlFor="upp-d3">Besked till leverantörer</label>
-                  <input id="upp-d3" type="date" value={d.besked} onChange={(e) => patch({ besked: e.target.value })} required />
-                </div>
-                <div className="field">
-                  <label htmlFor="upp-d4">Planerad avtalsstart (valfritt)</label>
-                  <input id="upp-d4" type="date" value={d.avtalsstart} onChange={(e) => patch({ avtalsstart: e.target.value })} />
-                </div>
+                <p className="hint">
+                  Där konsulterna ska arbeta. Avståndet räknas härifrån, som i kollektivavtalet: inom 25 km räknas ett bolag
+                  som på orten, inom 75 km som i närheten. Gatuadressen visas för bolagen först när de tackat ja.
+                </p>
+                {ortfel && <p className="field-error">{ortfel}</p>}
+                <Taggar
+                  lista={d.arbetsstallen.map(arbetsstalleEtikett)}
+                  taBort={(v) => patch({ arbetsstallen: d.arbetsstallen.filter((x) => arbetsstalleEtikett(x) !== v) })}
+                />
               </div>
               <div className="field" style={{ marginBottom: 0 }}>
-                <label>När ska leverantörer se ert namn?</label>
-                <div className="upp-chips">
-                  {[["efter_intresse", "Efter intresseanmälan"], ["direkt", "Direkt, för alla"]].map(([v, namn]) => (
-                    <button type="button" key={v} className={`chip${d.synlighet === v ? " on" : ""}`} aria-pressed={d.synlighet === v} onClick={() => patch({ synlighet: v })}>
-                      {namn}
-                    </button>
-                  ))}
+                <label htmlFor="upp-ny-kompetens">Kompetenser (valfritt, högst {MAX_KOMPETENSER})</label>
+                <div className="upp-rad">
+                  <input id="upp-ny-kompetens" value={nyKompetens} maxLength={40} placeholder="Till exempel truckförare" onChange={(e) => setNyKompetens(e.target.value)} onKeyDown={vidEnter(laggTillKompetens)} />
+                  <button type="button" className="btn btn-ghost" onClick={laggTillKompetens}>Lägg till</button>
+                </div>
+                <Taggar lista={d.kompetenser} taBort={(v) => patch({ kompetenser: d.kompetenser.filter((x) => x !== v) })} />
+              </div>
+            </section>
+
+            <section className="auth-panel">
+              <h2 className="upp-rubrik-liten">2. Krav</h2>
+              <p className="upp-not" style={{ marginTop: 0 }}>
+                Det som går att läsa i bolagens profiler visas vid varje bolag nedan. Alla krav står i inbjudan.
+              </p>
+              {KRAV_VAL.map((k) => (
+                <label className="upp-kravrad upp-kryssrad" key={k.id}>
+                  <input type="checkbox" checked={d.krav.includes(k.id)} onChange={() => vaxlaKrav(k.id)} />
+                  <span>{k.text}</span>
+                </label>
+              ))}
+              <div className="field" style={{ marginTop: 14, marginBottom: 0 }}>
+                <label htmlFor="upp-ovriga-krav">Övriga krav (valfritt)</label>
+                <input id="upp-ovriga-krav" value={d.ovrigaKrav} maxLength={300} onChange={(e) => patch({ ovrigaKrav: e.target.value })} placeholder="Till exempel B-körkort eller säkerhetsprövning" />
+              </div>
+            </section>
+
+            <RelevantaBolag
+              tjanst={d.tjanst}
+              omraden={d.omraden}
+              arbetsstallen={d.arbetsstallen}
+              krav={kravRelevanta}
+              vidResultat={setMatchning}
+              valda={valda}
+              vaxla={vaxlaBolag}
+              valjAlla={() => patch({ valda: listade.map((b) => b.id) })}
+              valjInga={() => patch({ valda: [] })}
+            />
+
+            <section className="auth-panel">
+              <h2 className="upp-rubrik-liten">4. Om upphandlingen</h2>
+              <div className="field">
+                <label htmlFor="upp-titel">Rubrik</label>
+                <input id="upp-titel" value={d.titel} maxLength={80} onChange={(e) => patch({ titel: e.target.value })} placeholder="Ramavtal lager och produktion" required />
+              </div>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="upp-avtal">Avtalstid (valfritt)</label>
+                  <input id="upp-avtal" value={d.avtalstid} maxLength={80} onChange={(e) => patch({ avtalstid: e.target.value })} placeholder="2 år + 1 år option" />
+                </div>
+                <div className="field">
+                  <label htmlFor="upp-volym">Ungefärlig volym (valfritt)</label>
+                  <input id="upp-volym" value={d.volym} maxLength={120} onChange={(e) => patch({ volym: e.target.value })} placeholder="Cirka 60 konsulter samtidigt" />
+                </div>
+              </div>
+              <div className="field">
+                <label htmlFor="upp-beskrivning">Beskrivning</label>
+                <textarea id="upp-beskrivning" rows={5} value={d.beskrivning} maxLength={MAX_BESKRIVNING} onChange={(e) => patch({ beskrivning: e.target.value })} required />
+                <p className="hint">Visas för bolagen innan de tagit ställning. Ert företagsnamn tar vi från fältet nedan.</p>
+              </div>
+              <h3 className="upp-underrubrik" style={{ marginTop: 18 }}>Tidplan</h3>
+              <p className="upp-not" style={{ marginTop: 0 }}>Står i inbjudan, så att bolagen vet när de behöver svara och när uppdraget börjar.</p>
+              <div className="field-row upp-tidplan-rad" style={{ marginBottom: 0 }}>
+                <div className="field">
+                  <label htmlFor="upp-svar">Svar önskas senast</label>
+                  <input id="upp-svar" type="date" value={d.svaraSenast} min={idagLokalt} onChange={(e) => patch({ svaraSenast: e.target.value })} />
+                </div>
+                <div className="field">
+                  <label htmlFor="upp-besked">Besked till bolagen</label>
+                  <input id="upp-besked" type="date" value={d.beskedSenast} min={d.svaraSenast || idagLokalt} onChange={(e) => patch({ beskedSenast: e.target.value })} />
+                </div>
+                <div className="field">
+                  <label htmlFor="upp-start">Planerad start</label>
+                  <input id="upp-start" type="date" value={d.startdatum} min={d.beskedSenast || d.svaraSenast || idagLokalt} onChange={(e) => patch({ startdatum: e.target.value })} />
                 </div>
               </div>
             </section>
 
             <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Era uppgifter</h2>
-              <p className="upp-not">E-posten måste ha samma domän som er webbplats. Då vet leverantörerna att upphandlingen är äkta.</p>
+              <h2 className="upp-rubrik-liten">5. Era uppgifter</h2>
+              {/* Namnet är ett av de starkaste skälen för ett bolag att tacka ja,
+                  och just därför syns det först vid accept. Det är där
+                  Recruitable förmedlar affären; stod namnet i inbjudan kunde
+                  bolaget gå direkt till köparen. Se mapInquiryRow i
+                  lib/inquiries.js. */}
+              <p className="upp-not" style={{ marginTop: 0 }}>
+                Företagsnamn och kontaktuppgifter visas för ett bolag först när det har tackat ja. Innan dess ser bolaget
+                beskrivningen av er verksamhet, ert förnamn och er roll.
+              </p>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="upp-foretag">Företag</label>
+                  <input id="upp-foretag" value={d.foretag} onChange={(e) => patch({ foretag: e.target.value })} required />
+                </div>
+                <div className="field">
+                  <label htmlFor="upp-kopare">Beskriv er verksamhet</label>
+                  <input id="upp-kopare" value={d.kopare} maxLength={120} onChange={(e) => patch({ kopare: e.target.value })} placeholder="Industribolag, cirka 1 200 anställda" required />
+                </div>
+              </div>
               <div className="field-row">
                 <div className="field">
                   <label htmlFor="upp-epost">E-post (jobb)</label>
@@ -367,16 +392,6 @@ export default function SkapaUpphandling() {
               </div>
               <div className="field-row">
                 <div className="field">
-                  <label htmlFor="upp-foretag">Företag</label>
-                  <input id="upp-foretag" value={d.foretag} onChange={(e) => patch({ foretag: e.target.value })} required />
-                </div>
-                <div className="field">
-                  <label htmlFor="upp-ort">Ort</label>
-                  <input id="upp-ort" list="upp-orter" value={d.ort} autoComplete="off" onChange={(e) => patch({ ort: e.target.value })} required />
-                </div>
-              </div>
-              <div className="field-row">
-                <div className="field">
                   <label htmlFor="upp-namn">Namn</label>
                   <input id="upp-namn" value={d.namn} autoComplete="name" onChange={(e) => patch({ namn: e.target.value })} required />
                 </div>
@@ -385,9 +400,20 @@ export default function SkapaUpphandling() {
                   <input id="upp-roll" value={d.roll} onChange={(e) => patch({ roll: e.target.value })} required />
                 </div>
               </div>
-              <div className="field" style={{ marginBottom: 0 }}>
-                <label htmlFor="upp-telefon">Telefon (valfritt)</label>
-                <input id="upp-telefon" type="tel" value={d.telefon} onChange={(e) => patch({ telefon: e.target.value })} />
+              <div className="field-row" style={{ marginBottom: 0 }}>
+                <div className="field">
+                  <label htmlFor="upp-ort">Ort</label>
+                  <input id="upp-ort" list="upp-orter" value={d.ort} autoComplete="off" onChange={(e) => patch({ ort: e.target.value })} required />
+                  <datalist id="upp-orter">
+                    {orter.map((o) => (
+                      <option key={o} value={o} />
+                    ))}
+                  </datalist>
+                </div>
+                <div className="field">
+                  <label htmlFor="upp-telefon">Telefon (valfritt)</label>
+                  <input id="upp-telefon" type="tel" value={d.telefon} onChange={(e) => patch({ telefon: e.target.value })} />
+                </div>
               </div>
             </section>
           </main>
@@ -397,18 +423,22 @@ export default function SkapaUpphandling() {
               <h2 className="upp-rubrik-liten">Sammanfattning</h2>
               <p className="upp-brod"><strong>{d.titel || "Upphandling utan rubrik"}</strong></p>
               <dl className="upp-tidplan">
-                <div><dt>Orter</dt><dd>{d.orter.length}</dd></div>
-                <div><dt>Kompetenser</dt><dd>{d.kompetenser.length}</dd></div>
-                <div><dt>Kombinationer att täcka</dt><dd>{antalKomb}</dd></div>
-                <div><dt>Ska-krav</dt><dd>{krav.filter((k) => k.niva === "ska").length}</dd></div>
-                <div><dt>Bör-krav</dt><dd>{krav.filter((k) => k.niva === "bor").length}</dd></div>
+                <div><dt>Relevanta bolag</dt><dd>{traffar ? traffar.totalt : "–"}</dd></div>
+                <div><dt>Varav aktiva på Recruitable</dt><dd>{traffar ? traffar.aktiva : "–"}</dd></div>
+                <div><dt>Valda att bjuda in</dt><dd>{valda.size}</dd></div>
+                <div><dt>Arbetsställen</dt><dd>{d.arbetsstallen.length}</dd></div>
+                <div><dt>Svar senast</dt><dd>{d.svaraSenast || "–"}</dd></div>
+                <div><dt>Planerad start</dt><dd>{d.startdatum || "–"}</dd></div>
+                <div><dt>Krav</dt><dd>{d.krav.length + (d.ovrigaKrav.trim() ? 1 : 0)}</dd></div>
               </dl>
               <Turnstile onVerify={vidVerifiering} />
               {fel && <p className="field-error" role="alert">{fel}</p>}
-              <button className="qs-btn" type="submit" disabled={skickar || !klar || !d.orter.length || !d.kompetenser.length || !d.omraden.length}>
-                {skickar ? "Skickar..." : "Skicka till granskning"}
+              <button className="qs-btn" type="submit" disabled={skickar || !klar || !valda.size}>
+                {skickar ? "Skickar..." : valda.size ? `Skicka inbjudan till ${valda.size} bolag` : "Välj bolag att bjuda in"}
               </button>
-              <p className="upp-not">Recruitable granskar upphandlingen före publicering. Därefter får matchande bolag besked.</p>
+              <p className="upp-not">
+                Recruitable granskar inbjudan innan bolagen får den. Ni följer deras svar på en egen sida, utan konto.
+              </p>
             </section>
           </aside>
         </form>

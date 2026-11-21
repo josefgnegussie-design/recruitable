@@ -1,7 +1,7 @@
 import SkapaUpphandling from "@/components/upphandling/SkapaUpphandling";
 
 export const metadata = {
-  title: "Lägg ut en upphandling — Recruitable",
+  title: "Hitta bolag för er upphandling — Recruitable",
 };
 
 export default function SkapaUpphandlingPage() {
