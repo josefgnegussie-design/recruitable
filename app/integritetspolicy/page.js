@@ -68,6 +68,15 @@ export default function IntegritetspolicyPage() {
               det har tackat ja.
             </p>
           </div>
+          <div className="faq-item">
+            <p className="faq-q">Pågående förfrågningar och upphandlingar</p>
+            <p className="faq-a">
+              När Recruitable har godkänt en förfrågan eller en inbjudan kan den visas anonymt på Rekrytera
+              respektive Upphandling: ort, tjänst, yrkesområde, för upphandlingar även yrkesprofiler, volym och
+              tidplan, och hur långt den har kommit. Ditt namn, ditt företag, din beskrivning och arbetsställenas
+              adresser visas aldrig.
+            </p>
+          </div>
         </div>
       </section>
 
