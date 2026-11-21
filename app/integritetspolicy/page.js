@@ -62,10 +62,10 @@ export default function IntegritetspolicyPage() {
           <div className="faq-item">
             <p className="faq-q">Upphandlingar</p>
             <p className="faq-a">
-              Lägger du ut en upphandling sparar vi namn, roll, företag, ort, webbplats, e-post och eventuellt
-              telefonnummer för att kunna granska den och förmedla svaren. Leverantörer som går vidare får dina
-              kontaktuppgifter när du avslutar upphandlingen. Anmäler ett bolag intresse får köparen se bolagets
-              anmälan och e-postadressen till den som gjorde den.
+              Skickar du en inbjudan via Upphandling sparar vi namn, roll, företag, ort, webbplats, e-post,
+              eventuellt telefonnummer och arbetsställenas adresser för att kunna granska inbjudan och förmedla
+              svaren. Ett bolag ser ditt namn, dina kontaktuppgifter och arbetsställenas gatuadresser först när
+              det har tackat ja.
             </p>
           </div>
         </div>
