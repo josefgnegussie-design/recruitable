@@ -18,10 +18,11 @@ export default async function PartnersPage() {
 
   return (
     <>
-      <RekryteraSok antalBolag={antalBolag} urval={urval} />
-      {/* Bara vanliga förfrågningar; upphandlingar visas på /upphandling. Se
+      {/* Pågående förfrågningar står i ett band direkt under menyn, över hela
+          sidans bredd, så att det första besökaren ser är att tjänsten används.
+          Bara vanliga förfrågningar; upphandlingar visas på /upphandling. Se
           lib/pagaendeForfragningar.js för vad som får visas. */}
-      <section className="l-section tight">
+      <div className="pagaende-band">
         <PagaendeLista
           id="rek-pagaende-rubrik"
           rubrik="Pågående förfrågningar"
@@ -32,7 +33,8 @@ export default async function PartnersPage() {
           kort={pagaende}
           stegEtikett="Förfrågans steg"
         />
-      </section>
+      </div>
+      <RekryteraSok antalBolag={antalBolag} urval={urval} />
     </>
   );
 }
