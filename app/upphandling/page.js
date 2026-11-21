@@ -39,7 +39,7 @@ export default async function UpphandlingPage() {
 
   return (
     <div id="view-upphandling">
-      <section className="hero" style={{ gridTemplateColumns: "1fr" }}>
+      <section className="hero upp-hero">
         <div>
           <div className="eyebrow">För företag som ska upphandla</div>
           <h1 className="hero-title">Upphandling</h1>
@@ -52,18 +52,19 @@ export default async function UpphandlingPage() {
             <Link className="btn-lg primary" href="/upphandling/skapa">Hitta bolag för er upphandling</Link>
           </div>
         </div>
-      </section>
-
-      <div className="upp-sida">
-        <ol className="upp-steg upp-steg-fyra">
-          {STEG.map((s, i) => (
-            <li className="step-card" key={s.rubrik}>
-              <div className="step-num"><span className="box-num">{i + 1}</span></div>
+        {/* Stegen står bredvid texten i stället för under den, så att toppen
+            inte bara fyller vänstra halvan. Numren kommer från steg-lista. */}
+        <ol className="steg-lista steg-lista-ruta">
+          {STEG.map((s) => (
+            <li key={s.rubrik}>
               <h2>{s.rubrik}</h2>
               <p>{s.text}</p>
             </li>
           ))}
         </ol>
+      </section>
+
+      <div className="upp-sida">
 
         {/* Meningarna byggs ur fasta val och aldrig ur köparens fritext, se
             lib/pagaendeUpphandlingar.js. */}

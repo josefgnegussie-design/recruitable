@@ -342,7 +342,7 @@ export default async function ProfilePage({ params }) {
         {/* ANDRA SEGMENTET — vad bolaget gör och var det finns. Texten och
             kontorslistan i den breda spalten, kartan bredvid: Sverige är högt och
             smalt och passar en sidokolumn bättre än en liggande yta. */}
-        <div className={`profile-body${harVerksamhet && pinnar.length ? "" : " single"}`}>
+        <div className={`profile-body${harVerksamhet && pinnar.length ? " samlad" : " single"}`}>
           <div>
             {c.desc && (
               <div className="panel">
