@@ -7,6 +7,7 @@ import { arGratisadress } from "@/lib/gratisadresser";
 import { sparaOchSkickaForfragan } from "@/lib/forfraganSkickas";
 import { valideraInbjudan } from "@/lib/upphandlingInbjudan";
 import { arbetsstalleFran } from "@/lib/arbetsstalle";
+import { narhetForBolag } from "@/lib/upphandlingMatchning";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,6 +54,11 @@ export async function POST(request) {
       { status: 403 }
     );
   }
+
+  // Varje bolag får se vilket av arbetsställena det har nära till. Sparas per
+  // bolag i upphandlingen; mapInquiryRow lämnar bara ut bolagets egen rad.
+  const narhet = await narhetForBolag(companyIds, body.arbetsstallen.map(arbetsstalleFran));
+  if (narhet) extra.upphandling.narhet = narhet;
 
   const resultat = await sparaOchSkickaForfragan(createAdminClient(), { rad, companyIds, mejl, extra, reserv });
   if (resultat.fel) return NextResponse.json({ error: resultat.fel }, { status: resultat.status });

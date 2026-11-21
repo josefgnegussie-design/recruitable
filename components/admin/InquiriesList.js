@@ -31,6 +31,12 @@ function UpphandlingFakta({ u, unlocked }) {
     : u.orter?.join(", ");
   const rader = [
     [u.arbetsstallen?.length ? "Arbetsställen" : "Orter", arbetsstallen],
+    // Bolagets eget avstånd till arbetsställena, räknat när inbjudan skickades.
+    [
+      "Ert avstånd",
+      u.narhet?.length &&
+        u.narhet.map((n) => `${n.km < 5 ? "under 5" : n.km} km till ${n.postnummer} ${n.postort}`).join(", "),
+    ],
     ["Yrkesområden", u.omraden?.join(", ")],
     ["Kompetenser", u.kompetenser?.join(", ")],
     ["Krav", [...(u.krav || []), u.ovrigaKrav].filter(Boolean).join(", ")],

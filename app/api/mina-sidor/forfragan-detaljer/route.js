@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { upphandlingForBolag } from "@/lib/inquiries";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rateLimit";
@@ -82,5 +83,7 @@ export async function POST(request) {
 
   // moderation_status hämtades bara för grinden ovan och hör inte hemma i svaret.
   const { moderation_status, ...kontaktuppgifter } = recipient.inquiries;
-  return NextResponse.json(upp?.upphandling ? { ...kontaktuppgifter, upphandling: upp.upphandling } : kontaktuppgifter);
+  return NextResponse.json(upp?.upphandling
+      ? { ...kontaktuppgifter, upphandling: upphandlingForBolag(upp.upphandling, true, recipient.company_id) }
+      : kontaktuppgifter);
 }

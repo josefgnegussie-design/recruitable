@@ -52,7 +52,7 @@ export async function POST(request) {
   // — verifierad admin, och company_id styr vilka rader som hämtas.
   const { data: inquiryRows, error } = await createAdminClient()
     .from("inquiry_recipients")
-    .select("id, created_at, status, inquiries!inner(*)")
+    .select("id, company_id, created_at, status, inquiries!inner(*)")
     .eq("company_id", adminRow.company_id)
     // Samma modereringsgrind som förstasidan: servicerollen går förbi RLS, och
     // mottagarraderna finns redan innan förfrågan granskats.

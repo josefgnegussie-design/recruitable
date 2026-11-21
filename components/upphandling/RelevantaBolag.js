@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { VARNA_VID_BOLAG } from "@/lib/upphandlingInbjudan";
+import { varnaVidBolag } from "@/lib/upphandlingInbjudan";
 
 // Hur många bolag som syns innan "Visa fler": lika många som är förvalda, så att
 // köparen ser exakt vilka som får inbjudan. Resten finns ett klick bort.
@@ -21,6 +21,8 @@ export default function RelevantaBolag({ tjanst, omraden, arbetsstallen, krav, v
   const [svar, setSvar] = useState(null);
   const [laddar, setLaddar] = useState(false);
   const [allaSynliga, setAllaSynliga] = useState(false);
+  // Ett arbetsställe att visa bolagen för, eller null för alla.
+  const [filterOrt, setFilterOrt] = useState(null);
   const nyckel = JSON.stringify({
     tjanst,
     omraden,
@@ -72,7 +74,17 @@ export default function RelevantaBolag({ tjanst, omraden, arbetsstallen, krav, v
     );
   }
 
-  const synliga = allaSynliga ? svar.bolag : svar.bolag.slice(0, FORST);
+  const flera = svar.perOrt.length > 1;
+  const aktivtFilter = flera && svar.perOrt.some((o) => o.ort === filterOrt) ? filterOrt : null;
+  const filtrerade = aktivtFilter
+    ? svar.bolag
+        .filter((b) => b.tackning.some((t) => t.ort === aktivtFilter))
+        // Närmast det valda arbetsstället först. sort är stabil, så vid lika
+        // avstånd gäller den vanliga ordningen.
+        .sort((a, b) => a.tackning.find((t) => t.ort === aktivtFilter).km - b.tackning.find((t) => t.ort === aktivtFilter).km)
+    : svar.bolag;
+  const synliga = allaSynliga ? filtrerade : filtrerade.slice(0, FORST);
+  const varnaVid = varnaVidBolag(svar.perOrt.length);
 
   return (
     <section className={`auth-panel upp-match${laddar ? " laddar" : ""}`} aria-live="polite" aria-busy={laddar}>
@@ -91,8 +103,19 @@ export default function RelevantaBolag({ tjanst, omraden, arbetsstallen, krav, v
       {svar.perOrt.length > 0 && (
         <ul className="upp-ortstapel">
           {svar.perOrt.map((o) => (
-            <li key={o.ort} className={o.paOrten + o.nara === 0 ? "lucka" : ""}>
-              <span className="ort">{o.ort}</span>
+            <li key={o.ort} className={`${o.paOrten + o.nara === 0 ? "lucka" : ""}${aktivtFilter === o.ort ? " vald" : ""}`}>
+              {flera && o.paOrten + o.nara > 0 ? (
+                <button
+                  type="button"
+                  className="ort upp-ortfilter"
+                  aria-pressed={aktivtFilter === o.ort}
+                  onClick={() => setFilterOrt(aktivtFilter === o.ort ? null : o.ort)}
+                >
+                  {o.ort}
+                </button>
+              ) : (
+                <span className="ort">{o.ort}</span>
+              )}
               <span className="tal">
                 {o.paOrten + o.nara === 0
                   ? "Inga bolag inom 75 km"
@@ -111,7 +134,10 @@ export default function RelevantaBolag({ tjanst, omraden, arbetsstallen, krav, v
         <>
           <p className="upp-not" style={{ marginTop: 0 }}>
             Sorterade efter hur nära era arbetsställen bolaget finns, därefter yrkesområden och krav som går att läsa i
-            profilen. De {Math.min(FORST, svar.bolag.length)} översta är förvalda.
+            profilen.{" "}
+            {flera
+              ? "De fem översta för varje arbetsställe är förvalda. Klicka på ett arbetsställe för att se bara bolagen nära det."
+              : `De ${Math.min(FORST, svar.bolag.length)} översta är förvalda.`}
           </p>
           <div className="upp-valrad">
             <strong>
@@ -122,7 +148,7 @@ export default function RelevantaBolag({ tjanst, omraden, arbetsstallen, krav, v
               <button type="button" className="link-btn" onClick={valjInga}>Avmarkera alla</button>
             </span>
           </div>
-          {valda.size > VARNA_VID_BOLAG && (
+          {valda.size > varnaVid && (
             <p className="upp-varning">
               Ni har valt {valda.size} bolag. Det blir ofta fler samtal att hantera än svar att välja bland.
             </p>
@@ -165,9 +191,9 @@ export default function RelevantaBolag({ tjanst, omraden, arbetsstallen, krav, v
               </li>
             ))}
           </ol>
-          {svar.bolag.length > FORST && (
+          {filtrerade.length > FORST && (
             <button type="button" className="link-btn" onClick={() => setAllaSynliga((v) => !v)}>
-              {allaSynliga ? "Visa färre" : `Visa ${svar.bolag.length - FORST} till`}
+              {allaSynliga ? "Visa färre" : `Visa ${filtrerade.length - FORST} till`}
             </button>
           )}
           {svar.totalt > svar.bolag.length && (

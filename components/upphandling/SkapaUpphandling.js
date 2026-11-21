@@ -5,7 +5,7 @@ import Link from "next/link";
 import { allRegionCities } from "@/lib/helpers";
 import { TJANSTER, YRKESOMRADEN } from "@/lib/taxonomy";
 import { idag, MAX_KOMPETENSER, MAX_OMRADEN, MAX_ORTER } from "@/lib/upphandling";
-import { FORVALDA_BOLAG, KRAV_VAL, MAX_BESKRIVNING } from "@/lib/upphandlingInbjudan";
+import { forvaldaBolag, KRAV_VAL, MAX_BESKRIVNING } from "@/lib/upphandlingInbjudan";
 import { arGratisadress } from "@/lib/gratisadresser";
 import { useSessionDraft } from "@/lib/useSessionDraft";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
@@ -97,9 +97,9 @@ export default function SkapaUpphandling() {
   // när köparen ändrade arbetsställen ska inte få en inbjudan de inte längre ser.
   const valda = useMemo(() => {
     const ids = new Set(listade.map((b) => b.id));
-    const bas = d.valda ?? listade.slice(0, FORVALDA_BOLAG).map((b) => b.id);
+    const bas = d.valda ?? forvaldaBolag(listade, traffar?.perOrt ?? []);
     return new Set(bas.filter((id) => ids.has(id)));
-  }, [d.valda, listade]);
+  }, [d.valda, listade, traffar]);
 
   function vaxlaBolag(id) {
     const nya = new Set(valda);
