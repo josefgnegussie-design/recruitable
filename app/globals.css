@@ -1652,11 +1652,27 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .pagaende-band{background:var(--color-surface-soft);border-bottom:1px solid var(--color-hairline);}
 .pagaende-band > .upp-pagaende{max-width:1180px;margin:0 auto;padding:32px 24px 36px;}
 .pagaende-band .upp-pagaende-lista{grid-template-columns:repeat(3,minmax(0,1fr));}
-/* På smala skärmar en vågrät rad att svepa i, så att sökfiltret inte hamnar
-   tre kort längre ner. */
+/* På smala skärmar blir varje förfrågan en rad: ort och rubrik till vänster,
+   status till höger. Alla syns utan att svepa, och sökfiltret hamnar högt upp.
+   Inledningen och tidslinjen visas bara på större skärmar; statusen är
+   tidslinjens sista steg. */
 @media (max-width:900px){
-  .pagaende-band > .upp-pagaende{padding:24px 0 28px;}
-  .pagaende-band .upp-rubrik-liten,.pagaende-band .upp-not{padding:0 24px;}
-  .pagaende-band .upp-pagaende-lista{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:82%;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 24px;padding:2px 24px 6px;}
-  .pagaende-band .upp-pagaende-lista > li{scroll-snap-align:start;}
+  .pagaende-band > .upp-pagaende{padding:18px 16px 20px;}
+  .pagaende-band .upp-rubrik-liten{font-size:16px;margin-bottom:10px;}
+  .pagaende-band .upp-not{display:none;}
+  .pagaende-band .upp-pagaende-lista{grid-template-columns:minmax(0,1fr);gap:0;background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);overflow:hidden;}
+  .pagaende-band .upp-pagaende-kort{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"ort tagg" "rubrik status";align-items:center;gap:2px 12px;padding:11px 14px;border:none;border-radius:0;box-shadow:none;}
+  .pagaende-band .upp-pagaende-lista > li + li{border-top:1px solid var(--color-hairline-soft);}
+  .pagaende-band .upp-pagaende-ort{grid-area:ort;margin:0;padding-right:0;font-size:10.5px;}
+  .pagaende-band .upp-pagaende-kort h3{grid-area:rubrik;margin:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pagaende-band .upp-exempel-tagg{grid-area:tagg;position:static;justify-self:end;font-size:10px;padding:1px 7px;}
+  .pagaende-band .upp-pagaende-text{display:none;}
+  .pagaende-band .upp-tidslinje{grid-area:status;display:block;justify-self:end;}
+  .pagaende-band .upp-tidslinje::before{display:none;}
+  .pagaende-band .upp-tidslinje li{display:none;}
+  .pagaende-band .upp-tidslinje li:last-child{display:block;}
+  .pagaende-band .upp-tidslinje li:last-child .punkt,.pagaende-band .upp-tidslinje li:last-child .datum{display:none;}
+  .pagaende-band .upp-tidslinje .steg{font-size:10px;white-space:nowrap;color:var(--color-muted);}
+  .pagaende-band .upp-tidslinje .steg.framhavd{color:var(--color-accent);}
 }
+
