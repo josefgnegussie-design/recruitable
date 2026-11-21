@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { hamtaPagaendeUpphandlingar } from "@/lib/pagaendeUpphandlingar";
+import PagaendeLista, { pagaendeIntro } from "@/components/PagaendeLista";
 
 // Pågående upphandlingar ändras när en inbjudan godkänns, inte per besök.
 export const revalidate = 300;
@@ -64,39 +65,18 @@ export default async function UpphandlingPage() {
           ))}
         </ol>
 
-        {/* Visas bara när det finns något att visa. Meningarna byggs ur fasta
-            val och aldrig ur köparens fritext, se lib/pagaendeUpphandlingar.js. */}
-        {pagaende.length > 0 && (
-          <section className="upp-pagaende" aria-labelledby="upp-pagaende-rubrik">
-            <h2 id="upp-pagaende-rubrik" className="upp-rubrik-liten">Pågående upphandlingar</h2>
-            <p className="upp-not" style={{ marginTop: 0 }}>
-              {pagaende.some((u) => !u.exempel)
-                ? "Ett urval av inbjudningar som skickats via Recruitable. Köparna visas inte."
-                : "Så här visas inbjudningar som skickats via Recruitable, utan köparens namn."}
-              {pagaende.some((u) => u.exempel) && pagaende.some((u) => !u.exempel) && " Kort märkta Exempel visar hur det kan se ut."}
-            </p>
-            <ul className="upp-pagaende-lista">
-              {pagaende.map((u, i) => (
-                <li key={i} className="auth-panel upp-pagaende-kort">
-                  {u.exempel && <span className="tag upp-exempel-tagg">Exempel</span>}
-                  {u.orter && <p className="upp-pagaende-ort">{u.orter}</p>}
-                  <h3>{u.rubrik}</h3>
-                  <p className="upp-pagaende-text">{u.mening}</p>
-                  {/* Upphandlingens fyra steg, alla med datum intill. */}
-                  <ol className="upp-tidslinje" aria-label="Upphandlingens steg">
-                    {u.tidslinje.map((t) => (
-                      <li key={t.steg}>
-                        <span className="punkt" aria-hidden="true" />
-                        <span className="steg">{t.steg}</span>
-                        <span className="datum">{t.datum ?? "–"}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+        {/* Meningarna byggs ur fasta val och aldrig ur köparens fritext, se
+            lib/pagaendeUpphandlingar.js. */}
+        <PagaendeLista
+          id="upp-pagaende-rubrik"
+          rubrik="Pågående upphandlingar"
+          intro={pagaendeIntro(pagaende, {
+            riktiga: "Ett urval av inbjudningar som skickats via Recruitable. Köparna visas inte.",
+            exempel: "Så här visas inbjudningar som skickats via Recruitable, utan köparens namn.",
+          })}
+          kort={pagaende}
+          stegEtikett="Upphandlingens steg"
+        />
       </div>
     </div>
   );

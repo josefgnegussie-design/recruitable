@@ -59,6 +59,7 @@ export async function POST(request) {
     requesterCompany,
     requesterCity,
     requesterPhone,
+    visaSomExempel,
     turnstileToken,
   } = body;
 
@@ -141,7 +142,10 @@ export async function POST(request) {
 
   // Resten — bolagen, mottagarna, uppföljningslänken och mejlen — delas med
   // inbjudningarna från Upphandling. Se lib/forfraganSkickas.js.
-  const { svar, fel, status } = await sparaOchSkickaForfragan(supabase, { rad: forfraganRad, companyIds, mejl });
+  // Samtycket till att visas bland pågående förfrågningar på /rekrytera. Utan
+  // kolumnen (migration_forfragan_exempel.sql inte körd) sparas förfrågan ändå.
+  const extra = { visa_som_exempel: visaSomExempel === true };
+  const { svar, fel, status } = await sparaOchSkickaForfragan(supabase, { rad: forfraganRad, companyIds, mejl, extra });
   if (fel) return NextResponse.json({ error: fel }, { status });
   return NextResponse.json(svar);
 }
