@@ -34,7 +34,6 @@ const TOMT = {
   sistaIntresse: "",
   besked: "",
   avtalsstart: "",
-  synlighet: "efter_intresse",
   epost: "",
   webbplats: "",
   foretag: "",
@@ -307,9 +306,22 @@ export default function SkapaUpphandling() {
                   Annonsen blir en marknadsdialog. Den ersätter inte annonsering av upphandlingen i en registrerad annonsdatabas.
                 </p>
               )}
-              <div className="field" style={{ marginTop: 16, marginBottom: 0 }}>
-                <label htmlFor="upp-kopare">Beskriv er utan namn</label>
-                <input id="upp-kopare" value={d.kopare} maxLength={120} onChange={(e) => patch({ kopare: e.target.value })} placeholder="Industribolag, cirka 1 200 anställda" required />
+              {/* Namnet är ett av de starkaste skälen för ett bolag att svara, och
+                  just därför visas det först när bolaget anmält intresse. Det är
+                  då Recruitable förmedlar affären; stod namnet i första utskicket
+                  kunde bolaget gå direkt till köparen. Se kopare_namn i
+                  lib/upphandlingRepo.js. */}
+              <div className="field-row" style={{ marginTop: 16 }}>
+                <div className="field">
+                  <label htmlFor="upp-foretag">Företag</label>
+                  <input id="upp-foretag" value={d.foretag} onChange={(e) => patch({ foretag: e.target.value })} required />
+                  <p className="hint">Visas för bolagen när de har anmält intresse.</p>
+                </div>
+                <div className="field">
+                  <label htmlFor="upp-kopare">Beskriv er verksamhet</label>
+                  <input id="upp-kopare" value={d.kopare} maxLength={120} onChange={(e) => patch({ kopare: e.target.value })} placeholder="Industribolag, cirka 1 200 anställda" required />
+                  <p className="hint">Det bolagen ser innan de anmält intresse.</p>
+                </div>
               </div>
               <h3 className="upp-underrubrik">Vad ska köpas?</h3>
               <div className="field">
@@ -329,12 +341,12 @@ export default function SkapaUpphandling() {
               <div className="field" style={{ marginBottom: 0 }}>
                 <label htmlFor="upp-beskrivning">Kort beskrivning</label>
                 <textarea id="upp-beskrivning" rows={4} value={d.beskrivning} maxLength={1500} onChange={(e) => patch({ beskrivning: e.target.value })} required />
-                <p className="hint">Skriv inte ert bolagsnamn här om ni vill vara anonyma.</p>
+                <p className="hint">Beskrivningen visas innan bolagen anmält intresse. Ert företagsnamn tar vi från fältet ovan.</p>
               </div>
             </section>
 
             <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">4. Tidplan och synlighet</h2>
+              <h2 className="upp-rubrik-liten">4. Tidplan</h2>
               <div className="field-row">
                 <div className="field">
                   <label htmlFor="upp-d1">Sista dag för frågor</label>
@@ -355,16 +367,6 @@ export default function SkapaUpphandling() {
                   <input id="upp-d4" type="date" value={d.avtalsstart} onChange={(e) => patch({ avtalsstart: e.target.value })} />
                 </div>
               </div>
-              <div className="field" style={{ marginBottom: 0 }}>
-                <label>När ska leverantörer se ert namn?</label>
-                <div className="upp-chips">
-                  {[["efter_intresse", "Efter intresseanmälan"], ["direkt", "Direkt, för alla"]].map(([v, namn]) => (
-                    <button type="button" key={v} className={`chip${d.synlighet === v ? " on" : ""}`} aria-pressed={d.synlighet === v} onClick={() => patch({ synlighet: v })}>
-                      {namn}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </section>
 
             <section className="auth-panel">
@@ -382,15 +384,15 @@ export default function SkapaUpphandling() {
               </div>
               <div className="field-row">
                 <div className="field">
-                  <label htmlFor="upp-foretag">Företag</label>
-                  <input id="upp-foretag" value={d.foretag} onChange={(e) => patch({ foretag: e.target.value })} required />
-                </div>
-                <div className="field">
                   <label htmlFor="upp-ort">Ort</label>
                   <input id="upp-ort" list="upp-orter" value={d.ort} autoComplete="off" onChange={(e) => patch({ ort: e.target.value })} required />
                 </div>
+                <div className="field">
+                  <label htmlFor="upp-telefon">Telefon (valfritt)</label>
+                  <input id="upp-telefon" type="tel" value={d.telefon} onChange={(e) => patch({ telefon: e.target.value })} />
+                </div>
               </div>
-              <div className="field-row">
+              <div className="field-row" style={{ marginBottom: 0 }}>
                 <div className="field">
                   <label htmlFor="upp-namn">Namn</label>
                   <input id="upp-namn" value={d.namn} autoComplete="name" onChange={(e) => patch({ namn: e.target.value })} required />
@@ -399,10 +401,6 @@ export default function SkapaUpphandling() {
                   <label htmlFor="upp-roll">Din roll</label>
                   <input id="upp-roll" value={d.roll} onChange={(e) => patch({ roll: e.target.value })} required />
                 </div>
-              </div>
-              <div className="field" style={{ marginBottom: 0 }}>
-                <label htmlFor="upp-telefon">Telefon (valfritt)</label>
-                <input id="upp-telefon" type="tel" value={d.telefon} onChange={(e) => patch({ telefon: e.target.value })} />
               </div>
             </section>
           </main>
