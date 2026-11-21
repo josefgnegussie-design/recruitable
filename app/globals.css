@@ -1485,6 +1485,13 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .upp-ortfilter{all:unset;cursor:pointer;font-weight:600;text-decoration:underline;text-underline-offset:3px;}
 .upp-ortfilter:focus-visible{outline:2px solid var(--color-accent,#c2410c);outline-offset:2px;}
 .upp-ortstapel li.vald{outline:2px solid var(--color-ink);}
+.upp-pagaende{margin-top:40px;}
+.upp-exempelval{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.45;color:var(--color-ink-soft,inherit);margin:4px 0 14px;}
+.upp-exempelval input{margin-top:2px;flex:none;}
+.upp-pagaende-lista{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+.upp-pagaende-lista li{margin:0;}
+.upp-pagaende-lista .upp-brod{margin:0 0 8px;}
+.upp-pagaende-lista .upp-not{margin:0;}
 .upp-adressrad input:first-child{flex:2;}
 .upp-adressrad input:nth-child(2){flex:1;max-width:140px;}
 .upp-rad-tat{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}

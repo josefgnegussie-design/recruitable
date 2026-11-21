@@ -1,4 +1,9 @@
 import Link from "next/link";
+import { hamtaPagaendeUpphandlingar } from "@/lib/pagaendeUpphandlingar";
+import { formateraDatum } from "@/lib/upphandlingInbjudan";
+
+// Pågående upphandlingar ändras när en inbjudan godkänns, inte per besök.
+export const revalidate = 300;
 
 export const metadata = {
   title: "Upphandling — Recruitable",
@@ -29,7 +34,9 @@ const STEG = [
   },
 ];
 
-export default function UpphandlingPage() {
+export default async function UpphandlingPage() {
+  const pagaende = await hamtaPagaendeUpphandlingar();
+
   return (
     <div id="view-upphandling">
       <section className="hero" style={{ gridTemplateColumns: "1fr" }}>
@@ -57,6 +64,32 @@ export default function UpphandlingPage() {
             </li>
           ))}
         </ol>
+
+        {/* Visas bara när det finns något att visa. Meningarna byggs ur fasta
+            val och aldrig ur köparens fritext, se lib/pagaendeUpphandlingar.js. */}
+        {pagaende.length > 0 && (
+          <section className="upp-pagaende" aria-labelledby="upp-pagaende-rubrik">
+            <h2 id="upp-pagaende-rubrik" className="upp-rubrik-liten">Pågående upphandlingar</h2>
+            <p className="upp-not" style={{ marginTop: 0 }}>
+              Ett urval av inbjudningar som skickats via Recruitable. Köparna visas inte.
+            </p>
+            <ul className="upp-pagaende-lista">
+              {pagaende.map((u, i) => (
+                <li key={i} className="auth-panel">
+                  <p className="upp-brod">{u.mening}</p>
+                  <p className="upp-not">
+                    {[
+                      u.inbjudna > 0 && `${u.inbjudna} ${u.inbjudna === 1 ? "bolag inbjudet" : "bolag inbjudna"}`,
+                      u.svaraSenast && `svar senast ${formateraDatum(u.svaraSenast)}`,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </div>
   );
