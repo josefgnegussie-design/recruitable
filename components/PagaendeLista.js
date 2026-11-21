@@ -1,5 +1,5 @@
 // Korten för pågående upphandlingar (/upphandling) och pågående förfrågningar
-// (/rekrytera): ort, rubrik, en mening och fyra steg på en orange linje. Ett
+// (/rekrytera): ort, rubrik, en mening och stegen på en orange linje. Ett
 // steg utan datum har inte hänt ännu och visas med en ofylld punkt.
 export default function PagaendeLista({ id, rubrik, intro, kort, stegEtikett }) {
   if (!kort.length) return null;
@@ -14,11 +14,11 @@ export default function PagaendeLista({ id, rubrik, intro, kort, stegEtikett }) 
             {u.orter && <p className="upp-pagaende-ort">{u.orter}</p>}
             <h3>{u.rubrik}</h3>
             <p className="upp-pagaende-text">{u.mening}</p>
-            <ol className="upp-tidslinje" aria-label={stegEtikett}>
+            <ol className="upp-tidslinje" aria-label={stegEtikett} style={{ "--steg": u.tidslinje.length }}>
               {u.tidslinje.map((t) => (
                 <li key={t.steg}>
                   <span className={t.datum ? "punkt" : "punkt tom"} aria-hidden="true" />
-                  <span className="steg">{t.steg}</span>
+                  <span className={t.framhavd ? "steg framhavd" : "steg"}>{t.steg}</span>
                   <span className="datum">{t.datum ?? "–"}</span>
                 </li>
               ))}
