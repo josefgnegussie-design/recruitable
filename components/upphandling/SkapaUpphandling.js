@@ -231,7 +231,7 @@ export default function SkapaUpphandling() {
               : `Länken finns också i bekräftelsemejlet till ${skickad.epost}.`}
           </p>
         </div>
-        <SkrappostPaminnelse adress={skickad.epost} />
+        <SkrappostPaminnelse adress={skickad.epost} bekrafta={skickad.masteBekrafta ? "inbjudan" : undefined} />
       </div>
     );
   }

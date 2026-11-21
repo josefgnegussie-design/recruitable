@@ -603,7 +603,7 @@ export default function InquiryWizard({ filters, results, totalt }) {
               </Link>
             )}
           </div>
-          <SkrappostPaminnelse adress={draft.email} />
+          <SkrappostPaminnelse adress={draft.email} bekrafta={masteBekrafta ? "förfrågan" : undefined} />
         </div>
       )}
     </div>
