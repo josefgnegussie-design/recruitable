@@ -9,6 +9,7 @@ import { arGratisadress } from "@/lib/gratisadresser";
 import { useSessionDraft } from "@/lib/useSessionDraft";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
 import SkrappostPaminnelse from "@/components/SkrappostPaminnelse";
+import RelevantaBolag from "@/components/upphandling/RelevantaBolag";
 
 const NIVAER = [
   { varde: "ska", namn: "Ska-krav" },
@@ -75,6 +76,8 @@ export default function SkapaUpphandling() {
   const [fel, setFel] = useState("");
   const [skickar, setSkickar] = useState(false);
   const [lank, setLank] = useState(null);
+  // Senaste svaret från matchningen, för sammanfattningen och tacksidan.
+  const [matchning, setMatchning] = useState(null);
   const [turnstileToken, setTurnstileToken] = useState("");
   const vidVerifiering = useCallback((t) => setTurnstileToken(t), []);
 
@@ -169,8 +172,12 @@ export default function SkapaUpphandling() {
         <div className="auth-panel">
           <h1 className="upp-rubrik">Tack!</h1>
           <p className="upp-brod">
-            Upphandlingen är skickad till granskning hos Recruitable. På er egen sida följer ni vilka leverantörer som
-            anmäler sig. Länken finns också i bekräftelsemejlet till {d.epost}.
+            Upphandlingen är skickad till granskning hos Recruitable.
+            {matchning?.totalt
+              ? ` ${matchning.totalt} bolag i registret matchar, och när den är godkänd får de som är aktiva på Recruitable besked.`
+              : " När den är godkänd får matchande bolag besked."}{" "}
+            På er egen sida följer ni vilka leverantörer som anmäler sig. Länken finns också i bekräftelsemejlet till{" "}
+            {d.epost}.
           </p>
           <Link className="qs-btn upp-lank-knapp" href={lank}>Öppna er upphandling</Link>
         </div>
@@ -180,6 +187,8 @@ export default function SkapaUpphandling() {
   }
 
   const antalKomb = d.orter.length * d.kompetenser.length;
+  // Matchningen gäller bara så länge det finns något att matcha på.
+  const traffar = d.omraden.length && d.orter.length ? matchning : null;
   const klar = !TURNSTILE_SITE_KEY || Boolean(turnstileToken);
 
   return (
@@ -188,37 +197,13 @@ export default function SkapaUpphandling() {
       <div className="upp-sida">
         <header className="upp-huvud">
           <h1 className="hero-title">Lägg ut en upphandling</h1>
-          <p className="hero-sub">Börja med det ni vet. Ett fullständigt förfrågningsunderlag behövs inte i det här steget.</p>
+          <p className="hero-sub">Beskriv vad ni behöver och var, så ser ni direkt vilka bemannings- och rekryteringsbolag som kan leverera. Publicera sedan upphandlingen för att få intresseanmälningar från dem.</p>
         </header>
 
         <form className="upp-kolumner" onSubmit={skicka}>
           <main>
             <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Vem köper?</h2>
-              <div className="upp-chips">
-                {[["privat", "Privat bolag"], ["offentlig", "Offentlig verksamhet"]].map(([v, namn]) => (
-                  <button type="button" key={v} className={`chip${d.kopartyp === v ? " on" : ""}`} aria-pressed={d.kopartyp === v} onClick={() => patch({ kopartyp: v })}>
-                    {namn}
-                  </button>
-                ))}
-              </div>
-              {d.kopartyp === "offentlig" && (
-                <p className="upp-varning">
-                  Annonsen blir en marknadsdialog. Den ersätter inte annonsering av upphandlingen i en registrerad annonsdatabas.
-                </p>
-              )}
-              <div className="field" style={{ marginTop: 16, marginBottom: 0 }}>
-                <label htmlFor="upp-kopare">Beskriv er utan namn</label>
-                <input id="upp-kopare" value={d.kopare} maxLength={120} onChange={(e) => patch({ kopare: e.target.value })} placeholder="Industribolag, cirka 1 200 anställda" required />
-              </div>
-            </section>
-
-            <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Vad ska köpas?</h2>
-              <div className="field">
-                <label htmlFor="upp-titel">Rubrik</label>
-                <input id="upp-titel" value={d.titel} maxLength={120} onChange={(e) => patch({ titel: e.target.value })} placeholder="Ramavtal lager och produktion" required />
-              </div>
+              <h2 className="upp-rubrik-liten">1. Vad behöver ni?</h2>
               <div className="field">
                 <label htmlFor="upp-tjanst">Tjänst</label>
                 <select id="upp-tjanst" value={d.tjanst} onChange={(e) => patch({ tjanst: e.target.value })} required>
@@ -228,25 +213,17 @@ export default function SkapaUpphandling() {
                   ))}
                 </select>
               </div>
-              <div className="field-row">
-                <div className="field">
-                  <label htmlFor="upp-avtal">Avtalstid</label>
-                  <input id="upp-avtal" value={d.avtalstid} maxLength={80} onChange={(e) => patch({ avtalstid: e.target.value })} placeholder="2 år + 1 år option" />
-                </div>
-                <div className="field">
-                  <label htmlFor="upp-volym">Ungefärlig volym</label>
-                  <input id="upp-volym" value={d.volym} maxLength={120} onChange={(e) => patch({ volym: e.target.value })} placeholder="Cirka 60 konsulter samtidigt" />
+              <div className="field">
+                <label>Bransch och yrkesområden (högst {MAX_OMRADEN})</label>
+                <p className="hint" style={{ marginTop: 0 }}>Styr vilka bolag som visas nedan, och vilka som får besked när upphandlingen publiceras.</p>
+                <div className="upp-chips">
+                  {omraden.map((o) => (
+                    <button type="button" key={o} className={`chip${d.omraden.includes(o) ? " on" : ""}`} aria-pressed={d.omraden.includes(o)} onClick={() => vaxlaOmrade(o)}>
+                      {o}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div className="field" style={{ marginBottom: 0 }}>
-                <label htmlFor="upp-beskrivning">Kort beskrivning</label>
-                <textarea id="upp-beskrivning" rows={4} value={d.beskrivning} maxLength={1500} onChange={(e) => patch({ beskrivning: e.target.value })} required />
-                <p className="hint">Skriv inte ert bolagsnamn här om ni vill vara anonyma.</p>
-              </div>
-            </section>
-
-            <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Var och vilka kompetenser?</h2>
               <div className="field">
                 <label htmlFor="upp-ny-ort">Orter (högst {MAX_ORTER})</label>
                 <div className="upp-rad">
@@ -261,7 +238,7 @@ export default function SkapaUpphandling() {
                 {ortfel && <p className="field-error">{ortfel}</p>}
                 <Taggar lista={d.orter} taBort={(v) => patch({ orter: d.orter.filter((x) => x !== v) })} />
               </div>
-              <div className="field">
+              <div className="field" style={{ marginBottom: 0 }}>
                 <label htmlFor="upp-ny-kompetens">Kompetenser (högst {MAX_KOMPETENSER})</label>
                 <div className="upp-rad">
                   <input id="upp-ny-kompetens" value={nyKompetens} maxLength={40} placeholder="Till exempel truckförare" onChange={(e) => setNyKompetens(e.target.value)} onKeyDown={vidEnter(laggTillKompetens)} />
@@ -269,21 +246,18 @@ export default function SkapaUpphandling() {
                 </div>
                 <Taggar lista={d.kompetenser} taBort={(v) => patch({ kompetenser: d.kompetenser.filter((x) => x !== v) })} />
               </div>
-              <div className="field" style={{ marginBottom: 0 }}>
-                <label>Yrkesområden (högst {MAX_OMRADEN})</label>
-                <p className="hint" style={{ marginTop: 0 }}>Bolag med dessa områden i sin profil får besked om upphandlingen.</p>
-                <div className="upp-chips">
-                  {omraden.map((o) => (
-                    <button type="button" key={o} className={`chip${d.omraden.includes(o) ? " on" : ""}`} aria-pressed={d.omraden.includes(o)} onClick={() => vaxlaOmrade(o)}>
-                      {o}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </section>
 
+            <RelevantaBolag
+              tjanst={d.tjanst}
+              omraden={d.omraden}
+              orter={d.orter}
+              krav={KRAV_MALL.filter((k) => k.profil && d.nivaer[k.id] !== "inget").map((k) => k.id)}
+              vidResultat={setMatchning}
+            />
+
             <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Krav</h2>
+              <h2 className="upp-rubrik-liten">2. Krav</h2>
               <p className="upp-not">Den som inte uppfyller alla ska-krav kan inte anmäla sig.</p>
               {KRAV_MALL.map((k) => (
                 <div className="upp-kravrad" key={k.id}>
@@ -319,7 +293,48 @@ export default function SkapaUpphandling() {
             </section>
 
             <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Tidplan och synlighet</h2>
+              <h2 className="upp-rubrik-liten">3. Om upphandlingen</h2>
+              <h3 className="upp-underrubrik">Vem köper?</h3>
+              <div className="upp-chips">
+                {[["privat", "Privat bolag"], ["offentlig", "Offentlig verksamhet"]].map(([v, namn]) => (
+                  <button type="button" key={v} className={`chip${d.kopartyp === v ? " on" : ""}`} aria-pressed={d.kopartyp === v} onClick={() => patch({ kopartyp: v })}>
+                    {namn}
+                  </button>
+                ))}
+              </div>
+              {d.kopartyp === "offentlig" && (
+                <p className="upp-varning">
+                  Annonsen blir en marknadsdialog. Den ersätter inte annonsering av upphandlingen i en registrerad annonsdatabas.
+                </p>
+              )}
+              <div className="field" style={{ marginTop: 16, marginBottom: 0 }}>
+                <label htmlFor="upp-kopare">Beskriv er utan namn</label>
+                <input id="upp-kopare" value={d.kopare} maxLength={120} onChange={(e) => patch({ kopare: e.target.value })} placeholder="Industribolag, cirka 1 200 anställda" required />
+              </div>
+              <h3 className="upp-underrubrik">Vad ska köpas?</h3>
+              <div className="field">
+                <label htmlFor="upp-titel">Rubrik</label>
+                <input id="upp-titel" value={d.titel} maxLength={120} onChange={(e) => patch({ titel: e.target.value })} placeholder="Ramavtal lager och produktion" required />
+              </div>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="upp-avtal">Avtalstid</label>
+                  <input id="upp-avtal" value={d.avtalstid} maxLength={80} onChange={(e) => patch({ avtalstid: e.target.value })} placeholder="2 år + 1 år option" />
+                </div>
+                <div className="field">
+                  <label htmlFor="upp-volym">Ungefärlig volym</label>
+                  <input id="upp-volym" value={d.volym} maxLength={120} onChange={(e) => patch({ volym: e.target.value })} placeholder="Cirka 60 konsulter samtidigt" />
+                </div>
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label htmlFor="upp-beskrivning">Kort beskrivning</label>
+                <textarea id="upp-beskrivning" rows={4} value={d.beskrivning} maxLength={1500} onChange={(e) => patch({ beskrivning: e.target.value })} required />
+                <p className="hint">Skriv inte ert bolagsnamn här om ni vill vara anonyma.</p>
+              </div>
+            </section>
+
+            <section className="auth-panel">
+              <h2 className="upp-rubrik-liten">4. Tidplan och synlighet</h2>
               <div className="field-row">
                 <div className="field">
                   <label htmlFor="upp-d1">Sista dag för frågor</label>
@@ -353,7 +368,7 @@ export default function SkapaUpphandling() {
             </section>
 
             <section className="auth-panel">
-              <h2 className="upp-rubrik-liten">Era uppgifter</h2>
+              <h2 className="upp-rubrik-liten">5. Era uppgifter</h2>
               <p className="upp-not">E-posten måste ha samma domän som er webbplats. Då vet leverantörerna att upphandlingen är äkta.</p>
               <div className="field-row">
                 <div className="field">
@@ -397,6 +412,8 @@ export default function SkapaUpphandling() {
               <h2 className="upp-rubrik-liten">Sammanfattning</h2>
               <p className="upp-brod"><strong>{d.titel || "Upphandling utan rubrik"}</strong></p>
               <dl className="upp-tidplan">
+                <div><dt>Relevanta bolag</dt><dd>{traffar ? traffar.totalt : "–"}</dd></div>
+                <div><dt>Varav aktiva på Recruitable</dt><dd>{traffar ? traffar.aktiva : "–"}</dd></div>
                 <div><dt>Orter</dt><dd>{d.orter.length}</dd></div>
                 <div><dt>Kompetenser</dt><dd>{d.kompetenser.length}</dd></div>
                 <div><dt>Kombinationer att täcka</dt><dd>{antalKomb}</dd></div>

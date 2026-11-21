@@ -1503,6 +1503,32 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .upp-ruta.av{background:var(--color-surface-card);color:var(--color-muted);border-color:var(--color-hairline);}
 .upp-ruta.vald{border-color:var(--color-accent);box-shadow:var(--shadow-focus-accent);}
 .upp-dold{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+/* Relevanta bolag i formuläret för en ny upphandling. Uppdateras medan köparen
+   fyller i, så en pågående hämtning tonar listan i stället för att tömma den. */
+.upp-underrubrik{font-size:14px;font-weight:600;color:var(--color-ink);margin:18px 0 10px;}
+.upp-underrubrik:first-of-type{margin-top:4px;}
+.upp-match{border-left:3px solid var(--color-accent);}
+.upp-match.laddar .upp-matchlista,.upp-match.laddar .upp-ortstapel{opacity:.55;transition:opacity .15s;}
+.upp-match-huvud{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;}
+.upp-match-huvud .upp-rubrik-liten{margin-bottom:6px;}
+.upp-match-huvud .upp-not{margin:0;}
+.upp-ortstapel{list-style:none;margin:6px 0 14px;padding:0;display:flex;flex-wrap:wrap;gap:8px;}
+.upp-ortstapel li{display:flex;flex-direction:column;background:var(--color-surface-soft);border-radius:var(--radius-md);padding:8px 12px;min-width:120px;}
+.upp-ortstapel .ort{font-weight:600;color:var(--color-ink);font-size:14px;}
+.upp-ortstapel .tal{font-size:12.5px;color:var(--color-body);}
+.upp-ortstapel li.lucka{background:#f6dfdb;}
+.upp-ortstapel li.lucka .tal{color:#7f2a23;}
+.upp-matchlista{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;}
+.upp-matchlista>li{border-top:1px solid var(--color-hairline-soft);padding:12px 0;display:flex;flex-direction:column;gap:8px;}
+.upp-match-rad{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+.upp-match-namn{display:flex;gap:10px;align-items:center;min-width:0;}
+.upp-match-namn img{width:32px;height:32px;object-fit:contain;border-radius:6px;background:#fff;flex:none;}
+.upp-match-namn a{font-weight:600;color:var(--color-ink);font-size:15px;text-decoration:none;overflow-wrap:anywhere;}
+.upp-match-namn a:hover{color:var(--color-accent);text-decoration:underline;}
+.upp-match-ort{font-size:12.5px;color:var(--color-muted);}
+.upp-status{flex:none;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:var(--radius-pill);background:var(--color-surface-soft);color:var(--color-muted);white-space:nowrap;}
+.upp-status.aktiv{background:rgba(63,143,95,0.14);color:#1c6b3a;}
+.upp-matchlista .upp-fakta{grid-template-columns:110px minmax(0,1fr);font-size:13px;}
 @media (max-width:900px){
   .upp-kolumner{grid-template-columns:minmax(0,1fr);}
   .upp-klibbig{position:static;}
@@ -1513,4 +1539,8 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
   .upp-huvud .hero-title{font-size:28px;}
   .upp-kravrad{flex-wrap:wrap;}
   .upp-sida .field-row{flex-direction:column;gap:0;}
+  .upp-match-rad{flex-direction:column;gap:6px;}
+  .upp-matchlista .upp-fakta{grid-template-columns:minmax(0,1fr);gap:0 12px;}
+  .upp-matchlista .upp-fakta dd{margin-bottom:4px;}
+  .upp-ortstapel li{flex:1 1 40%;}
 }
