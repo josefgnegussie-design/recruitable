@@ -43,17 +43,16 @@ function cirkel(lat, lng, km, steg = 64) {
   return { type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } };
 }
 
-// Registret och postnummerregistret har en punkt per postort, så ett bolag på
-// samma ort som adressen står på 0 km. Då säger vi "på orten" i stället.
+// "Under 1 km ifrån" eller "12 km ifrån". Bolagen ligger på sin postort, så
+// avståndet räknas från adressen till bolagets ort.
 function kmText(km) {
-  return km < 1 ? "på orten" : `${km.toLocaleString("sv-SE", { maximumFractionDigits: km < 10 ? 1 : 0 })} km`;
+  const tal = km < 1 ? "under 1" : km.toLocaleString("sv-SE", { maximumFractionDigits: km < 10 ? 1 : 0 });
+  return `${tal} km ifrån`;
 }
 
-// "I Göteborg" eller "58 km från Borås", med ortnamnet i stället för
-// adressens nummer, så att raden går att läsa utan att titta på kartan.
-function franAdress(km, punkt) {
-  const ort = punkt?.ort || punkt?.etikett || "";
-  return km < 1 ? `I ${ort}` : `${kmText(km)} från ${ort}`;
+// "1 – 2 km ifrån": adressens nummer, som på kartan, och avståndet.
+function franAdress(km, j) {
+  return `${j + 1} – ${kmText(km)}`;
 }
 
 // Popupens innehåll byggs som DOM och inte som HTML-sträng, så att ett
@@ -403,7 +402,7 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
               maxLength={120}
               aria-label={`Adress ${i + 1}`}
               onChange={(e) => andra(i, e.target.value)}
-              placeholder={i === 0 ? "Adress, postnummer eller ort" : "Ytterligare en adress"}
+              placeholder={i === 0 ? "Fullständig adress, t.ex. Storgatan 1, 411 38 Göteborg" : "Ytterligare en adress"}
             />
             {adresser.length > 1 && (
               <button
@@ -470,6 +469,9 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
                   <b>{svar.totalt.toLocaleString("sv-SE")}</b> bolag inom {svar.radie} km
                   {svar.punkter.length === 1 ? ` från ${svar.punkter[0].etikett}` : ""}
                 </div>
+                {svar.punkter.some((p) => p.exakthet !== "gata") && (
+                  <p className="nk-ej">Skriv fullständig adress med gata och nummer för exakta avstånd.</p>
+                )}
                 {svar.ejHittade.length > 0 && (
                   <p className="nk-ej">Hittade inte {svar.ejHittade.join(", ")}. Prova med postnummer.</p>
                 )}
@@ -481,7 +483,7 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
                         <span className="nk-bolag-namn">{b.namn}</span>
                         <span className="nk-bolag-meta">
                           {svar.punkter.length > 1
-                            ? b.perAdress.map((km, j) => franAdress(km, svar.punkter[j])).join(" · ")
+                            ? b.perAdress.map((km, j) => franAdress(km, j)).join(" · ")
                             : `${b.ort} · ${kmText(b.km)}`}
                         </span>
                       </button>

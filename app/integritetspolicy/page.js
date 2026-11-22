@@ -106,8 +106,9 @@ export default function IntegritetspolicyPage() {
           på startsidan) och, när betalfunktionen är på plats, Stripe (betalningar). Till Anthropic skickas bara
           texten i sökfältet, utan IP-adress eller andra uppgifter om dig, och vi sparar den inte. Skriv därför inga
           personuppgifter i sökfältet. Kartan över närliggande bolag hämtar kartbilder från OpenFreeMap, som då ser
-          din IP-adress precis som när du besöker en annan webbplats. Adresserna du skriver in på kartan slås upp
-          hos oss och skickas inte till kartleverantören. Vi
+          din IP-adress precis som när du besöker en annan webbplats. En gatuadress du skriver in på kartan slås upp
+          via vår server hos OpenStreetMaps adresstjänst Nominatim, som då bara får adressen, inte din IP-adress.
+          Adresserna sparas inte. Vi
           säljer aldrig personuppgifter till tredje part, och delar inte information i andra syften än de som
           beskrivs här.
         </p>
