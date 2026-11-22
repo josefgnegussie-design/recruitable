@@ -15,8 +15,12 @@ const securityHeaders = [
       // 'unsafe-eval' krävs av Next.js dev-server (Turbopack/webpack HMR) i
       // utvecklingsläge — aldrig i produktion, där React inte använder eval().
       `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval' " : ""}https://www.googletagmanager.com https://challenges.cloudflare.com`,
-      "connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org https://*.google-analytics.com https://www.googletagmanager.com https://challenges.cloudflare.com",
-      "img-src 'self' data: https:",
+      // Kartan: stil, kartbilder och typsnitt från OpenFreeMap eller MapTiler.
+      "connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org https://tiles.openfreemap.org https://api.maptiler.com https://*.google-analytics.com https://www.googletagmanager.com https://challenges.cloudflare.com",
+      "img-src 'self' data: blob: https:",
+      // MapLibre ritar kartbilderna i en web worker som skapas ur en blob.
+      "worker-src 'self' blob:",
+      "child-src blob:",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
       "frame-src https://challenges.cloudflare.com",

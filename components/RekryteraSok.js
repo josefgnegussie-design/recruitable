@@ -6,6 +6,7 @@ import { YRKESOMRADEN, FILTER_DEFS } from "@/lib/taxonomy";
 import { allRegionCities } from "@/lib/helpers";
 import CompanyCard from "@/components/CompanyCard";
 import TjanstInfo from "@/components/TjanstInfo";
+import NarliggandeKarta from "@/components/NarliggandeKarta";
 import { markeraFranTraffar } from "@/lib/franTraffar";
 
 // Fångar klick på profillänkarna i korten, så att profilens tillbakalänk vet
@@ -123,6 +124,14 @@ function SokContent({ antalBolag, urval }) {
           {error && <p style={{ color: "#c0392b", fontSize: 13 }}>{error}</p>}
           <button className="qs-btn" onClick={handleSearch}>Hitta bolag &rarr;</button>
         </div>
+      </section>
+
+      <section className="l-section tight">
+        <h2>Bolag nära er</h2>
+        <p className="l-section-sub">
+          Skriv in en eller flera adresser, till exempel era arbetsplatser, så visas bolagen i registret runt dem.
+        </p>
+        <NarliggandeKarta lage="rekrytera" />
       </section>
 
       <section className="l-section tight">

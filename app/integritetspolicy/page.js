@@ -105,7 +105,9 @@ export default function IntegritetspolicyPage() {
           Google (Google Analytics, besöksstatistik), Anthropic (AI-tjänsten som tolkar det du skriver i sökfältet
           på startsidan) och, när betalfunktionen är på plats, Stripe (betalningar). Till Anthropic skickas bara
           texten i sökfältet, utan IP-adress eller andra uppgifter om dig, och vi sparar den inte. Skriv därför inga
-          personuppgifter i sökfältet. Vi
+          personuppgifter i sökfältet. Kartan över närliggande bolag hämtar kartbilder från OpenFreeMap, som då ser
+          din IP-adress precis som när du besöker en annan webbplats. Adresserna du skriver in på kartan slås upp
+          hos oss och skickas inte till kartleverantören. Vi
           säljer aldrig personuppgifter till tredje part, och delar inte information i andra syften än de som
           beskrivs här.
         </p>
