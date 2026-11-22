@@ -1724,6 +1724,15 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .ai-sok-exempel button:hover{text-decoration-color:var(--color-accent);}
 .ai-sok-alt{margin-top:14px;font-size:13.5px;color:var(--color-muted);}
 .ai-sok-alt a{color:var(--color-ink);font-weight:600;}
+/* Kompakt AI-sök på Rekrytera och Upphandling: en rad, mindre text. */
+.ai-sok-kompakt{margin:20px 0 12px;max-width:520px;}
+.hint.ai-hint{color:var(--color-action);}
+.ai-sok-kompakt .ai-sok-ruta{padding:10px 10px 10px 14px;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,40,.04);}
+.ai-sok-kompakt .ai-sok-topp{margin-bottom:4px;font-size:10.5px;}
+.ai-sok-kompakt textarea{font-size:15px;min-height:24px;}
+.ai-sok-kompakt .ai-sok-rad{margin-top:6px;}
+.ai-sok-kompakt .ai-sok-hint{font-size:12px;}
+.ai-sok-kompakt .ai-sok-knapp{padding:7px 14px;font-size:13px;}
 @media (max-width:640px){
   .ai-sok textarea{font-size:16px;min-height:72px;}
   .ai-sok-rad{flex-direction:column;align-items:stretch;}

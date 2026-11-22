@@ -13,11 +13,24 @@ const EXEMPEL = [
   "IT-konsult, Stockholm",
 ];
 
-// Startsidans sökfält. Besökaren skriver med egna ord, /api/ai-sok tolkar texten
-// till kvickfiltrets värden (yrkesområde, tjänst, ort) och besökaren skickas
-// till samma resultatsida som kvickfiltret leder till. Tolkningen visas kort som
-// etiketter innan sidbytet, så att det syns vad sökningen bygger på.
-export default function AiSok() {
+// AI-sökfältet. Besökaren skriver med egna ord, /api/ai-sok tolkar texten till
+// kvickfiltrets värden (yrkesområde, tjänst, ort, antal, start) och besökaren
+// skickas vidare. Tolkningen visas kort som etiketter innan sidbytet, så att det
+// syns vad sökningen bygger på.
+//
+// lage:
+//   "start"       startsidan, stor, till Rekryteras resultatsida
+//   "rekrytera"   Rekrytera, kompakt, till samma resultatsida
+//   "upphandling" Upphandling, kompakt, till upphandlingsformuläret, som fyller
+//                 i det som gick att tolka (components/upphandling/SkapaUpphandling.js)
+const PLATSHALLARE = {
+  start: "T.ex. två lagerarbetare i Göteborg med truckkort, start i januari",
+  rekrytera: "T.ex. två lagerarbetare i Göteborg med truckkort, start i januari",
+  upphandling: "T.ex. bemanning av 40 montörer i Linköping från mars",
+};
+
+export default function AiSok({ lage = "start" }) {
+  const kompakt = lage !== "start";
   const router = useRouter();
   const [text, setText] = useState("");
   const [laddar, setLaddar] = useState(false);
@@ -53,6 +66,7 @@ export default function AiSok() {
     }
 
     const params = new URLSearchParams({ beskrivning: beskrivning.slice(0, MAX_TECKEN) });
+    const mal = lage === "upphandling" ? "/upphandling/skapa" : "/rekrytera/resultat";
     if (svar.omrade) params.set("omrade", svar.omrade);
     if (svar.tjanst) params.set("tjanst", svar.tjanst);
     if (svar.ort) params.set("ort", svar.ort);
@@ -63,7 +77,7 @@ export default function AiSok() {
     if (svar.tolkad) params.set("ai", "1");
 
     const etiketter = [svar.omrade, svar.ort, svar.tjanst, ...detaljEtiketter(svar)].filter(Boolean);
-    const url = `/rekrytera/resultat?${params.toString()}`;
+    const url = `${mal}?${params.toString()}`;
     router.prefetch(url);
     if (etiketter.length) {
       setTolkat(etiketter);
@@ -74,26 +88,30 @@ export default function AiSok() {
   }
 
   return (
-    <form className="ai-sok" onSubmit={sok}>
+    <form className={`ai-sok${kompakt ? " ai-sok-kompakt" : ""}`} onSubmit={sok}>
       <div className={`ai-sok-ruta${text ? " fokus" : ""}`}>
-        <label className="ai-sok-topp" htmlFor="ai-sok-text">
+        <label className="ai-sok-topp" htmlFor={`ai-sok-text-${lage}`}>
           Beskriv vad ni söker <span className="ai-sok-tagg">AI</span>
         </label>
         <textarea
-          id="ai-sok-text"
-          rows={2}
+          id={`ai-sok-text-${lage}`}
+          rows={kompakt ? 1 : 2}
           maxLength={MAX_TECKEN}
           value={text}
           onChange={(e) => setText(e.target.value.slice(0, MAX_TECKEN))}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) sok(e);
           }}
-          placeholder="T.ex. två lagerarbetare i Göteborg med truckkort, start i januari"
+          placeholder={PLATSHALLARE[lage] ?? PLATSHALLARE.start}
         />
         <div className="ai-sok-rad">
-          <span className="ai-sok-hint">Skriv med egna ord, vi föreslår bolag som matchar.</span>
+          <span className="ai-sok-hint">
+            {lage === "upphandling"
+              ? "Skriv med egna ord, vi fyller i upphandlingen åt er."
+              : "Skriv med egna ord, vi föreslår bolag som matchar."}
+          </span>
           <button className="ai-sok-knapp" type="submit" disabled={laddar}>
-            {laddar ? "Letar…" : "Visa matchningar →"}
+            {laddar ? "Letar…" : lage === "upphandling" ? "Kom igång →" : "Visa matchningar →"}
           </button>
         </div>
       </div>
@@ -103,7 +121,7 @@ export default function AiSok() {
           Tolkat som:
           {tolkat.map((t) => <span key={t} className="t">{t}</span>)}
         </div>
-      ) : (
+      ) : kompakt ? null : (
         <div className="ai-sok-exempel">
           <span>Prova:</span>
           {EXEMPEL.map((ex) => (
@@ -111,9 +129,11 @@ export default function AiSok() {
           ))}
         </div>
       )}
-      <div className="ai-sok-alt">
-        Vill du hellre välja själv? <Link href="/rekrytera">Använd kvickfiltret</Link> · <a href="#sa-funkar-det">Så funkar det</a>
-      </div>
+      {!kompakt && (
+        <div className="ai-sok-alt">
+          Vill du hellre välja själv? <Link href="/rekrytera">Använd kvickfiltret</Link> · <a href="#sa-funkar-det">Så funkar det</a>
+        </div>
+      )}
     </form>
   );
 }
