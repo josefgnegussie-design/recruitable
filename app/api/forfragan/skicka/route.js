@@ -7,6 +7,7 @@ import { arGratisadress } from "@/lib/gratisadresser";
 import { domanTarEmotMejl } from "@/lib/automatiskGranskning";
 import { clientIp } from "@/lib/requestIp";
 import { sparaOchSkickaForfragan } from "@/lib/forfraganSkickas";
+import { giltigStart, tolkaAntal } from "@/lib/forfraganDetaljer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,6 +62,8 @@ export async function POST(request) {
     requesterCompany,
     requesterCity,
     requesterPhone,
+    antal,
+    start,
     turnstileToken,
   } = body;
 
@@ -89,7 +92,9 @@ export async function POST(request) {
     !isValidText(requesterRole, 100) ||
     !isValidText(requesterCompany, 200) ||
     !isValidText(requesterCity, 100) ||
-    !isValidOptionalText(requesterPhone, 30)
+    !isValidOptionalText(requesterPhone, 30) ||
+    (antal !== undefined && antal !== null && tolkaAntal(antal) === null) ||
+    (start !== undefined && start !== null && start !== "" && !giltigStart(start))
   ) {
     return NextResponse.json({ error: "Ofullständig eller ogiltig förfrågan." }, { status: 400 });
   }
@@ -155,11 +160,19 @@ export async function POST(request) {
     searchRole: searchRole || "",
     focusArea: focusArea || "",
     service: service || "",
+    antal: tolkaAntal(antal),
+    start: start || "",
   };
+
+  // Antal och start bor i egna kolumner (supabase/migration_antal_start.sql).
+  // Är migrationen inte körd sparas förfrågan ändå, utan dem.
+  const extra = {};
+  if (tolkaAntal(antal)) extra.antal_personer = tolkaAntal(antal);
+  if (start) extra.start_tid = start;
 
   // Resten — bolagen, mottagarna, uppföljningslänken och mejlen — delas med
   // inbjudningarna från Upphandling. Se lib/forfraganSkickas.js.
-  const { svar, fel, status } = await sparaOchSkickaForfragan(supabase, { rad: forfraganRad, companyIds, mejl });
+  const { svar, fel, status } = await sparaOchSkickaForfragan(supabase, { rad: forfraganRad, companyIds, mejl, extra });
   if (fel) return NextResponse.json({ error: fel }, { status });
   return NextResponse.json(svar);
 }

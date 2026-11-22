@@ -6,6 +6,7 @@ import { hamtaBolag } from "@/lib/companiesRepo";
 export const runtime = "nodejs";
 
 const TOMT = { omrade: "", tjanst: "", ort: "" };
+const TOMMA_DETALJER = { antal: null, start: "" };
 
 // Startsidans AI-sökfält. Varje anrop kostar ett modellanrop, så taket är
 // dubbelt: få anrop per minut stoppar skript, ett dagstak per IP begränsar
@@ -31,11 +32,13 @@ export async function POST(request) {
 
   try {
     const tolkat = await tolka(text);
-    if (!tolkat) return NextResponse.json({ ...TOMT, tolkad: false });
-    return NextResponse.json({ ...(await vidgaTillTraffar(tolkat)), tolkad: true });
+    if (!tolkat) return NextResponse.json({ ...TOMT, ...TOMMA_DETALJER, tolkad: false });
+    // Antal och start påverkar inte vilka bolag som visas, bara förfrågan.
+    const { antal, start, ...filter } = tolkat;
+    return NextResponse.json({ ...(await vidgaTillTraffar(filter)), antal, start, tolkad: true });
   } catch (err) {
     console.error("AI-sök: tolkningen misslyckades:", err?.status ?? "", err?.message);
-    return NextResponse.json({ ...TOMT, tolkad: false });
+    return NextResponse.json({ ...TOMT, ...TOMMA_DETALJER, tolkad: false });
   }
 }
 
