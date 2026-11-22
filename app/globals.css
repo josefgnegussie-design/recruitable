@@ -1676,3 +1676,22 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
   .pagaende-band .upp-tidslinje .steg.framhavd{color:var(--color-accent);}
 }
 
+
+/* Korten för pågående förfrågningar och upphandlingar ungefär en tredjedel
+   mindre på större skärmar: de ska visa att tjänsten används, inte ta lika
+   mycket plats som sidans huvudinnehåll. Mobilen har sin egen kompakta lista. */
+@media (min-width:901px){
+  .upp-pagaende-lista{gap:12px;}
+  .upp-pagaende-kort.auth-panel{padding:14px 16px 14px;}
+  .upp-pagaende-kort h3{margin:4px 0 4px;font-size:15px;}
+  .upp-pagaende-kort.auth-panel p.upp-pagaende-ort{margin:0;font-size:10.5px;}
+  .upp-pagaende-kort.auth-panel p.upp-pagaende-text{margin:0 0 10px;font-size:12.5px;line-height:1.4;}
+  .upp-exempel-tagg{top:12px;right:12px;font-size:10px;padding:1px 7px;}
+  .upp-tidslinje::before{top:4px;}
+  .upp-tidslinje .punkt{width:9px;height:9px;margin-bottom:4px;}
+  .upp-tidslinje .steg{font-size:9.5px;}
+  .upp-tidslinje .datum{font-size:10.5px;}
+  .pagaende-band > .upp-pagaende{padding:22px 24px 24px;}
+  .pagaende-band .upp-rubrik-liten{font-size:17px;margin-bottom:6px;}
+  .pagaende-band .upp-not{margin:0 0 12px;}
+}
