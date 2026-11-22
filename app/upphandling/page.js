@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { hamtaPagaendeUpphandlingar } from "@/lib/pagaendeUpphandlingar";
 import PagaendeLista, { pagaendeIntro } from "@/components/PagaendeLista";
+import NarliggandeKarta from "@/components/NarliggandeKarta";
 
 // Pågående upphandlingar ändras när en inbjudan godkänns, inte per besök.
 export const revalidate = 300;
@@ -79,6 +80,13 @@ export default async function UpphandlingPage() {
               </li>
             ))}
           </ol>
+        </section>
+        <section className="l-section tight">
+          <h2>Vilka bolag finns nära era arbetsställen?</h2>
+          <p className="l-section-sub">
+            Se vilka bolag som finns där personalen ska arbeta.
+          </p>
+          <NarliggandeKarta lage="upphandling" />
         </section>
       </div>
     </>

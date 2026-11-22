@@ -743,13 +743,6 @@ a:hover{color:var(--color-accent)}
     .cookie-btn{flex:1;}
   }
 
-  .nearby-widget{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:28px;}
-  .nearby-autocomplete{position:relative;}
-  .nearby-suggest-list{position:absolute;top:100%;left:0;right:0;z-index:20;margin:4px 0 0;padding:6px;list-style:none;background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-md);box-shadow:var(--shadow-elevated);max-height:260px;overflow-y:auto;}
-  .nearby-suggest-list li{padding:9px 10px;font-size:13.5px;color:var(--color-body);border-radius:var(--radius-sm);cursor:pointer;}
-  .nearby-suggest-list li:hover{background:var(--color-surface-soft);color:var(--color-ink);}
-  .nearby-results{margin-top:4px;}
-  .nearby-results .flow-suggest-card{align-items:center;}
 
   .site-footer{background:var(--color-surface-dark);color:var(--color-on-dark-soft);}
   /* Tre spalter där de yttre är lika breda, så att länkarna står i sidans
@@ -1776,3 +1769,72 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 @keyframes pagaende-ut{to{opacity:0;transform:translateY(-6px);}}
 @keyframes pagaende-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 @media (prefers-reduced-motion:reduce){.upp-pagaende-kort.lamnar,.upp-pagaende-kort.kommer{animation:none;}}
+
+/* ===== Kartan "Bolag nära er" (components/NarliggandeKarta.js) =====
+   Liten som standard: ett sökfält och en kartbild i miniatyr. Fälls ut till
+   karta och lista när besökaren söker eller klickar på kartan. */
+.nk{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:20px;align-items:center;background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);padding:16px;transition:padding .3s ease;}
+.nk-oppen{grid-template-columns:minmax(0,1fr);padding:16px 16px 20px;}
+.nk-form{display:flex;flex-direction:column;gap:8px;min-width:0;}
+.nk-adress-rad{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--color-hairline);padding:2px 0;}
+.nk-adress-rad:focus-within{border-bottom-color:var(--color-accent);}
+.nk-adress-rad input{flex:1;min-width:0;border:0;background:none;padding:10px 0;font-family:var(--font-body);font-size:16px;color:var(--color-ink);outline:none;}
+.nk-adress-rad input::placeholder{color:var(--color-muted-soft);}
+.nk-nr{flex:none;display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--color-primary);color:#fff;font-size:11px;font-weight:600;font-family:var(--font-body);}
+.nk-ta-bort{flex:none;border:0;background:none;color:var(--color-muted-soft);font-size:20px;line-height:1;cursor:pointer;padding:0 4px;}
+.nk-ta-bort:hover{color:var(--color-ink);}
+.nk-val{display:flex;align-items:center;flex-wrap:wrap;gap:4px 14px;padding-top:4px;}
+.nk-lank{background:none;border:0;padding:0;font-family:var(--font-body);font-size:13.5px;color:var(--color-muted);cursor:pointer;}
+.nk-lank:hover{color:var(--color-ink);}
+.nk-lista .nk-lank{align-self:flex-start;}
+.nk-tyst{appearance:none;-webkit-appearance:none;border:0;background:none;padding:0 14px 0 0;font-family:var(--font-body);font-size:13.5px;color:var(--color-muted);cursor:pointer;max-width:200px;field-sizing:content;text-overflow:ellipsis;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 5px) 55%,100% 55%;background-size:5px 5px;background-repeat:no-repeat;}
+.nk-tyst:hover,.nk-tyst:focus{color:var(--color-ink);outline:none;}
+.nk-sok{margin-left:auto;border:0;border-radius:var(--radius-pill);background:var(--color-primary);color:#fff;font-family:var(--font-body);font-size:13.5px;font-weight:600;padding:8px 18px;cursor:pointer;}
+.nk-sok:hover{background:var(--color-primary-hover);}
+.nk-sok:disabled{opacity:.6;cursor:default;}
+.nk-fel{margin:0;font-size:12.5px;color:var(--color-error);}
+.nk-yta{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;}
+.nk-oppen .nk-yta{grid-template-columns:minmax(0,1.8fr) minmax(0,1fr);}
+.nk-karta-ram{position:relative;height:130px;border-radius:var(--radius-md);overflow:hidden;background:var(--color-surface-soft);transition:height .3s ease;}
+.nk-oppen .nk-karta-ram{height:460px;}
+/* Två klasser, så att MapLibres .maplibregl-map{position:relative} inte vinner. */
+.nk-karta-ram .nk-karta{position:absolute;inset:0;}
+.nk:not(.nk-oppen) .maplibregl-ctrl-top-right,.nk:not(.nk-oppen) .maplibregl-ctrl-bottom-right{display:none;}
+.nk-oppna{position:absolute;inset:0;z-index:2;display:flex;align-items:flex-end;justify-content:flex-end;padding:8px;border:0;background:linear-gradient(to top,rgba(15,34,41,0.18),transparent 60%);cursor:pointer;}
+.nk-oppna span{background:rgba(255,255,255,0.95);border-radius:var(--radius-pill);padding:5px 11px;font-family:var(--font-body);font-size:12.5px;font-weight:600;color:var(--color-ink);box-shadow:var(--shadow-card);}
+.nk-oppna:hover span{color:var(--color-action);}
+.nk-stang{position:absolute;top:10px;left:10px;z-index:2;border:0;border-radius:var(--radius-pill);background:rgba(255,255,255,0.95);padding:5px 11px;font-family:var(--font-body);font-size:12.5px;font-weight:600;color:var(--color-ink);box-shadow:var(--shadow-card);cursor:pointer;}
+.nk-karta-tom{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(255,255,255,0.94);border-radius:var(--radius-pill);padding:6px 12px;font-size:12.5px;color:var(--color-body);pointer-events:none;}
+.nk-lista{max-height:460px;overflow:auto;display:flex;flex-direction:column;gap:12px;animation:nk-in .35s ease;}
+@keyframes nk-in{from{opacity:0;}to{opacity:1;}}
+.nk-lista-tom{font-size:14px;color:var(--color-muted);margin:0;line-height:1.5;}
+.nk-lista-huvud{font-size:14px;color:var(--color-muted);line-height:1.4;}
+.nk-lista-huvud b{font-family:var(--font-display);font-size:22px;font-weight:600;color:var(--color-ink);margin-right:2px;}
+.nk-ej{font-size:12.5px;color:var(--color-muted);margin:0;}
+.nk-bolag{list-style:none;margin:0;padding:0;}
+.nk-bolag li{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-hairline-soft);}
+.nk-bolag li:last-child{border-bottom:0;}
+.nk-bolag-knapp{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:none;border:0;padding:8px 0;text-align:left;cursor:pointer;font-family:var(--font-body);}
+.nk-bolag-namn{font-size:14px;font-weight:500;color:var(--color-ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nk-bolag-knapp:hover .nk-bolag-namn{color:var(--color-action);}
+.nk-bolag-meta{font-size:12px;color:var(--color-muted);}
+.nk-profil{flex:none;color:var(--color-muted-soft);text-decoration:none;padding:4px 2px;font-size:15px;}
+.nk-profil:hover{color:var(--color-action);}
+.nk-vidare{font-size:14px;font-weight:600;color:var(--color-action);text-decoration:none;}
+.nk-vidare:hover{text-decoration:underline;}
+.nk-adressnal{position:relative;display:grid;place-items:center;width:26px;height:26px;margin-bottom:7px;border-radius:50%;background:var(--color-primary);border:2px solid #fff;box-shadow:0 2px 6px rgba(15,34,41,0.35);color:#fff;font-family:var(--font-body);font-size:12px;font-weight:700;}
+.nk-adressnal::after{content:"";position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);border:5px solid transparent;border-top:5px solid var(--color-primary);}
+.nk-popup{display:flex;flex-direction:column;gap:6px;font-family:var(--font-body);}
+.nk-popup-rad{display:flex;flex-direction:column;}
+.nk-popup-rad a{font-size:14px;font-weight:600;color:var(--color-ink);text-decoration:none;}
+.nk-popup-rad a:hover{color:var(--color-action);text-decoration:underline;}
+.nk-popup-rad span,.nk-popup-fler{font-size:12px;color:var(--color-muted);}
+@media (prefers-reduced-motion:reduce){.nk,.nk-karta-ram{transition:none;}.nk-lista{animation:none;}}
+@media (max-width:820px){
+  .nk{grid-template-columns:minmax(0,1fr);}
+  .nk-karta-ram{height:110px;}
+  .nk-oppen .nk-yta{grid-template-columns:minmax(0,1fr);}
+  .nk-oppen .nk-karta-ram{height:360px;}
+  .nk-lista{max-height:none;}
+}

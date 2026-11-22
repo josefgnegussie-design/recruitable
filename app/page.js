@@ -2,7 +2,7 @@ import Link from "next/link";
 import AiSok from "@/components/AiSok";
 import { hamtaSenasteNyheter } from "@/lib/branschnyheterRepo";
 import { hamtaKoordinater, hamtaUrval, raknaBolag, raknaPerYrkesomrade } from "@/lib/companiesRepo";
-import NearbyCompanies from "@/components/NearbyCompanies";
+import NarliggandeKarta from "@/components/NarliggandeKarta";
 import PreviewCompanies from "@/components/PreviewCompanies";
 import Registerkarta from "@/components/Registerkarta";
 
@@ -110,9 +110,9 @@ export default async function LandingPage() {
       <section className="l-section">
         <h2>Hitta bolag nära er</h2>
         <p className="l-section-sub">
-          Skriv in er adress, så listar vi bolagen i registret från närmast till längst bort.
+          Se vilka bolag som finns runt en eller flera adresser.
         </p>
-        <NearbyCompanies />
+        <NarliggandeKarta lage="rekrytera" />
       </section>
 
       <section className="l-section">
