@@ -38,36 +38,12 @@ export default async function UpphandlingPage() {
   const pagaende = await hamtaPagaendeUpphandlingar();
 
   return (
-    <div id="view-upphandling">
-      <section className="hero upp-hero">
-        <div>
-          <div className="eyebrow">För företag som ska upphandla</div>
-          <h1 className="hero-title">Upphandling</h1>
-          <p className="hero-sub" style={{ maxWidth: "62ch" }}>
-            Ska ni upphandla bemanning eller rekrytering? Beskriv vad ni behöver och var, så tar vi fram de bolag som är
-            relevanta för just er bransch, ert behov och era orter. Välj de som verkar intressanta och bjud in dem. Inget
-            konto behövs.
-          </p>
-          <div className="upp-knappar">
-            <Link className="btn-lg primary" href="/upphandling/skapa">Hitta bolag för er upphandling</Link>
-          </div>
-        </div>
-        {/* Stegen står bredvid texten i stället för under den, så att toppen
-            inte bara fyller vänstra halvan. Numren kommer från steg-lista. */}
-        <ol className="steg-lista steg-lista-ruta">
-          {STEG.map((s) => (
-            <li key={s.rubrik}>
-              <h2>{s.rubrik}</h2>
-              <p>{s.text}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <div className="upp-sida">
-
-        {/* Meningarna byggs ur fasta val och aldrig ur köparens fritext, se
-            lib/pagaendeUpphandlingar.js. */}
+    <>
+      {/* Pågående upphandlingar står i ett band direkt under menyn, precis som
+          pågående förfrågningar på Rekrytera, så att det första besökaren ser
+          är att tjänsten används. Meningarna byggs ur fasta val och aldrig ur
+          köparens fritext, se lib/pagaendeUpphandlingar.js. */}
+      <div className="pagaende-band">
         <PagaendeLista
           id="upp-pagaende-rubrik"
           rubrik="Pågående upphandlingar"
@@ -79,6 +55,32 @@ export default async function UpphandlingPage() {
           stegEtikett="Upphandlingens steg"
         />
       </div>
-    </div>
+      <div id="view-upphandling">
+        <section className="hero upp-hero">
+          <div>
+            <div className="eyebrow">För företag som ska upphandla</div>
+            <h1 className="hero-title">Upphandling</h1>
+            <p className="hero-sub" style={{ maxWidth: "62ch" }}>
+              Ska ni upphandla bemanning eller rekrytering? Beskriv vad ni behöver och var, så tar vi fram de bolag som är
+              relevanta för just er bransch, ert behov och era orter. Välj de som verkar intressanta och bjud in dem. Inget
+              konto behövs.
+            </p>
+            <div className="upp-knappar">
+              <Link className="btn-lg primary" href="/upphandling/skapa">Hitta bolag för er upphandling</Link>
+            </div>
+          </div>
+          {/* Stegen står bredvid texten i stället för under den, så att toppen
+              inte bara fyller vänstra halvan. Numren kommer från steg-lista. */}
+          <ol className="steg-lista steg-lista-ruta">
+            {STEG.map((s) => (
+              <li key={s.rubrik}>
+                <h2>{s.rubrik}</h2>
+                <p>{s.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+    </>
   );
 }
