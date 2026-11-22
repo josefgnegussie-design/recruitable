@@ -45,6 +45,65 @@ function cirkel(lat, lng, km, steg = 64) {
 
 // "Under 1 km ifrån" eller "12 km ifrån". Bolagen ligger på sin postort, så
 // avståndet räknas från adressen till bolagets ort.
+// Den orange linjen från adressen till det valda bolaget: en svag båge, så att
+// den syns även när bolaget ligger nästan rakt bakom en annan prick.
+function bage(fran, till, steg = 48) {
+  const [x1, y1] = fran;
+  const [x2, y2] = till;
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2;
+  // Kontrollpunkten förskjuts vinkelrätt mot linjen, en sjättedel av längden.
+  const kx = mx - (y2 - y1) * 0.15;
+  const ky = my + (x2 - x1) * 0.15;
+  const ut = [];
+  for (let i = 0; i <= steg; i++) {
+    const t = i / steg;
+    const a = (1 - t) * (1 - t);
+    const b = 2 * (1 - t) * t;
+    const c = t * t;
+    ut.push([a * x1 + b * kx + c * x2, a * y1 + b * ky + c * y2]);
+  }
+  return ut;
+}
+
+const TOM = { type: "FeatureCollection", features: [] };
+
+// Ritar bågen fram under en kort stund, så att ögat följer den från adressen
+// till bolaget. Utan rörelse (prefers-reduced-motion) ritas den direkt.
+function ritaLinje(map, fran, till, animRef) {
+  const kalla = map.getSource("nk-linje");
+  if (!kalla) return;
+  cancelAnimationFrame(animRef.current);
+  const punkter = bage(fran, till);
+  const linje = (n) => ({
+    type: "Feature",
+    properties: {},
+    geometry: { type: "LineString", coordinates: punkter.slice(0, Math.max(2, n)) },
+  });
+  const stilla = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  if (stilla) {
+    kalla.setData(linje(punkter.length));
+    return;
+  }
+  const start = performance.now();
+  const steg = (nu) => {
+    const t = Math.min(1, (nu - start) / 450);
+    const mjuk = 1 - (1 - t) ** 3;
+    kalla.setData(linje(Math.round(mjuk * punkter.length)));
+    if (t < 1) animRef.current = requestAnimationFrame(steg);
+  };
+  animRef.current = requestAnimationFrame(steg);
+}
+
+// Index för den adress som ligger närmast bolaget.
+function narmasteAdress(perAdress) {
+  let bast = 0;
+  perAdress.forEach((km, i) => {
+    if (km < perAdress[bast]) bast = i;
+  });
+  return bast;
+}
+
 function kmText(km) {
   const tal = km < 1 ? "under 1" : km.toLocaleString("sv-SE", { maximumFractionDigits: km < 10 ? 1 : 0 });
   return `${tal} km ifrån`;
@@ -80,8 +139,122 @@ function popupInnehall(bolag) {
   return rot;
 }
 
+// Ett adressfält med förslag medan man skriver (app/api/adressforslag). Ett
+// valt förslag bär sina koordinater, så att sökningen inte behöver slå upp
+// adressen igen. Pilarna väljer, Enter tar förslaget och Escape stänger.
+function AdressFalt({ nr, varde, andra, valt, taBort, placeholder }) {
+  const [forslag, setForslag] = useState([]);
+  const [oppet, setOppet] = useState(false);
+  const [aktiv, setAktiv] = useState(-1);
+  const timer = useRef(null);
+  const senaste = useRef("");
+  const listId = `nk-forslag-${nr}`;
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  function skriv(text) {
+    andra({ text });
+    clearTimeout(timer.current);
+    const q = text.trim();
+    if (q.length < 3) {
+      setForslag([]);
+      setOppet(false);
+      return;
+    }
+    timer.current = setTimeout(async () => {
+      senaste.current = q;
+      try {
+        const res = await fetch(`/api/adressforslag?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        // Ett långsamt svar på en äldre text får inte skriva över ett nyare.
+        if (senaste.current !== q) return;
+        setForslag(data.forslag ?? []);
+        setAktiv(-1);
+        setOppet((data.forslag ?? []).length > 0);
+      } catch {
+        // Förslagen är en hjälp; utan dem går det ändå att söka på texten.
+      }
+    }, 250);
+  }
+
+  function valj(f) {
+    clearTimeout(timer.current);
+    senaste.current = "";
+    andra(f);
+    setOppet(false);
+    setForslag([]);
+    valt();
+  }
+
+  function tangent(e) {
+    if (!oppet || !forslag.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setAktiv((i) => (i + 1) % forslag.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setAktiv((i) => (i <= 0 ? forslag.length - 1 : i - 1));
+    } else if (e.key === "Enter" && aktiv >= 0) {
+      e.preventDefault();
+      valj(forslag[aktiv]);
+    } else if (e.key === "Escape") {
+      setOppet(false);
+    }
+  }
+
+  return (
+    <div className="nk-adress-rad">
+      <span className="nk-nr" aria-hidden="true">
+        {nr}
+      </span>
+      <input
+        id={`nk-adress-${nr - 1}`}
+        type="text"
+        value={varde.text}
+        maxLength={120}
+        aria-label={`Adress ${nr}`}
+        role="combobox"
+        aria-expanded={oppet}
+        aria-controls={listId}
+        aria-autocomplete="list"
+        aria-activedescendant={oppet && aktiv >= 0 ? `${listId}-${aktiv}` : undefined}
+        onChange={(e) => skriv(e.target.value)}
+        onKeyDown={tangent}
+        onFocus={() => forslag.length && setOppet(true)}
+        onBlur={() => setTimeout(() => setOppet(false), 150)}
+        placeholder={placeholder}
+      />
+      {taBort && (
+        <button type="button" className="nk-ta-bort" aria-label={`Ta bort adress ${nr}`} onClick={taBort}>
+          ×
+        </button>
+      )}
+      {oppet && (
+        <ul className="nk-forslag" id={listId} role="listbox">
+          {forslag.map((f, i) => (
+            <li
+              key={f.text}
+              id={`${listId}-${i}`}
+              role="option"
+              aria-selected={i === aktiv}
+              className={i === aktiv ? "aktiv" : undefined}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                valj(f);
+              }}
+              onMouseEnter={() => setAktiv(i)}
+            >
+              {f.text}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export default function NarliggandeKarta({ lage = "rekrytera" }) {
-  const [adresser, setAdresser] = useState([""]);
+  const [adresser, setAdresser] = useState([{ text: "" }]);
   const [radie, setRadie] = useState(25);
   const [omrade, setOmrade] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | done | error
@@ -98,6 +271,8 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
   const libRef = useRef(null);
   const markorerRef = useRef([]);
   const popupRef = useRef(null);
+  const punkterRef = useRef([]);
+  const animRef = useRef(0);
 
   // Kartan skapas först när den är nära skärmen: MapLibre är runt 800 kB.
   useEffect(() => {
@@ -143,6 +318,15 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
             type: "line",
             source: "nk-radie",
             paint: { "line-color": NAVY, "line-width": 1.5, "line-dasharray": [2, 2], "line-opacity": 0.6 },
+          });
+
+          map.addSource("nk-linje", { type: "geojson", data: TOM });
+          map.addLayer({
+            id: "nk-linje",
+            type: "line",
+            source: "nk-linje",
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: { "line-color": ORANGE, "line-width": 3, "line-opacity": 0.95 },
           });
 
           map.addSource("nk-bolag", {
@@ -212,6 +396,8 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
           map.on("click", "nk-punkt", (e) => {
             const f = e.features[0];
             visaPopup(f.geometry.coordinates, [f.properties]);
+            const fran = punkterRef.current[f.properties.nara];
+            if (fran) ritaLinje(map, [fran.lng, fran.lat], f.geometry.coordinates, animRef);
           });
 
           setKartstatus("klar");
@@ -272,6 +458,9 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
     const punkter = svar?.punkter ?? [];
     const bolag = svar?.bolag ?? [];
 
+    punkterRef.current = punkter;
+    cancelAnimationFrame(animRef.current);
+    map.getSource("nk-linje")?.setData(TOM);
     map.getSource("nk-radie")?.setData({
       type: "FeatureCollection",
       features: punkter.map((p) => cirkel(p.lat, p.lng, svar.radie)),
@@ -281,7 +470,7 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
       features: bolag.map((b, i) => ({
         type: "Feature",
         id: i,
-        properties: { namn: b.namn, ort: b.ort, km: b.km, profil: b.profil },
+        properties: { namn: b.namn, ort: b.ort, km: b.km, profil: b.profil, nara: narmasteAdress(b.perAdress) },
         geometry: { type: "Point", coordinates: [b.lng, b.lat] },
       })),
     });
@@ -328,7 +517,16 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
     const map = mapRef.current;
     const lib = libRef.current;
     if (!map || !lib) return;
-    map.easeTo({ center: [b.lng, b.lat], zoom: Math.max(map.getZoom(), KLUSTER_MAX_ZOOM + 1), duration: 500 });
+    // Både adressen och bolaget ska synas, med linjen emellan.
+    const fran = punkterRef.current[narmasteAdress(b.perAdress)];
+    if (fran && (Math.abs(fran.lat - b.lat) > 1e-4 || Math.abs(fran.lng - b.lng) > 1e-4)) {
+      const granser = new lib.LngLatBounds([fran.lng, fran.lat], [fran.lng, fran.lat]).extend([b.lng, b.lat]);
+      map.fitBounds(granser, { padding: 70, maxZoom: 14, duration: 600 });
+      ritaLinje(map, [fran.lng, fran.lat], [b.lng, b.lat], animRef);
+    } else {
+      map.easeTo({ center: [b.lng, b.lat], zoom: Math.max(map.getZoom(), KLUSTER_MAX_ZOOM + 1), duration: 500 });
+      map.getSource("nk-linje")?.setData(TOM);
+    }
     popupRef.current?.remove();
     popupRef.current = new lib.Popup({ offset: 12, maxWidth: "280px" })
       .setLngLat([b.lng, b.lat])
@@ -339,7 +537,9 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
 
   async function sok(e) {
     e.preventDefault();
-    const lista = adresser.map((a) => a.trim()).filter(Boolean);
+    const lista = adresser
+      .map((a) => ({ ...a, text: a.text.trim() }))
+      .filter((a) => a.text);
     if (!lista.length) {
       setFel("Skriv in minst en adress, ett postnummer eller en ort.");
       setStatus("error");
@@ -372,6 +572,9 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
     setAdresser((a) => a.map((x, j) => (j === i ? v : x)));
   }
 
+  // Ett valt förslag söker direkt, så att besökaren slipper trycka Visa.
+  const sokRef = useRef(null);
+
   const bolag = svar?.bolag ?? [];
   const synliga = visaAlla ? bolag : bolag.slice(0, 12);
   const forstaOrt = svar?.punkter?.[0]?.ort ?? "";
@@ -389,36 +592,21 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
 
   return (
     <div className={`nk${oppen ? " nk-oppen" : ""}`}>
-      <form className="nk-form" onSubmit={sok} autoComplete="off">
+      <form className="nk-form" onSubmit={sok} autoComplete="off" ref={sokRef}>
         {adresser.map((a, i) => (
-          <div className="nk-adress-rad" key={i}>
-            <span className="nk-nr" aria-hidden="true">
-              {i + 1}
-            </span>
-            <input
-              id={`nk-adress-${i}`}
-              type="text"
-              value={a}
-              maxLength={120}
-              aria-label={`Adress ${i + 1}`}
-              onChange={(e) => andra(i, e.target.value)}
-              placeholder={i === 0 ? "Fullständig adress, t.ex. Storgatan 1, 411 38 Göteborg" : "Ytterligare en adress"}
-            />
-            {adresser.length > 1 && (
-              <button
-                type="button"
-                className="nk-ta-bort"
-                aria-label={`Ta bort adress ${i + 1}`}
-                onClick={() => setAdresser((x) => x.filter((_, j) => j !== i))}
-              >
-                ×
-              </button>
-            )}
-          </div>
+          <AdressFalt
+            key={i}
+            nr={i + 1}
+            varde={a}
+            andra={(v) => andra(i, v)}
+            valt={() => setTimeout(() => sokRef.current?.requestSubmit(), 0)}
+            taBort={adresser.length > 1 ? () => setAdresser((x) => x.filter((_, j) => j !== i)) : null}
+            placeholder={i === 0 ? "Fullständig adress, t.ex. Storgatan 1, 411 38 Göteborg" : "Ytterligare en adress"}
+          />
         ))}
         <div className="nk-val">
           {adresser.length < MAX_ADRESSER && (
-            <button type="button" className="nk-lank" onClick={() => setAdresser((x) => [...x, ""])}>
+            <button type="button" className="nk-lank" onClick={() => setAdresser((x) => [...x, { text: "" }])}>
               + Adress
             </button>
           )}
