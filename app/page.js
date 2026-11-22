@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AiSok from "@/components/AiSok";
 import { hamtaSenasteNyheter } from "@/lib/branschnyheterRepo";
 import { hamtaKoordinater, hamtaUrval, raknaBolag, raknaPerYrkesomrade } from "@/lib/companiesRepo";
 import NearbyCompanies from "@/components/NearbyCompanies";
@@ -51,10 +52,7 @@ export default async function LandingPage() {
             Recruitable samlar Sveriges bemannings- och rekryteringsbolag på ett ställe. Berätta vad ni söker,
             se vilka bolag som passar och skicka en förfrågan till dem ni vill prata med.
           </p>
-          <div className="l-cta-row">
-            <Link className="btn-lg primary" href="/rekrytera">Hitta bolag</Link>
-            <a className="btn-lg text" href="#sa-funkar-det">Så funkar det</a>
-          </div>
+          <AiSok />
           {/* Yrkesområdena med flest bolag, bredvid kartan. Varje etikett öppnar
               Rekrytera med området redan valt i filtret. */}
           {perOmrade.length > 0 && (
