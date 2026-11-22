@@ -1767,3 +1767,12 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
   .ga-vidare-flyt .qs-btn{flex:1;font-size:14.5px;}
 }
 @media (prefers-reduced-motion:reduce){.ga-vidare-flyt{animation:none;}}
+
+/* Kortbytet i banden med pågående förfrågningar och upphandlingar, se
+   components/PagaendeRotation.js. Det gamla kortet tonar ut, det nya tonar in
+   underifrån. Står still för den som valt reducerad rörelse. */
+.upp-pagaende-kort.lamnar{animation:pagaende-ut .35s ease-in forwards;}
+.upp-pagaende-kort.kommer{animation:pagaende-in .45s ease-out;}
+@keyframes pagaende-ut{to{opacity:0;transform:translateY(-6px);}}
+@keyframes pagaende-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){.upp-pagaende-kort.lamnar,.upp-pagaende-kort.kommer{animation:none;}}
