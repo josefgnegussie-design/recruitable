@@ -49,6 +49,13 @@ function kmText(km) {
   return km < 1 ? "på orten" : `${km.toLocaleString("sv-SE", { maximumFractionDigits: km < 10 ? 1 : 0 })} km`;
 }
 
+// "I Göteborg" eller "58 km från Borås", med ortnamnet i stället för
+// adressens nummer, så att raden går att läsa utan att titta på kartan.
+function franAdress(km, punkt) {
+  const ort = punkt?.ort || punkt?.etikett || "";
+  return km < 1 ? `I ${ort}` : `${kmText(km)} från ${ort}`;
+}
+
 // Popupens innehåll byggs som DOM och inte som HTML-sträng, så att ett
 // bolagsnamn aldrig kan tolkas som kod.
 function popupInnehall(bolag) {
@@ -474,7 +481,7 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
                         <span className="nk-bolag-namn">{b.namn}</span>
                         <span className="nk-bolag-meta">
                           {svar.punkter.length > 1
-                            ? b.perAdress.map((km, j) => `${j + 1}: ${kmText(km)}`).join(" · ")
+                            ? b.perAdress.map((km, j) => franAdress(km, svar.punkter[j])).join(" · ")
                             : `${b.ort} · ${kmText(b.km)}`}
                         </span>
                       </button>
