@@ -110,7 +110,7 @@ export default async function LandingPage() {
       <section className="l-section">
         <h2>Hitta bolag nära er</h2>
         <p className="l-section-sub">
-          Skriv in en eller flera adresser, så visas bolagen i registret runt dem på kartan, närmast först.
+          Se vilka bolag som finns runt en eller flera adresser.
         </p>
         <NarliggandeKarta lage="rekrytera" />
       </section>

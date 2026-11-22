@@ -84,7 +84,7 @@ export default async function UpphandlingPage() {
         <section className="l-section tight">
           <h2>Vilka bolag finns nära era arbetsställen?</h2>
           <p className="l-section-sub">
-            Skriv in adresserna där personalen ska arbeta, så visas bolagen i registret runt dem innan ni börjar.
+            Se vilka bolag som finns där personalen ska arbeta.
           </p>
           <NarliggandeKarta lage="upphandling" />
         </section>

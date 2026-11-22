@@ -83,6 +83,8 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
   const [svar, setSvar] = useState(null);
   const [kartstatus, setKartstatus] = useState("vilar"); // vilar | laddar | klar | fel
   const [visaAlla, setVisaAlla] = useState(false);
+  // Kartan är liten tills besökaren söker eller klickar på den.
+  const [oppen, setOppen] = useState(false);
 
   const ytaRef = useRef(null);
   const kartRef = useRef(null);
@@ -286,15 +288,29 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
       markorerRef.current.push(new lib.Marker({ element: el, anchor: "bottom", offset: [0, -18] }).setLngLat([p.lng, p.lat]).addTo(map));
     });
 
-    if (punkter.length) {
+  }, [svar, kartstatus]);
+
+  // När kartan fälls ut eller in ändrar den storlek. Vänta ut övergången, låt
+  // MapLibre mäta om och passa in adresserna, eller hela Sverige utan sökning.
+  useEffect(() => {
+    const map = mapRef.current;
+    const lib = libRef.current;
+    if (kartstatus !== "klar" || !map || !lib) return;
+    const t = setTimeout(() => {
+      map.resize();
+      const punkter = svar?.punkter ?? [];
+      if (!punkter.length) {
+        map.fitBounds(SVERIGE, { padding: 10, duration: 0 });
+        return;
+      }
       const granser = new lib.LngLatBounds();
       for (const p of punkter) {
-        const c = cirkel(p.lat, p.lng, svar.radie, 16).geometry.coordinates[0];
-        for (const k of c) granser.extend(k);
+        for (const k of cirkel(p.lat, p.lng, svar.radie, 16).geometry.coordinates[0]) granser.extend(k);
       }
-      map.fitBounds(granser, { padding: 30, duration: 600, maxZoom: 13 });
-    }
-  }, [svar, kartstatus]);
+      map.fitBounds(granser, { padding: oppen ? 30 : 8, duration: oppen ? 500 : 0, maxZoom: 13 });
+    }, 320);
+    return () => clearTimeout(t);
+  }, [svar, kartstatus, oppen]);
 
   function markera(i, pa) {
     const map = mapRef.current;
@@ -339,6 +355,7 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
       }
       setSvar({ ...data, radie, omrade });
       setStatus("done");
+      setOppen(true);
     } catch (err) {
       setStatus("error");
       setFel(err.message);
@@ -365,143 +382,122 @@ export default function NarliggandeKarta({ lage = "rekrytera" }) {
         };
 
   return (
-    <div className="nk">
+    <div className={`nk${oppen ? " nk-oppen" : ""}`}>
       <form className="nk-form" onSubmit={sok} autoComplete="off">
-        <div className="nk-adresser">
-          {adresser.map((a, i) => (
-            <div className="field nk-adress" key={i}>
-              <label htmlFor={`nk-adress-${i}`}>
-                {adresser.length > 1 ? `Adress ${i + 1}` : "Adress, postnummer eller ort"}
-              </label>
-              <div className="nk-adress-rad">
-                <input
-                  id={`nk-adress-${i}`}
-                  type="text"
-                  value={a}
-                  maxLength={120}
-                  onChange={(e) => andra(i, e.target.value)}
-                  placeholder={i === 0 ? "T.ex. Lindholmspiren 3, 417 56 Göteborg" : "T.ex. 506 30 Borås"}
-                />
-                {adresser.length > 1 && (
-                  <button
-                    type="button"
-                    className="nk-ta-bort"
-                    aria-label={`Ta bort adress ${i + 1}`}
-                    onClick={() => setAdresser((x) => x.filter((_, j) => j !== i))}
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+        {adresser.map((a, i) => (
+          <div className="nk-adress-rad" key={i}>
+            <span className="nk-nr" aria-hidden="true">
+              {i + 1}
+            </span>
+            <input
+              id={`nk-adress-${i}`}
+              type="text"
+              value={a}
+              maxLength={120}
+              aria-label={`Adress ${i + 1}`}
+              onChange={(e) => andra(i, e.target.value)}
+              placeholder={i === 0 ? "Adress, postnummer eller ort" : "Ytterligare en adress"}
+            />
+            {adresser.length > 1 && (
+              <button
+                type="button"
+                className="nk-ta-bort"
+                aria-label={`Ta bort adress ${i + 1}`}
+                onClick={() => setAdresser((x) => x.filter((_, j) => j !== i))}
+              >
+                ×
+              </button>
+            )}
+          </div>
+        ))}
+        <div className="nk-val">
           {adresser.length < MAX_ADRESSER && (
-            <button type="button" className="nk-lagg-till" onClick={() => setAdresser((x) => [...x, ""])}>
-              + Lägg till en adress
+            <button type="button" className="nk-lank" onClick={() => setAdresser((x) => [...x, ""])}>
+              + Adress
             </button>
           )}
-        </div>
-        <div className="nk-val">
-          <div className="field">
-            <label htmlFor="nk-radie">Avstånd</label>
-            <select id="nk-radie" value={radie} onChange={(e) => setRadie(Number(e.target.value))}>
-              {RADIER.map((r) => (
-                <option key={r} value={r}>
-                  Inom {r} km
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="nk-omrade">Yrkesområde</label>
-            <select id="nk-omrade" value={omrade} onChange={(e) => setOmrade(e.target.value)}>
-              <option value="">Alla yrkesområden</option>
-              {Object.keys(YRKESOMRADEN).map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button className="btn btn-primary nk-sok" type="submit" disabled={status === "loading"}>
-            {status === "loading" ? "Söker…" : "Visa på kartan"}
+          <select aria-label="Avstånd" className="nk-tyst" value={radie} onChange={(e) => setRadie(Number(e.target.value))}>
+            {RADIER.map((r) => (
+              <option key={r} value={r}>
+                Inom {r} km
+              </option>
+            ))}
+          </select>
+          <select aria-label="Yrkesområde" className="nk-tyst" value={omrade} onChange={(e) => setOmrade(e.target.value)}>
+            <option value="">Alla yrkesområden</option>
+            {Object.keys(YRKESOMRADEN).map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
+          </select>
+          <button className="nk-sok" type="submit" disabled={status === "loading"}>
+            {status === "loading" ? "Söker…" : "Visa"}
           </button>
         </div>
+        {status === "error" && fel && <p className="nk-fel">{fel}</p>}
       </form>
-
-      {status === "error" && fel && <div className="flow-error">{fel}</div>}
 
       <div className="nk-yta" ref={ytaRef}>
         <div className="nk-karta-ram">
           <div className="nk-karta" ref={kartRef} role="region" aria-label="Karta över bolag nära adresserna" />
-          {kartstatus === "fel" && <div className="nk-karta-tom">Kartan gick inte att ladda. Listan fungerar ändå.</div>}
-          {kartstatus !== "fel" && !svar && (
-            <div className="nk-karta-tom">Skriv in en eller flera adresser, så visas bolagen runt dem.</div>
+          {!oppen && (
+            <button type="button" className="nk-oppna" onClick={() => setOppen(true)}>
+              <span>Öppna kartan</span>
+            </button>
           )}
+          {oppen && (
+            <button type="button" className="nk-stang" onClick={() => setOppen(false)} aria-label="Minimera kartan">
+              Minimera
+            </button>
+          )}
+          {kartstatus === "fel" && oppen && <div className="nk-karta-tom">Kartan gick inte att ladda.</div>}
         </div>
 
-        <aside className="nk-lista" aria-live="polite">
-          {!svar && (
-            <p className="nk-lista-tom">
-              Bolagen i registret visas här, närmast först. Avståndet räknas mellan orterna, från bolagets närmaste kontor.
-            </p>
-          )}
-          {svar && (
-            <>
-              <div className="nk-lista-huvud">
-                <b>{svar.totalt.toLocaleString("sv-SE")}</b> bolag inom {svar.radie} km
-                {svar.omrade ? ` inom ${svar.omrade.toLowerCase()}` : ""}
-              </div>
-              <ol className="nk-platser">
-                {svar.punkter.map((p, i) => (
-                  <li key={i}>
-                    <span className="nk-nr">{i + 1}</span>
-                    {p.etikett}
-                  </li>
-                ))}
-              </ol>
-              {svar.ejHittade.length > 0 && (
-                <p className="nk-ej">
-                  Hittade inte: {svar.ejHittade.join(", ")}. Prova med postnummer.
-                </p>
-              )}
-              {bolag.length === 0 && (
-                <p className="nk-lista-tom">Inga bolag inom {svar.radie} km. Prova ett större avstånd.</p>
-              )}
-              <ul className="nk-bolag">
-                {synliga.map((b, i) => (
-                  <li key={b.id} onMouseEnter={() => markera(i, true)} onMouseLeave={() => markera(i, false)}>
-                    <button type="button" className="nk-bolag-knapp" onClick={() => visaPaKartan(b)}>
-                      <span className="nk-bolag-namn">{b.namn}</span>
-                      <span className="nk-bolag-meta">
-                        {b.ort}
-                        {svar.punkter.length > 1
-                          ? ` · ${b.perAdress.map((km, j) => `${j + 1}: ${kmText(km)}`).join(", ")}`
-                          : ` · ${kmText(b.km)}`}
-                      </span>
-                    </button>
-                    <Link className="nk-profil" href={b.profil}>
-                      Profil
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              {bolag.length > synliga.length && (
-                <button type="button" className="nk-fler" onClick={() => setVisaAlla(true)}>
-                  Visa alla {bolag.length}
-                </button>
-              )}
-              {svar.totalt > bolag.length && (
-                <p className="nk-ej">De {bolag.length} närmaste visas.</p>
-              )}
-              {bolag.length > 0 && (
-                <Link className="btn-lg primary nk-vidare" href={vidare.href}>
-                  {vidare.text}
-                </Link>
-              )}
-            </>
-          )}
-        </aside>
+        {oppen && (
+          <aside className="nk-lista" aria-live="polite">
+            {!svar && <p className="nk-lista-tom">Skriv in en adress, så visas bolagen runt den här, närmast först.</p>}
+            {svar && (
+              <>
+                <div className="nk-lista-huvud">
+                  <b>{svar.totalt.toLocaleString("sv-SE")}</b> bolag inom {svar.radie} km
+                  {svar.punkter.length === 1 ? ` från ${svar.punkter[0].etikett}` : ""}
+                </div>
+                {svar.ejHittade.length > 0 && (
+                  <p className="nk-ej">Hittade inte {svar.ejHittade.join(", ")}. Prova med postnummer.</p>
+                )}
+                {bolag.length === 0 && <p className="nk-lista-tom">Inga bolag här. Prova ett större avstånd.</p>}
+                <ul className="nk-bolag">
+                  {synliga.map((b, i) => (
+                    <li key={b.id} onMouseEnter={() => markera(i, true)} onMouseLeave={() => markera(i, false)}>
+                      <button type="button" className="nk-bolag-knapp" onClick={() => visaPaKartan(b)}>
+                        <span className="nk-bolag-namn">{b.namn}</span>
+                        <span className="nk-bolag-meta">
+                          {svar.punkter.length > 1
+                            ? b.perAdress.map((km, j) => `${j + 1}: ${kmText(km)}`).join(" · ")
+                            : `${b.ort} · ${kmText(b.km)}`}
+                        </span>
+                      </button>
+                      <Link className="nk-profil" href={b.profil} aria-label={`Profil för ${b.namn}`}>
+                        →
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                {bolag.length > synliga.length && (
+                  <button type="button" className="nk-lank" onClick={() => setVisaAlla(true)}>
+                    Visa alla {bolag.length}
+                  </button>
+                )}
+                {bolag.length > 0 && (
+                  <Link className="nk-vidare" href={vidare.href}>
+                    {vidare.text} →
+                  </Link>
+                )}
+              </>
+            )}
+          </aside>
+        )}
       </div>
     </div>
   );

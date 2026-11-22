@@ -129,7 +129,7 @@ function SokContent({ antalBolag, urval }) {
       <section className="l-section tight">
         <h2>Bolag nära er</h2>
         <p className="l-section-sub">
-          Skriv in en eller flera adresser, till exempel era arbetsplatser, så visas bolagen i registret runt dem.
+          Se vilka bolag som finns runt era arbetsplatser.
         </p>
         <NarliggandeKarta lage="rekrytera" />
       </section>
