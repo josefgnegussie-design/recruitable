@@ -7,7 +7,7 @@ export default function IntegritetspolicyPage() {
         <h1 style={{ fontSize: "var(--text-display-md-size)" }}>Så hanterar vi personuppgifter på Recruitable</h1>
         <p className="about-hero-sub" style={{ margin: 0, maxWidth: "70ch" }}>
           Den här policyn beskriver vilken information vi samlar in när du besöker recruitable.se, varför, och
-          vilka rättigheter du har. Senast uppdaterad augusti 2026.
+          vilka rättigheter du har. Senast uppdaterad november 2026.
         </p>
       </section>
 
@@ -102,7 +102,10 @@ export default function IntegritetspolicyPage() {
       <section className="l-section tight" style={{ maxWidth: 820 }}>
         <h2>Vilka vi delar information med</h2>
         <p className="l-section-sub" style={{ margin: 0 }}>
-          Google (Google Analytics, besöksstatistik) och, när betalfunktionen är på plats, Stripe (betalningar). Vi
+          Google (Google Analytics, besöksstatistik), Anthropic (AI-tjänsten som tolkar det du skriver i sökfältet
+          på startsidan) och, när betalfunktionen är på plats, Stripe (betalningar). Till Anthropic skickas bara
+          texten i sökfältet, utan IP-adress eller andra uppgifter om dig, och vi sparar den inte. Skriv därför inga
+          personuppgifter i sökfältet. Vi
           säljer aldrig personuppgifter till tredje part, och delar inte information i andra syften än de som
           beskrivs här.
         </p>
