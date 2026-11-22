@@ -1784,8 +1784,9 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .nk-ta-bort{flex:none;border:0;background:none;color:var(--color-muted-soft);font-size:20px;line-height:1;cursor:pointer;padding:0 4px;}
 .nk-ta-bort:hover{color:var(--color-ink);}
 .nk-val{display:flex;align-items:center;flex-wrap:wrap;gap:4px 14px;padding-top:4px;}
-.nk-lank{align-self:flex-start;background:none;border:0;padding:0;font-family:var(--font-body);font-size:13.5px;color:var(--color-muted);cursor:pointer;}
+.nk-lank{background:none;border:0;padding:0;font-family:var(--font-body);font-size:13.5px;color:var(--color-muted);cursor:pointer;}
 .nk-lank:hover{color:var(--color-ink);}
+.nk-lista .nk-lank{align-self:flex-start;}
 .nk-tyst{appearance:none;-webkit-appearance:none;border:0;background:none;padding:0 14px 0 0;font-family:var(--font-body);font-size:13.5px;color:var(--color-muted);cursor:pointer;max-width:200px;field-sizing:content;text-overflow:ellipsis;
   background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 5px) 55%,100% 55%;background-size:5px 5px;background-repeat:no-repeat;}
 .nk-tyst:hover,.nk-tyst:focus{color:var(--color-ink);outline:none;}
