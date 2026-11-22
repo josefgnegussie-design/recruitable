@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { hamtaSenasteNyheter } from "@/lib/branschnyheterRepo";
-import { hamtaKoordinater, hamtaUrval, raknaBolag } from "@/lib/companiesRepo";
+import { hamtaKoordinater, hamtaUrval, raknaBolag, raknaPerYrkesomrade } from "@/lib/companiesRepo";
 import NearbyCompanies from "@/components/NearbyCompanies";
 import PreviewCompanies from "@/components/PreviewCompanies";
 import Registerkarta from "@/components/Registerkarta";
@@ -33,11 +33,12 @@ const STEG = [
 ];
 
 export default async function LandingPage() {
-  const [urval, punkter, antalBolag, nyheter] = await Promise.all([
+  const [urval, punkter, antalBolag, nyheter, perOmrade] = await Promise.all([
     hamtaUrval(3),
     hamtaKoordinater(),
     raknaBolag(),
     hamtaSenasteNyheter(),
+    raknaPerYrkesomrade(),
   ]);
 
   return (
@@ -54,6 +55,23 @@ export default async function LandingPage() {
             <Link className="btn-lg primary" href="/rekrytera">Hitta bolag</Link>
             <a className="btn-lg text" href="#sa-funkar-det">Så funkar det</a>
           </div>
+          {/* Yrkesområdena med flest bolag, bredvid kartan. Varje etikett öppnar
+              Rekrytera med området redan valt i filtret. */}
+          {perOmrade.length > 0 && (
+            <nav className="l-omraden" aria-label="Bolag per yrkesområde">
+              <div className="l-omraden-rubrik">Bolag per yrkesområde</div>
+              <ul>
+                {perOmrade.slice(0, 8).map(({ omrade, antal }) => (
+                  <li key={omrade}>
+                    <Link href={`/rekrytera?omrade=${encodeURIComponent(omrade)}`}>
+                      {omrade}
+                      <span className="l-omraden-antal">{antal.toLocaleString("sv-SE")}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
         </div>
         <Registerkarta punkter={punkter} antalBolag={antalBolag} />
       </section>
