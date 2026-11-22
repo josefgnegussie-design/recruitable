@@ -9,6 +9,8 @@ import SelectableCompanyCard from "./SelectableCompanyCard";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/Turnstile";
 import SkrappostPaminnelse from "@/components/SkrappostPaminnelse";
 import { arGratisadress } from "@/lib/gratisadresser";
+import { MAX_ANTAL, startAlternativ, tolkaAntal } from "@/lib/forfraganDetaljer";
+import ForfraganDetaljer from "./ForfraganDetaljer";
 
 function domainOf(url) {
   try {
@@ -107,7 +109,34 @@ export default function InquiryWizard({ filters, results, totalt }) {
 
   const cities = useMemo(() => allRegionCities(), []);
 
-  const description = filters.beskrivning || "";
+  // Själva förfrågan: det besökaren sökte på, plus antal och start. Visas och
+  // går att ändra i steg 2. Kommer värdena från AI-sökningen markeras de som
+  // förifyllda tills besökaren ändrar dem.
+  const [behov, setBehov] = useState(() => ({
+    beskrivning: filters.beskrivning || "",
+    omrade: filters.omrade || "",
+    service: filters.service || "",
+    ort: filters.ort || "",
+    antal: filters.antal ? String(filters.antal) : "",
+    start: filters.start || "",
+  }));
+  const [aiFalt, setAiFalt] = useState(
+    () => new Set(filters.ai ? Object.keys(behov).filter((k) => behov[k]) : [])
+  );
+  const andraBehov = useCallback((falt, varde) => {
+    setBehov((b) => ({ ...b, [falt]: varde }));
+    setAiFalt((s) => {
+      if (!s.has(falt)) return s;
+      const n = new Set(s);
+      n.delete(falt);
+      return n;
+    });
+  }, []);
+  const starter = useMemo(() => {
+    const lista = startAlternativ();
+    // En start ur en äldre länk som inte längre finns i listan ska ändå synas.
+    return behov.start && !lista.includes(behov.start) ? [behov.start, ...lista] : lista;
+  }, [behov.start]);
   // Byter besökaren filter är den gamla bolagsmarkeringen inte längre relevant,
   // medan kontaktuppgifterna fortfarande är det.
   // Ett förvalt bolag (från en profilsida) ingår i signaturen, så att ett äldre
@@ -277,6 +306,15 @@ export default function InquiryWizard({ filters, results, totalt }) {
     e.preventDefault();
     setError("");
 
+    if (!behov.beskrivning.trim()) {
+      setError("Beskriv kortfattat vad ni söker under Er förfrågan.");
+      return;
+    }
+    if (behov.antal && !tolkaAntal(behov.antal)) {
+      setError(`Antal personer ska vara ett heltal mellan 1 och ${MAX_ANTAL}.`);
+      return;
+    }
+
     const felEpost = epostFel(draft.email);
     if (felEpost) {
       setFaltfel((f) => ({ ...f, email: felEpost }));
@@ -301,11 +339,13 @@ export default function InquiryWizard({ filters, results, totalt }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         companyIds: [...selected],
-        description,
-        focusArea: filters.omrade || "",
-        service: filters.service || "",
-        region: regionForCity(filters.ort) || "",
-        city: filters.ort || "",
+        description: behov.beskrivning.trim(),
+        focusArea: behov.omrade,
+        service: behov.service,
+        region: regionForCity(behov.ort.trim()) || "",
+        city: behov.ort.trim(),
+        antal: tolkaAntal(behov.antal),
+        start: behov.start,
         requesterName: draft.name,
         requesterEmail: draft.email,
         requesterWebsite: draft.website,
@@ -420,10 +460,12 @@ export default function InquiryWizard({ filters, results, totalt }) {
           <div className="eyebrow">Steg 2 av 3</div>
           <h1 className="hero-title" style={{ fontSize: 32 }}>Verifiera <em>dig själv</em></h1>
           <p className="hero-sub">
-            Börja med din jobbadress. Den måste ha samma domän som er webbplats, så att bolagen vet att förfrågan är
-            äkta, och vi fyller i det vi kan utifrån den.
+            Kontrollera er förfrågan och ändra om något inte stämmer. Ange sedan din jobbadress. Den måste ha samma
+            domän som er webbplats, så att bolagen vet att förfrågan är äkta, och vi fyller i det vi kan utifrån den.
           </p>
-          <form className="auth-panel" onSubmit={openConfirm} style={{ marginTop: 24 }}>
+          <ForfraganDetaljer behov={behov} aiFalt={aiFalt} andra={andraBehov} starter={starter} orter={cities} />
+          <form className="auth-panel" onSubmit={openConfirm} style={{ marginTop: 16 }}>
+            <div className="ff-rubrik">Om dig</div>
             <div className="field">
               <label htmlFor="inq-email">E-post (jobb)</label>
               <input

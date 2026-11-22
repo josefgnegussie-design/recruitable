@@ -1,3 +1,4 @@
+import { giltigStart, tolkaAntal } from "@/lib/forfraganDetaljer";
 import InquiryWizard from "@/components/inquiry/InquiryWizard";
 import { hamtaBolag, hamtaBolagMedId, hamtaBolagMedSlug } from "@/lib/companiesRepo";
 import { publikaBolag } from "@/lib/publikBolag";
@@ -29,7 +30,7 @@ export default async function PartnersResultPage({ searchParams }) {
   if (forvalt) {
     return (
       <InquiryWizard
-        filters={{ beskrivning: "", omrade: "", service: "", ort: "", bolag: forvalt.slug || String(forvalt.id) }}
+        filters={{ beskrivning: "", omrade: "", service: "", ort: "", antal: null, start: "", ai: false, bolag: forvalt.slug || String(forvalt.id) }}
         results={publikaBolag([forvalt])}
         totalt={1}
       />
@@ -41,6 +42,9 @@ export default async function PartnersResultPage({ searchParams }) {
     omrade: params.omrade || "",
     service: params.tjanst || "",
     ort: params.ort || "",
+    antal: tolkaAntal(params.antal),
+    start: giltigStart(params.start) ? params.start : "",
+    ai: params.ai === "1",
   };
 
   const { bolag, totalt } = await hamtaBolag({

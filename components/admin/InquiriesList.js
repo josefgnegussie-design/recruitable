@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { MAX_ORD_I_SVAR, raknaOrd } from "@/lib/inquiries";
 import { useAndraObesvarade } from "@/components/admin/MinaSidorTabs";
 import { arbetsstalleText, formateraDatum, tidplanRader } from "@/lib/upphandlingInbjudan";
+import { detaljEtiketter } from "@/lib/forfraganDetaljer";
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString("sv-SE", { year: "numeric", month: "short", day: "numeric" });
@@ -237,13 +238,16 @@ export default function InquiriesList({ inquiries: initialInquiries, initialHasM
               </span>
             </div>
 
-            {(inq.focus_area || inq.service || inq.search_role) && (
+            {(inq.focus_area || inq.service || inq.search_role || inq.antal_personer || inq.start_tid) && (
               <div className="tag-row" style={{ marginTop: 10 }}>
                 {inq.upphandling && <span className="tag tag-upphandling">Upphandling</span>}
                 {/* En upphandlings rubrik står redan som rubrik ovan. */}
                 {inq.search_role && !inq.upphandling && <span className="tag">{inq.search_role}</span>}
                 {inq.focus_area && <span className="tag">{inq.focus_area}</span>}
                 {inq.service && <span className="tag">{inq.service}</span>}
+                {detaljEtiketter({ antal: inq.antal_personer, start: inq.start_tid }).map((t) => (
+                  <span key={t} className="tag">{t}</span>
+                ))}
               </div>
             )}
 

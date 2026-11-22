@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { detaljEtiketter } from "@/lib/forfraganDetaljer";
 
 const MAX_TECKEN = 350;
 
@@ -55,8 +56,13 @@ export default function AiSok() {
     if (svar.omrade) params.set("omrade", svar.omrade);
     if (svar.tjanst) params.set("tjanst", svar.tjanst);
     if (svar.ort) params.set("ort", svar.ort);
+    if (svar.antal) params.set("antal", String(svar.antal));
+    if (svar.start) params.set("start", svar.start);
+    // Talar om för förfrågan att värdena kommer från AI:n, så att de markeras
+    // som förifyllda tills köparen ändrar dem.
+    if (svar.tolkad) params.set("ai", "1");
 
-    const etiketter = [svar.omrade, svar.ort, svar.tjanst].filter(Boolean);
+    const etiketter = [svar.omrade, svar.ort, svar.tjanst, ...detaljEtiketter(svar)].filter(Boolean);
     const url = `/rekrytera/resultat?${params.toString()}`;
     router.prefetch(url);
     if (etiketter.length) {
