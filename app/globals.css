@@ -1752,3 +1752,18 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .ff-panel .field label{display:flex;align-items:center;gap:6px;}
 .ff-panel .ai-fylld input,.ff-panel .ai-fylld select,.ff-panel .ai-fylld textarea{border-color:#e7b48f;background-color:#fdf6f0;}
 .ff-panel .field select{padding-right:30px;background-position:right 10px center;text-overflow:ellipsis;}
+
+/* Flytande "Gå vidare" på resultatsidan. Visas när varken knappen ovanför
+   eller under korten syns. Nere till höger på dator, en list längst ner på
+   mobilen. */
+.ga-vidare-flyt{position:fixed;right:24px;bottom:24px;z-index:40;display:flex;align-items:center;gap:16px;padding:12px 12px 12px 20px;background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:14px;box-shadow:0 2px 6px rgba(20,30,40,.06),0 12px 32px rgba(20,30,40,.14);animation:ga-vidare-in .18s ease-out;}
+.ga-vidare-antal{font-size:14px;color:var(--color-body);white-space:nowrap;}
+.ga-vidare-antal b{font-family:var(--font-mono);font-size:16px;color:var(--color-ink);}
+.ga-vidare-flyt .qs-btn{width:auto;margin:0;padding:11px 18px;white-space:nowrap;}
+.ga-vidare-flyt .qs-btn:disabled{opacity:.5;cursor:not-allowed;}
+@keyframes ga-vidare-in{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+@media (max-width:640px){
+  .ga-vidare-flyt{left:0;right:0;bottom:0;border-radius:0;border-width:1px 0 0;justify-content:space-between;gap:12px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));}
+  .ga-vidare-flyt .qs-btn{flex:1;font-size:14.5px;}
+}
+@media (prefers-reduced-motion:reduce){.ga-vidare-flyt{animation:none;}}

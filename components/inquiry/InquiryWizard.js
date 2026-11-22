@@ -175,6 +175,29 @@ export default function InquiryWizard({ filters, results, totalt }) {
 
   const { step, selected } = draft;
 
+  // Den flytande "Gå vidare"-rutan syns bara när ingen av de vanliga
+  // knapparna (ovanför och under korten) är i bild, så att besökaren kan
+  // bocka i och ur bolag långt ner i listan och gå vidare utan att scrolla.
+  const toppKnappar = useRef(null);
+  const bottenKnapp = useRef(null);
+  const [synligaKnappar, setSynligaKnappar] = useState(() => new Set(["topp"]));
+  useEffect(() => {
+    if (step !== 1 || typeof IntersectionObserver === "undefined") return;
+    const obs = new IntersectionObserver((poster) => {
+      setSynligaKnappar((forra) => {
+        const nya = new Set(forra);
+        for (const p of poster) {
+          const namn = p.target.dataset.knapp;
+          if (p.isIntersecting) nya.add(namn);
+          else nya.delete(namn);
+        }
+        return nya;
+      });
+    });
+    for (const el of [toppKnappar.current, bottenKnapp.current]) if (el) obs.observe(el);
+    return () => obs.disconnect();
+  }, [step, restored, results.length]);
+
   const [turnstileToken, setTurnstileToken] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   // Kvittosteget ligger utanför utkastet: en skickad förfrågan ska inte kunna
@@ -419,7 +442,7 @@ export default function InquiryWizard({ filters, results, totalt }) {
             </div>
           </section>
           <div style={{ maxWidth: 1180, margin: "0 auto", padding: "10px 24px 40px" }}>
-            <div className="results-bar">
+            <div className="results-bar" ref={toppKnappar} data-knapp="topp">
               <div className="results-count"><b>{selected.size}</b> av {results.length} valda</div>
               <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                 <button type="button" className="link-btn" onClick={selectAll}>Välj alla</button>
@@ -447,11 +470,33 @@ export default function InquiryWizard({ filters, results, totalt }) {
             )}
             {error && <p style={{ color: "#c0392b", marginTop: 16 }}>{error}</p>}
             {results.length > 0 && (
-              <button className="qs-btn" style={{ maxWidth: 320, marginTop: 24 }} onClick={goStep1Next}>
+              <button
+                className="qs-btn"
+                style={{ maxWidth: 320, marginTop: 24 }}
+                onClick={goStep1Next}
+                ref={bottenKnapp}
+                data-knapp="botten"
+              >
                 {`Gå vidare (${selected.size} bolag) →`}
               </button>
             )}
           </div>
+          {results.length > 0 && synligaKnappar.size === 0 && (
+            <div className="ga-vidare-flyt" role="region" aria-label="Valda bolag">
+              <div className="ga-vidare-antal">
+                {selected.size === 0 ? (
+                  "Inga bolag valda"
+                ) : (
+                  <>
+                    <b>{selected.size}</b> {selected.size === 1 ? "bolag valt" : "bolag valda"}
+                  </>
+                )}
+              </div>
+              <button className="qs-btn" type="button" onClick={goStep1Next} disabled={selected.size === 0}>
+                Gå vidare med valda bolag &rarr;
+              </button>
+            </div>
+          )}
         </>
       )}
 
