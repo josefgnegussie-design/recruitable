@@ -2,6 +2,7 @@ import Link from "next/link";
 import { hamtaPagaendeUpphandlingar } from "@/lib/pagaendeUpphandlingar";
 import PagaendeLista, { pagaendeIntro } from "@/components/PagaendeLista";
 import NarliggandeKarta from "@/components/NarliggandeKarta";
+import AiSok from "@/components/AiSok";
 
 // Pågående upphandlingar ändras när en inbjudan godkänns, inte per besök.
 export const revalidate = 300;
@@ -69,6 +70,7 @@ export default async function UpphandlingPage() {
             <div className="upp-knappar">
               <Link className="btn-lg primary" href="/upphandling/skapa">Hitta bolag för er upphandling</Link>
             </div>
+            <AiSok lage="upphandling" />
           </div>
           {/* Stegen står bredvid texten i stället för under den, så att toppen
               inte bara fyller vänstra halvan. Numren kommer från steg-lista. */}

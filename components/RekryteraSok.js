@@ -7,6 +7,7 @@ import { allRegionCities } from "@/lib/helpers";
 import CompanyCard from "@/components/CompanyCard";
 import TjanstInfo from "@/components/TjanstInfo";
 import NarliggandeKarta from "@/components/NarliggandeKarta";
+import AiSok from "@/components/AiSok";
 import { markeraFranTraffar } from "@/lib/franTraffar";
 
 // Fångar klick på profillänkarna i korten, så att profilens tillbakalänk vet
@@ -57,6 +58,7 @@ function SokContent({ antalBolag, urval }) {
             Ange ort och yrkesområde och beskriv vad ni söker. Vi visar bemannings- och rekryteringsbolagen
             som passar bäst först.
           </p>
+          <AiSok lage="rekrytera" />
           {/* Stegen fyller spalten bredvid filtret, så att rubriken kan stå i
               höjd med filtrets överkant och siffran med dess underkant utan ett
               tomt fält emellan. Samma steg som "Så funkar det" på startsidan. */}

@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { allRegionCities } from "@/lib/helpers";
+import { SNARAST } from "@/lib/forfraganDetaljer";
 import { TJANSTER, YRKESOMRADEN } from "@/lib/taxonomy";
 import { idag, MAX_KOMPETENSER, MAX_OMRADEN, MAX_ORTER } from "@/lib/upphandling";
 import { forvaldaBolag, KRAV_VAL, MAX_BESKRIVNING } from "@/lib/upphandlingInbjudan";
@@ -58,6 +59,16 @@ function arbetsstalleEtikett(a) {
   return `${a.adress}, ${a.postnummer} ${a.postort}`;
 }
 
+const MANADER = ["januari", "februari", "mars", "april", "maj", "juni", "juli", "augusti", "september", "oktober", "november", "december"];
+
+// "Mars 2027" blir 2027-03-01, för datumfältet. "Snarast" lämnas tomt.
+function startdatumUr(start) {
+  if (!start || start === SNARAST) return "";
+  const [manad, ar] = start.toLowerCase().split(" ");
+  const m = MANADER.indexOf(manad);
+  return m >= 0 && /^20\d\d$/.test(ar) ? `${ar}-${String(m + 1).padStart(2, "0")}-01` : "";
+}
+
 // Chips med kryss, samma fält för arbetsställen och kompetenser.
 function Taggar({ lista, taBort }) {
   if (!lista.length) return null;
@@ -100,6 +111,30 @@ export default function SkapaUpphandling() {
     const bas = d.valda ?? forvaldaBolag(listade, traffar?.perOrt ?? []);
     return new Set(bas.filter((id) => ids.has(id)));
   }, [d.valda, listade, traffar]);
+
+  // Från AI-sökningen på /upphandling: det som gick att tolka fylls i, och
+  // adressen i URL:en tas bort så att en omladdning inte skriver över det
+  // köparen ändrat. Orten blir en påminnelse vid arbetsställena, eftersom ett
+  // arbetsställe kräver gatuadress och postnummer.
+  useEffect(() => {
+    if (!restored) return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("ai") !== "1" && !p.get("beskrivning")) return;
+    const andring = {};
+    const omrade = p.get("omrade");
+    if (omrade && Object.hasOwn(YRKESOMRADEN, omrade)) andring.omraden = [omrade];
+    const tjanst = p.get("tjanst");
+    if (tjanst && TJANSTER.includes(tjanst)) andring.tjanst = tjanst;
+    const beskrivning = (p.get("beskrivning") || "").slice(0, MAX_BESKRIVNING);
+    if (beskrivning) andring.beskrivning = beskrivning;
+    const antal = Number(p.get("antal"));
+    if (Number.isInteger(antal) && antal > 0) andring.volym = antal === 1 ? "1 person" : `${antal} personer`;
+    const start = startdatumUr(p.get("start"));
+    if (start) andring.startdatum = start;
+    andring.aiOrt = p.get("ort") || "";
+    patch(andring);
+    window.history.replaceState(null, "", window.location.pathname);
+  }, [restored, patch]);
 
   function vaxlaBolag(id) {
     const nya = new Set(valda);
@@ -206,6 +241,7 @@ export default function SkapaUpphandling() {
 
   if (!restored) return null;
 
+
   if (skickad) {
     return (
       <div style={{ maxWidth: 520, margin: "48px auto 60px", padding: "0 24px", textAlign: "center" }}>
@@ -286,6 +322,9 @@ export default function SkapaUpphandling() {
                   Där konsulterna ska arbeta. Avståndet räknas härifrån, som i kollektivavtalet: inom 25 km räknas ett bolag
                   som på orten, inom 75 km som i närheten. Gatuadressen visas för bolagen först när de tackat ja.
                 </p>
+                {d.aiOrt && !d.arbetsstallen.length && (
+                  <p className="hint ai-hint">Ni nämnde {d.aiOrt}. Lägg till arbetsställets gatuadress och postnummer ovan.</p>
+                )}
                 {ortfel && <p className="field-error">{ortfel}</p>}
                 <Taggar
                   lista={d.arbetsstallen.map(arbetsstalleEtikett)}
