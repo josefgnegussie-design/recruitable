@@ -348,7 +348,9 @@ export default function InquiryWizard({ filters, results, totalt }) {
           <Link className="back-link" href={filterHref(filters)}>&larr; Tillbaka till filtret</Link>
         )
       )}
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 24px 0" }}>
+      {/* På steg 1 följer stegen innehållets bredd, så att de linjerar med
+          rubriken och korten under. */}
+      <div style={{ maxWidth: visibleStep === 1 ? 1180 : 900, margin: "0 auto", padding: "20px 24px 0" }}>
         <Stepper step={visibleStep} total={3} />
       </div>
 

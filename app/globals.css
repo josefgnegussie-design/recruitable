@@ -341,7 +341,12 @@ a:hover{color:var(--color-accent)}
   .hero{max-width:1180px;margin:0 auto;padding:48px 24px 36px;display:grid;grid-template-columns:1.1fr 0.9fr;gap:48px;align-items:end;}
   /* Söksidan: texten centrerad i höjd mot filtret. Bottenjusterad lämnade den
      övre vänstra halvan tom bredvid ett högt formulär. */
-  .hero.hero-sok{align-items:center;padding-top:64px;padding-bottom:72px;}
+  .hero.hero-sok{align-items:stretch;padding-top:64px;padding-bottom:72px;}
+  /* Rubriken linjerar med filtrets överkant och siffran med dess underkant,
+     så att båda spalterna börjar och slutar på samma höjd. */
+  .hero-sok > div:first-child{display:flex;flex-direction:column;}
+  .hero-sok > div:first-child .hero-stats{margin-top:auto;}
+  .hero-sok .hero-sub{margin-bottom:32px;}
   .hero-sok .hero-stats{margin-top:32px;padding-top:20px;border-top:1px solid var(--color-hairline);}
   .hero-sok .hero-stats .num{font-family:var(--font-display);font-size:36px;letter-spacing:-0.01em;}
   .hero .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--color-muted);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
@@ -377,6 +382,10 @@ a:hover{color:var(--color-accent)}
   .sort-select{font-family:var(--font-mono);font-size:12px;border:1px solid var(--color-hairline);border-radius:var(--radius-md);background:var(--color-surface-card);padding:6px 8px;}
 
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  /* Korten i en rad är lika höga; länkraden ligger alltid längst ner, så att
+     länkarna i samma rad står på samma höjd. */
+  .grid > .card{display:flex;flex-direction:column;}
+  .grid > .card > .card-actions{margin-top:auto;}
   .card{background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:18px 18px 16px;position:relative;}
   .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
   .card-name{font-family:var(--font-display);font-size:19px;font-weight:600;margin:0 0 3px;color:var(--color-ink);}
@@ -605,6 +614,8 @@ a:hover{color:var(--color-accent)}
   .l-split{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,7fr);gap:24px 72px;align-items:start;}
   .l-split h2{margin:0;position:sticky;top:24px;}
   .l-prosa{max-width:62ch;}
+  /* I tvåspaltsavsnitten går texten ut till samma högerkant som avsnitten under. */
+  .l-split .l-prosa{max-width:none;}
   .l-prosa p{font-size:17px;line-height:1.65;color:var(--color-body);margin:0 0 20px;}
   .l-prosa p:last-child{margin-bottom:0;}
   .l-prosa strong{color:var(--color-ink);font-weight:600;}
@@ -620,7 +631,7 @@ a:hover{color:var(--color-accent)}
   .steg-lista{list-style:none;margin:40px 0 44px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:40px 32px;counter-reset:steg;}
   .steg-lista li{counter-increment:steg;border-top:1px solid var(--color-ink);padding-top:20px;}
   .steg-lista li::before{content:counter(steg);display:block;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--color-accent);margin-bottom:14px;}
-  .steg-lista h3{font-family:var(--font-display);font-size:20px;line-height:1.25;font-weight:600;color:var(--color-ink);margin:0 0 10px;}
+  .steg-lista h2, .steg-lista h3{font-family:var(--font-display);font-size:20px;line-height:1.25;font-weight:600;color:var(--color-ink);margin:0 0 10px;}
   .steg-lista p{font-size:15px;line-height:1.6;color:var(--color-body);margin:0;}
 
   .preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
@@ -741,7 +752,14 @@ a:hover{color:var(--color-accent)}
   .nearby-results .flow-suggest-card{align-items:center;}
 
   .site-footer{background:var(--color-surface-dark);color:var(--color-on-dark-soft);}
-  .footer-inner{max-width:1180px;margin:0 auto;padding:36px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px 32px;font-size:13.5px;}
+  /* Tre spalter där de yttre är lika breda, så att länkarna står i sidans
+     verkliga mitt och inte mitt emellan två olika breda grannar. */
+  .footer-inner{max-width:1180px;margin:0 auto;padding:36px 24px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:16px 32px;font-size:13.5px;}
+  .footer-data{justify-self:end;text-align:right;}
+  @media (max-width:820px){
+    .footer-inner{grid-template-columns:minmax(0,1fr);justify-items:start;}
+    .footer-data{justify-self:start;text-align:left;}
+  }
   .footer-inner .footer-namn{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:600;font-size:16px;color:var(--color-on-dark);}
   .footer-inner .footer-namn .mark{width:9px;height:9px;background:var(--color-accent);border-radius:2px;transform:rotate(45deg);}
   .footer-lankar{display:flex;gap:24px;}
@@ -882,8 +900,8 @@ a:hover{color:var(--color-accent)}
 /* Källa och datum i en egen spalt, rubriken bredvid och en pil som säger att
    länken leder bort från sajten. Läses som en innehållsförteckning. */
 .news-list{display:flex;flex-direction:column;border-top:1px solid var(--color-ink);margin-top:32px;}
-.news-item{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr) auto;gap:6px 32px;align-items:baseline;padding:20px 0;border-bottom:1px solid var(--color-hairline);text-decoration:none;}
-.news-meta{font-family:var(--font-mono);font-size:12px;letter-spacing:0.4px;text-transform:uppercase;color:var(--color-muted);}
+.news-item{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr) auto;gap:6px 32px;align-items:baseline;padding:20px 0;border-bottom:1px solid var(--color-hairline);text-decoration:none;}
+.news-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-mono);font-size:12px;letter-spacing:0.4px;text-transform:uppercase;color:var(--color-muted);}
 .news-title{font-family:var(--font-display);font-size:18px;line-height:1.35;font-weight:600;color:var(--color-ink);}
 .news-item::after{content:"↗";font-size:16px;color:var(--color-muted);transition:transform .12s ease,color .12s ease;}
 .news-item:hover .news-title{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;}
@@ -1082,7 +1100,7 @@ a.tab-btn{text-decoration:none;display:inline-block;}
 }
 
 /* ===== Snabbval i bolagslistan (/rekrytera/resultat) ===== */
-.link-btn{background:none;border:none;padding:0;font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--color-accent);text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+.link-btn{white-space:nowrap;background:none;border:none;padding:0;font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--color-accent);text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 .link-btn:hover{color:var(--color-accent-hover);}
 
 /* ===== Förfrågningars status (Mina sidor) ===== */
@@ -1162,6 +1180,27 @@ a.tab-btn{text-decoration:none;display:inline-block;}
    för att ligga ensam bredvid ett tomt fält. */
 .profile-body.single{grid-template-columns:1fr;}
 .profile-body.single > div:first-child:empty{display:none;}
+
+/* Spalterna i en profilrad slutar på samma höjd. Förut slutade den korta
+   spalten långt före den långa och lämnade ett tomt fält under sig: sista
+   panelen i varje spalt växer nu ner till radens botten. */
+.profile-body{align-items:stretch;}
+.profile-body > div{display:flex;flex-direction:column;}
+.profile-body > div > .panel:last-child{flex:1 1 auto;}
+
+/* Andra raden (text och karta) är ett enda kort med en tunn skiljelinje. Kartan
+   är hög och texten ofta kort; som två kort bredvid varandra blev det ett
+   halvtomt kort, som ett kort blir det en text med en bild bredvid. */
+.profile-body.samlad{gap:0;background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);}
+.profile-body.samlad .panel{background:none;border:none;border-radius:0;box-shadow:none;margin-bottom:0;}
+.profile-body.samlad > div + div{border-left:1px solid var(--color-hairline-soft);}
+.profile-body.samlad .sverigekarta{max-height:300px;}
+@media (max-width:820px){
+  .profile-body.samlad > div + div{border-left:none;border-top:1px solid var(--color-hairline-soft);}
+}
+
+/* Raden under knappen följer knappens mittlinje. */
+.profile-actions .note{text-align:center;}
 
 /* ===== Intern dashboard (/admin) ===== */
 .admin-shell{max-width:1180px;margin:0 auto;padding:0 24px 80px;}
@@ -1492,7 +1531,11 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .upp-pagaende-kort h3{margin:2px 0 8px;font-size:19px;font-weight:600;line-height:1.25;color:var(--color-ink);}
 .upp-pagaende-ort{margin:0;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-accent);}
 .upp-pagaende-text{margin:0 0 20px;font-size:14px;line-height:1.5;color:var(--color-ink-soft,inherit);flex:1;}
-.upp-exempel-tagg{align-self:flex-start;margin-bottom:10px;}
+/* Taggen står i kortets övre högra hörn, så att orten börjar på samma höjd i
+   alla kort, oavsett om kortet är ett exempel eller inte. */
+.upp-pagaende-kort{position:relative;}
+.upp-exempel-tagg{position:absolute;top:18px;right:18px;margin:0;}
+.upp-pagaende-kort .upp-pagaende-ort{padding-right:80px;}
 .upp-tidslinje{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--steg,4),minmax(0,1fr));position:relative;}
 .upp-tidslinje::before{content:"";position:absolute;left:calc(50% / var(--steg,4));right:calc(50% / var(--steg,4));top:5px;height:2px;background:var(--color-accent);}
 .upp-tidslinje li{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;position:relative;}
@@ -1585,3 +1628,51 @@ a.oversikt-del:hover{border-color:var(--color-primary);}
 .granskning-orsaker{margin-top:12px;padding:10px 14px;border-radius:var(--radius-md, 10px);background:#fdf6e7;border:1px solid #f0dcae;}
 .auth-panel .granskning-orsaker p{margin:0 0 4px;font-size:12.5px;font-weight:600;color:#7a5a12;}
 .granskning-orsaker ul{margin:0;padding-left:18px;font-size:13px;color:#5c4510;line-height:1.5;}
+
+/* Upphandlings topp: texten till vänster och stegen i ett två-gånger-två-rutnät
+   till höger, så att sidans övre halva är fylld på båda sidor. Stegen har samma
+   utseende som på startsidan. */
+.hero.upp-hero{align-items:start;gap:72px;padding-bottom:56px;}
+.steg-lista.steg-lista-ruta{grid-template-columns:repeat(2,minmax(0,1fr));margin:6px 0 0;gap:32px 32px;}
+.steg-lista.steg-lista-ruta h2{font-size:18px;}
+@media (max-width:560px){
+  .steg-lista.steg-lista-ruta{grid-template-columns:1fr;gap:28px;}
+}
+@media (max-width:820px){ .hero.upp-hero{gap:40px;} }
+
+/* Stegen i Rekryteras topp: en kort numrerad lista med samma orange siffror
+   som "Så funkar det" på startsidan. */
+.sok-steg{list-style:none;margin:8px 0 32px;padding:0;counter-reset:sok;}
+.sok-steg li{counter-increment:sok;display:flex;align-items:baseline;gap:16px;padding:13px 0;border-top:1px solid var(--color-hairline);font-family:var(--font-display);font-size:16.5px;font-weight:600;color:var(--color-ink);}
+.sok-steg li::before{content:counter(sok);min-width:12px;font-size:14px;color:var(--color-accent);}
+@media (max-width:820px){ .sok-steg{display:none;} }
+
+/* Band med pågående förfrågningar direkt under menyn: bakgrunden går över hela
+   sidans bredd, innehållet följer samma 1180-spalt som resten av sidan. */
+.pagaende-band{background:var(--color-surface-soft);border-bottom:1px solid var(--color-hairline);}
+.pagaende-band > .upp-pagaende{max-width:1180px;margin:0 auto;padding:32px 24px 36px;}
+.pagaende-band .upp-pagaende-lista{grid-template-columns:repeat(3,minmax(0,1fr));}
+/* På smala skärmar blir varje förfrågan en rad: ort och rubrik till vänster,
+   status till höger. Alla syns utan att svepa, och sökfiltret hamnar högt upp.
+   Inledningen och tidslinjen visas bara på större skärmar; statusen är
+   tidslinjens sista steg. */
+@media (max-width:900px){
+  .pagaende-band > .upp-pagaende{padding:18px 16px 20px;}
+  .pagaende-band .upp-rubrik-liten{font-size:16px;margin-bottom:10px;}
+  .pagaende-band .upp-not{display:none;}
+  .pagaende-band .upp-pagaende-lista{grid-template-columns:minmax(0,1fr);gap:0;background:var(--color-surface-card);border:1px solid var(--color-hairline);border-radius:var(--radius-lg);overflow:hidden;}
+  .pagaende-band .upp-pagaende-kort{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"ort tagg" "rubrik status";align-items:center;gap:2px 12px;padding:11px 14px;border:none;border-radius:0;box-shadow:none;}
+  .pagaende-band .upp-pagaende-lista > li + li{border-top:1px solid var(--color-hairline-soft);}
+  .pagaende-band .upp-pagaende-ort{grid-area:ort;margin:0;padding-right:0;font-size:10.5px;}
+  .pagaende-band .upp-pagaende-kort h3{grid-area:rubrik;margin:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pagaende-band .upp-exempel-tagg{grid-area:tagg;position:static;justify-self:end;font-size:10px;padding:1px 7px;}
+  .pagaende-band .upp-pagaende-text{display:none;}
+  .pagaende-band .upp-tidslinje{grid-area:status;display:block;justify-self:end;}
+  .pagaende-band .upp-tidslinje::before{display:none;}
+  .pagaende-band .upp-tidslinje li{display:none;}
+  .pagaende-band .upp-tidslinje li:last-child{display:block;}
+  .pagaende-band .upp-tidslinje li:last-child .punkt,.pagaende-band .upp-tidslinje li:last-child .datum{display:none;}
+  .pagaende-band .upp-tidslinje .steg{font-size:10px;white-space:nowrap;color:var(--color-muted);}
+  .pagaende-band .upp-tidslinje .steg.framhavd{color:var(--color-accent);}
+}
+

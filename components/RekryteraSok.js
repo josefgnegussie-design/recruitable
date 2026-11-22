@@ -56,6 +56,14 @@ function SokContent({ antalBolag, urval }) {
             Ange ort och yrkesområde och beskriv vad ni söker. Vi visar bemannings- och rekryteringsbolagen
             som passar bäst först.
           </p>
+          {/* Stegen fyller spalten bredvid filtret, så att rubriken kan stå i
+              höjd med filtrets överkant och siffran med dess underkant utan ett
+              tomt fält emellan. Samma steg som "Så funkar det" på startsidan. */}
+          <ol className="sok-steg">
+            {["Beskriv vad ni söker", "Se vilka bolag som passar", "Skicka en förfrågan", "Bolagen hör av sig"].map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ol>
           <div className="hero-stats">
             <div className="stat"><span className="num">{antalBolag.toLocaleString("sv-SE")}</span><span className="label">Bolag i registret</span></div>
           </div>

@@ -31,10 +31,10 @@ export default async function RegistreraPage({ searchParams }) {
 
   return (
     <div id="view-registrera">
-      {/* Rubriken och formuläret delar vänsterkant. Förut var rubriken
-          vänsterställd i en 640-spalt och formuläret centrerat i en smalare,
-          så de två blocken stod förskjutna mot varandra. */}
-      <section className="hero" style={{ gridTemplateColumns: "1fr", maxWidth: 640, margin: "0 auto", paddingBottom: 28 }}>
+      {/* Rubriken och formuläret står i samma centrerade spalt, lika bred som
+          formuläret. Förut låg ett 480 px brett formulär vänsterställt i en
+          640-spalt, så hela blocket hamnade till vänster om sidans mitt. */}
+      <section className="hero" style={{ gridTemplateColumns: "1fr", maxWidth: 528, margin: "0 auto", paddingBottom: 28 }}>
         <div>
           <div className="eyebrow">För bemannings- och rekryteringsföretag</div>
           <h1 className="hero-title">{forifyllt ? `Ta över ${forifyllt.namn}` : "Ta över ert bolag"}</h1>
@@ -45,8 +45,8 @@ export default async function RegistreraPage({ searchParams }) {
           </p>
         </div>
       </section>
-      <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 24px 80px" }}>
-        <div style={{ maxWidth: 480 }}>
+      <div style={{ maxWidth: 528, margin: "0 auto", padding: "0 24px 80px" }}>
+        <div>
           {hinder ? (
             <div className="auth-panel">
               <p style={{ margin: 0 }}>{hinder.text}</p>
