@@ -29,12 +29,14 @@ const FAQ = [
 ];
 
 // Om oss berättar varför tjänsten finns. Stegen för hur den används står på
-// startsidan och upprepas inte här, och visionen är ett citat i texten i
-// stället för en mörk ruta med centrerad fetstil.
+// startsidan och upprepas inte här, och visionen är ett citat i stället för en
+// mörk ruta med centrerad fetstil. Ingressen står i mitten, visionen står under
+// rubriken i vänsterspalten (sist på mobil) och frågorna står till vänster om
+// svaren, så att ingen spalt lämnas tom.
 export default function OmOssPage() {
   return (
     <div id="view-om-oss">
-      <section className="about-hero">
+      <section className="about-hero about-hero-mitt">
         <div className="l-kicker">Om Recruitable</div>
         <h1>Rätt rekryteringspartner hittar man inte av en slump</h1>
         <p className="about-hero-sub">
@@ -43,7 +45,7 @@ export default function OmOssPage() {
         </p>
       </section>
 
-      <section className="l-section l-split">
+      <section className="l-section l-split om-varfor">
         <h2>Varför Recruitable finns</h2>
         <div className="l-prosa">
           <p>
@@ -59,14 +61,14 @@ export default function OmOssPage() {
             omsättning, storlek, kollektivavtal, auktorisation och vilka områden de arbetar inom. Ni kan jämföra
             innan ni tar kontakt, och lägger mindre tid på möten som inte leder någonstans.
           </p>
-          <blockquote className="l-citat">
-            Vår vision är att jämna ut oddsen i rekryteringsbranschen, så att bolagen konkurrerar om att ge
-            kunderna mest möjliga värde.
-          </blockquote>
         </div>
+        <blockquote className="l-citat">
+          Vår vision är att jämna ut oddsen i rekryteringsbranschen, så att bolagen konkurrerar om att ge
+          kunderna mest möjliga värde.
+        </blockquote>
       </section>
 
-      <section className="l-section l-split">
+      <section className="l-section om-faq">
         <h2>Frågor och svar</h2>
         <div className="faq-list">
           {FAQ.map((item) => (

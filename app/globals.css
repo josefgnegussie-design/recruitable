@@ -662,6 +662,29 @@ a:hover{color:var(--color-accent)}
   .faq-a{font-size:14.5px;color:var(--color-body);margin:0;line-height:1.65;max-width:70ch;}
   .faq-a a{color:var(--color-accent);}
 
+  /* Om oss: ingressen i sidans mitt. */
+  .about-hero-mitt{text-align:center;}
+  .about-hero-mitt .l-kicker{justify-content:center;}
+  .about-hero-mitt h1, .about-hero-mitt .about-hero-sub{margin-left:auto;margin-right:auto;}
+  /* Om oss: visionen står under rubriken i vänsterspalten, så att spalterna
+     slutar på ungefär samma höjd. På mobil hamnar den sist, efter texten. */
+  .om-varfor h2{position:static;}
+  @media (min-width:901px){
+    .om-varfor{grid-template-rows:auto 1fr;}
+    .om-varfor .l-prosa{grid-column:2;grid-row:1 / span 2;}
+    .om-varfor .l-citat{grid-column:1;grid-row:2;margin-top:4px;}
+  }
+  /* Om oss: frågan till vänster och svaret till höger, i samma spalter som
+     avsnittet ovanför. Svaren går ut till samma högerkant. */
+  .om-faq h2{margin-bottom:8px;}
+  .om-faq .faq-list{max-width:none;}
+  .om-faq .faq-a{max-width:none;}
+  @media (min-width:901px){
+    .om-faq .faq-item{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,7fr);gap:8px 72px;padding:26px 0;}
+    .om-faq .faq-q{margin:0;font-size:18px;line-height:1.35;}
+    .om-faq .faq-a{font-size:16px;}
+  }
+
   /* ===================== COOKIE-BANNER ===================== */
   /* ===================== PREMIUMPROFIL-REDIGERARE ===================== */
   .image-upload{display:flex;align-items:center;gap:16px;}
@@ -829,6 +852,7 @@ a:hover{color:var(--color-accent)}
     .preview-grid{grid-template-columns:1fr;}
     .l-split{grid-template-columns:1fr;}
     .l-split h2{position:static;}
+    .om-varfor .l-citat{margin-top:12px;}
     :root{
       --text-display-xl-size:40px;--text-display-xl-lh:1.14;
       --text-display-lg-size:32px;--text-display-lg-lh:1.16;
